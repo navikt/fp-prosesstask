@@ -1,23 +1,39 @@
-# Compiled class file
-*.class
-
-# Log file
-*.log
-
-# BlueJ files
-*.ctxt
-
-# Mobile Tools for Java (J2ME)
-.mtj.tmp/
-
-# Package Files #
-*.jar
-*.war
-*.nar
-*.ear
+secrets.env
+.settings
+.wtpmodules
+target
+.project
+.classpath
+outdated-dependencies.txt
+bin
+*.iml
+.idea
+_*.sh
+*.local
+*.localz
+es.properties
+es-local.properties
+es.properties.backup
 *.zip
-*.tar.gz
-*.rar
-
-# virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
-hs_err_pid*
+*.versionsBackup
+*.log
+*.db
+mqjms.log*
+maven-eclipse.xml
+.externalToolBuilders
+dep.txt
+/docs/asciidoc/index.html
+.eslint-loader-cache
+.mvn/maven.config
+.mvn/jvm.config
+.flattened*
+.flattened
+*.patch
+/.mvn/
+target/
+vl-foreldrepenger/logback.xml
+keystore.jks
+truststore.jts
+truststore.jks
+.DS_Store
+.env

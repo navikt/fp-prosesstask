@@ -1,0 +1,13 @@
+{
+  "schemas": [
+    {
+      "datasource": "defaultDS",
+      "schema": "unittest",
+      "user": "unittest",
+      "password": "unittest",
+      "url": "jdbc:postgresql://127.0.0.1:5432/unittest",
+      "default": true,
+      "migrationScriptsFilesystemRoot": "src/test/resources/db/migration/"
+    }
+  ]
+}
