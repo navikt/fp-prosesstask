@@ -11,8 +11,7 @@
 	<packaging>pom</packaging>
 
 	<description>Library to process asynchronous, persistent tasks.</description>
-	<url>https://github.com/navikt/fp-prosesstask</url>
-	
+
 	<organization>
 		<name>no.nav</name>
 		<url>https://github.com/navikt</url>
