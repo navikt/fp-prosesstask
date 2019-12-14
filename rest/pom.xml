@@ -1,0 +1,76 @@
+<?xml version="1.0"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<parent>
+		<groupId>no.nav.vedtak.prosesstask</groupId>
+		<artifactId>prosesstask-root</artifactId>
+		<version>${revision}${sha1}${changelist}</version>
+	</parent>
+	
+	<artifactId>prosesstask-rest-api</artifactId>
+	<name>Prosesstask :: Rest</name>
+	<packaging>jar</packaging>
+
+	<dependencies>
+
+		<dependency>
+			<!-- Trengs for implementasjon av TaskManager -->
+			<groupId>no.nav.vedtak.prosesstask</groupId>
+			<artifactId>prosesstask</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>no.nav.foreldrepenger.felles.sikkerhet</groupId>
+			<artifactId>felles-sikkerhet</artifactId>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>no.nav.foreldrepenger.felles</groupId>
+			<artifactId>felles-db</artifactId>
+			<scope>provided</scope>
+		</dependency>
+		
+		<!-- REST felles -->
+		<dependency>
+			<!-- Trengs for REST grensesnitt -->
+			<groupId>org.jboss.resteasy</groupId>
+			<artifactId>resteasy-jackson2-provider</artifactId>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<!-- Trengs for REST grensesnitt -->
+			<groupId>io.swagger.core.v3</groupId>
+			<artifactId>swagger-jaxrs2</artifactId>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<!-- Trengs for REST grensesnitt -->
+			<groupId>org.jboss.resteasy</groupId>
+			<artifactId>resteasy-jaxrs</artifactId>
+			<exclusions>
+				<exclusion>
+					<artifactId>jboss-jaxb-api_2.3_spec</artifactId>
+					<groupId>org.jboss.spec.javax.xml.bind</groupId>
+				</exclusion>
+			</exclusions>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<!-- Trengs for REST grensesnitt -->
+			<groupId>org.jboss.resteasy</groupId>
+			<artifactId>resteasy-validator-provider</artifactId>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<!-- Trengs for REST grensesnitt -->
+			<groupId>org.jboss.resteasy</groupId>
+			<artifactId>resteasy-cdi</artifactId>
+			<scope>provided</scope>
+		</dependency>
+
+	</dependencies>
+
+</project>
