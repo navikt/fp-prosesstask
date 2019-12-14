@@ -130,6 +130,7 @@ TaskManager startes f.eks. fra en WebListener
 2. Savepoints brukes til bokføring av kjørende tasks og feilhåndtering dersom noen tasks kaster exceptions.  Enkelte exceptions (SQLTransientException etc) oppfører seg transient og vil automatisk retryes, mens andre er avhengig av definert feilhåndteringalgoritme.
 
 
+
 ### Licenses and attribution
 *For updated information, always see LICENSE first!*
 
