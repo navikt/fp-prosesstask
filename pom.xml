@@ -322,7 +322,7 @@
 
 	<distributionManagement>
 		<repository>
-			<id>github-1</id>
+			<id>github-2</id>
 			<name>Github navikt Maven Packages</name>
 			<url>https://maven.pkg.github.com/navikt/fp-prosesstask</url>
 		</repository>
