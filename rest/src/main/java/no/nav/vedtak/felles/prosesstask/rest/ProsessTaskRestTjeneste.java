@@ -9,6 +9,7 @@ import java.util.Optional;
 
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
+import javax.transaction.Transactional;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.Consumes;
@@ -28,7 +29,6 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import no.nav.vedtak.felles.jpa.Transaction;
 import no.nav.vedtak.felles.prosesstask.rest.app.ProsessTaskApplikasjonTjeneste;
 import no.nav.vedtak.felles.prosesstask.rest.dto.FeiletProsessTaskDataDto;
 import no.nav.vedtak.felles.prosesstask.rest.dto.ProsessTaskDataDto;
@@ -47,7 +47,7 @@ import no.nav.vedtak.sikkerhet.abac.BeskyttetRessurs;
 @OpenAPIDefinition(tags = @Tag(name = "prosesstask", description = "Håndtering av asynkrone oppgaver i form av prosesstask"))
 @Path("/prosesstask")
 @RequestScoped
-@Transaction
+@Transactional
 public class ProsessTaskRestTjeneste {
 
     private static final Logger logger = LoggerFactory.getLogger(ProsessTaskRestTjeneste.class);

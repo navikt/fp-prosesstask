@@ -16,9 +16,7 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Lob;
-import javax.persistence.PrePersist;
 import javax.persistence.Table;
-import javax.persistence.Transient;
 import javax.persistence.Version;
 
 import org.hibernate.annotations.Type;
@@ -83,14 +81,11 @@ public class ProsessTaskEntitet {
     private String taskType;
 
     @Column(name = "opprettet_av", nullable = false)
-    private String opprettetAv;
+    private String opprettetAv = "SYSTEM";
 
     @Version
     @Column(name = "versjon", nullable = false)
     private Long versjon;
-
-    @Transient
-    private String brukerident = "VL";
 
     ProsessTaskEntitet() {
         // for hibernate
@@ -253,11 +248,6 @@ public class ProsessTaskEntitet {
         this.sisteFeilKode = kode;
     }
 
-    @PrePersist
-    protected void onCreate() {
-        this.opprettetAv = brukerident;
-    }
-
     /**
      * JPA konverterer for å skrive ned en key=value text til et databasefelt (output tilsvarer java.util.Properties
      * format).
@@ -295,7 +285,10 @@ public class ProsessTaskEntitet {
 
     void setSubjectProvider(SubjectProvider subjectProvider) {
         if (subjectProvider != null) {
-            this.brukerident = subjectProvider.getUserIdentity();
+            var ident = subjectProvider.getUserIdentity();
+            if (ident != null) {
+                this.opprettetAv = ident;
+            }
         }
     }
 
