@@ -11,14 +11,11 @@ import javax.persistence.ManyToOne;
 import javax.persistence.PrePersist;
 import javax.persistence.Table;
 
-import org.hibernate.annotations.Immutable;
-
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskTypeInfo;
 
 /**
  * Konfigurasjon for en type task
  */
-@Immutable
 @Entity(name = "ProsessTaskType")
 @Table(name = "PROSESS_TASK_TYPE")
 public class ProsessTaskType {

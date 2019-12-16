@@ -32,8 +32,7 @@ public class TaskManagerGenerateRunnableTasks {
      * @param taskDispatcher - dispatcher som skal velge implementasjon og kjøre en spesifikk task
      * @param availableTasksFunc - funksjon for å polle tilgenglige tasks
      */
-    TaskManagerGenerateRunnableTasks(
-                                     ProsessTaskDispatcher taskDispatcher,
+    TaskManagerGenerateRunnableTasks(ProsessTaskDispatcher taskDispatcher,
                                      BiFunction<Integer, ReadTaskFunksjon, List<IdentRunnable>> availableTasksFunc,
                                      Consumer<IdentRunnable> errorSubmitFunc) {
         this.taskDispatcher = taskDispatcher;
