@@ -1,24 +1,16 @@
 package no.nav.vedtak.felles.prosesstask.impl;
 
 import java.io.IOException;
-import java.sql.SQLNonTransientConnectionException;
-import java.sql.SQLRecoverableException;
-import java.sql.SQLTransientException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
 import javax.enterprise.inject.Instance;
-import javax.persistence.QueryTimeoutException;
 
-import org.hibernate.exception.JDBCConnectionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import no.nav.vedtak.exception.IntegrasjonException;
-import no.nav.vedtak.exception.TekniskException;
 import no.nav.vedtak.feil.Feil;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskFeil;
@@ -27,11 +19,6 @@ import no.nav.vedtak.felles.prosesstask.spi.ProsessTaskFeilhåndteringAlgoritme;
 
 /** Samler feilhåndtering og status publisering som skjer på vanlige prosess tasks. */
 public class RunTaskFeilOgStatusEventHåndterer {
-
-    /** Disse delegres til Feilhåndteringsalgoritme for håndtering. Andre vil alltid gi FEILET status. */
-    private static final List<Class<?>> FEILHÅNDTERING_EXCEPTIONS = Arrays.asList(IntegrasjonException.class, TekniskException.class,
-        JDBCConnectionException.class, QueryTimeoutException.class, SQLTransientException.class, SQLNonTransientConnectionException.class,
-        SQLRecoverableException.class);
 
     private static final Logger log = LoggerFactory.getLogger(RunTaskFeilOgStatusEventHåndterer.class);
 
@@ -132,7 +119,7 @@ public class RunTaskFeilOgStatusEventHåndterer {
     }
 
     private boolean feilhåndteringExceptions(Throwable e) {
-        return (FEILHÅNDTERING_EXCEPTIONS.stream().anyMatch(fatal -> fatal.isAssignableFrom(e.getClass())));
+        return taskInfo.feilhåndterException(e);
     }
 
     protected static String getFeiltekstOgLoggHvisFørstegang(ProsessTaskEntitet pte, Feil feil, Throwable t) {

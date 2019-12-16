@@ -5,6 +5,7 @@ import java.util.Optional;
 import java.util.Properties;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import no.nav.vedtak.felles.prosesstask.api.ProsessTaskSporingsloggId;
 import no.nav.vedtak.log.sporingslogg.Sporingsdata;
 
 @Schema
@@ -114,16 +115,16 @@ public class ProsessTaskDataDto implements ProsessTaskDataInfo {
 
         Sporingsdata sporingsdata = Sporingsdata.opprett(action);
         if (aktørId != null) {
-            sporingsdata.leggTilId(ProsessTaskSporingsloggId.AKTOR_ID, Long.valueOf(aktørId));
+            sporingsdata.leggTilId(ProsessTaskSporingsloggId.AKTOR_ID.getSporingsloggKode(), aktørId);
         }
         if (fagsakId != null) {
-            sporingsdata.leggTilId(ProsessTaskSporingsloggId.FAGSAK_ID, Long.valueOf(fagsakId));
+            sporingsdata.leggTilId(ProsessTaskSporingsloggId.FAGSAK_ID.getSporingsloggKode(), fagsakId);
         }
         if (behandlingId != null) {
-            sporingsdata.leggTilId(ProsessTaskSporingsloggId.BEHANDLING_ID, Long.valueOf(behandlingId));
+            sporingsdata.leggTilId(ProsessTaskSporingsloggId.BEHANDLING_ID.getSporingsloggKode(), behandlingId);
         }
         if (pnrId != null) {
-            sporingsdata.leggTilId(ProsessTaskSporingsloggId.FNR, Long.valueOf(pnrId));
+            sporingsdata.leggTilId(ProsessTaskSporingsloggId.FNR.getSporingsloggKode(), pnrId);
         }
         return Optional.of(sporingsdata);
     }

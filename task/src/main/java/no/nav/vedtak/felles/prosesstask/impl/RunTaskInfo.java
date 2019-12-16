@@ -51,4 +51,9 @@ class RunTaskInfo {
     LocalDateTime getTimestampLowWatermark() {
         return timestampLowWatermark;
     }
+
+    /** Skal benytte feilhåndtering algoritme for angitt exception. */
+    public boolean feilhåndterException(Throwable e) {
+        return taskDispatcher.feilhåndterException(this.taskType, e);
+    }
 }

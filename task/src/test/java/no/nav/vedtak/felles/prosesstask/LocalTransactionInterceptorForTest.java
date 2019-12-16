@@ -1,4 +1,4 @@
-package no.nav.vedtak.felles.prosesstask.impl.util;
+package no.nav.vedtak.felles.prosesstask;
 import javax.annotation.Priority;
 import javax.enterprise.context.Dependent;
 import javax.enterprise.inject.spi.CDI;
@@ -6,17 +6,18 @@ import javax.interceptor.AroundInvoke;
 import javax.interceptor.Interceptor;
 import javax.interceptor.InvocationContext;
 import javax.persistence.EntityManager;
-import javax.transaction.Transaction;
 import javax.transaction.Transactional;
 
+import no.nav.vedtak.felles.prosesstask.impl.util.TransactionHandler;
+
 /**
- * Basic Local Transactional Interceptor. 
+ * Local Transaction Manager, kun for test.
  */
 @Transactional
 @Interceptor
 @Priority(Interceptor.Priority.APPLICATION + 10)
 @Dependent
-public class TransactionInterceptor {
+public class LocalTransactionInterceptorForTest {
 
     private static final class TransactionHandlerInvocation extends TransactionHandler<Object> {
         private final InvocationContext invocationContext;
@@ -36,7 +37,7 @@ public class TransactionInterceptor {
     /**
      * Velger riktig EntityManager avh. av annotasjon på Transaction
      */
-    private EntityManager getEntityManager(InvocationContext ic) {
+    private EntityManager getEntityManager() {
         EntityManager em = CURRENT.select(EntityManager.class).get();
         return em;
     }
@@ -48,7 +49,7 @@ public class TransactionInterceptor {
     @AroundInvoke
     public Object wrapTransaction(final InvocationContext invocationContext) throws Exception {
 
-        EntityManager entityManager = getEntityManager(invocationContext);
+        EntityManager entityManager = getEntityManager();
 
         boolean isActiveTx = entityManager.getTransaction().isActive();
 

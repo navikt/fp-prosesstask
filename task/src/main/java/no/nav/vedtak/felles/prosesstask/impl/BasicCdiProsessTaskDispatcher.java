@@ -1,8 +1,17 @@
 package no.nav.vedtak.felles.prosesstask.impl;
 
+import java.sql.SQLNonTransientConnectionException;
+import java.sql.SQLRecoverableException;
+import java.sql.SQLTransientException;
+import java.util.LinkedHashSet;
+import java.util.Set;
+
 import javax.enterprise.context.Dependent;
 import javax.enterprise.inject.spi.CDI;
 import javax.enterprise.util.AnnotationLiteral;
+import javax.persistence.QueryTimeoutException;
+
+import org.hibernate.exception.JDBCConnectionException;
 
 import no.nav.vedtak.felles.prosesstask.api.ProsessTask;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
@@ -14,11 +23,36 @@ import no.nav.vedtak.felles.prosesstask.api.ProsessTaskInfo;
  * Implementerer dispatch vha. CDI scoped beans.
  */
 public class BasicCdiProsessTaskDispatcher implements ProsessTaskDispatcher {
+    
+    /** Disse delegres til Feilhåndteringsalgoritme for håndtering. Andre vil alltid gi FEILET status. */
+    private static final Set<Class<?>> DEFAULT_FEILHÅNDTERING_EXCEPTIONS = Set.of(
+        JDBCConnectionException.class, 
+        QueryTimeoutException.class, 
+        SQLTransientException.class, 
+        SQLNonTransientConnectionException.class,
+        SQLRecoverableException.class);
+    
+    private Set<Class<?>> feilhåndteringExceptions = new LinkedHashSet<>();
+
+    protected BasicCdiProsessTaskDispatcher() {
+        this(Set.of());
+    }
+    
+    protected BasicCdiProsessTaskDispatcher(Set<Class<?>> feilhåndteringExceptions) {
+        this.feilhåndteringExceptions.addAll(feilhåndteringExceptions);
+        this.feilhåndteringExceptions.addAll(DEFAULT_FEILHÅNDTERING_EXCEPTIONS);
+    }
+
     @Override
-    public void dispatch(ProsessTaskData task) {
+    public void dispatch(ProsessTaskData task) throws Exception {
         try (ProsessTaskHandlerRef prosessTaskHandler = findHandler(task)) {
             prosessTaskHandler.doTask(task);
         }
+    }
+    
+    @Override
+    public boolean feilhåndterException(String taskType, Throwable e) {
+        return (feilhåndteringExceptions.stream().anyMatch(fatal -> fatal.isAssignableFrom(e.getClass())));
     }
 
     public ProsessTaskHandlerRef findHandler(ProsessTaskInfo task) {
@@ -32,7 +66,7 @@ public class BasicCdiProsessTaskDispatcher implements ProsessTaskDispatcher {
 
         private ProsessTaskHandler bean;
 
-        ProsessTaskHandlerRef(ProsessTaskHandler bean) {
+        protected ProsessTaskHandlerRef(ProsessTaskHandler bean) {
             this.bean = bean;
         }
 

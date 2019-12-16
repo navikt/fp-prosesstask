@@ -58,9 +58,9 @@ public class RunProsessTaskIT {
         repo.flushAndClear();
 
         AtomicBoolean allDone = new AtomicBoolean();
-        ProsessTaskDispatcher dispatcher = (task) -> {
+        ProsessTaskDispatcher dispatcher = new DummyProsessTaskDispatcher((task) -> {
             allDone.set(task != null);
-        };
+        });
 
         // Act
         RunTask runTask = new RunTask(taskManagerRepo, null, feilhåndteringAlgoritmer);
@@ -85,9 +85,9 @@ public class RunProsessTaskIT {
         repo.flushAndClear();
 
         AtomicBoolean allDone = new AtomicBoolean();
-        ProsessTaskDispatcher dispatcher = (task) -> {
+        ProsessTaskDispatcher dispatcher = new DummyProsessTaskDispatcher((task) -> {
             allDone.set(task != null);
-        };
+        });
 
         // Act
         RunTask runTask = new RunTask(taskManagerRepo, null, feilhåndteringAlgoritmer);
@@ -119,10 +119,10 @@ public class RunProsessTaskIT {
         repo.flushAndClear();
 
         AtomicBoolean allDone = new AtomicBoolean();
-        ProsessTaskDispatcher dispatcher = (task) -> {
+        ProsessTaskDispatcher dispatcher = new DummyProsessTaskDispatcher((task) -> {
             allDone.set(task != null);
             throw new RuntimeException("I am a walrus!");
-        };
+        });
 
         // Act
         RunTask runTask = new RunTask(taskManagerRepo, null, feilhåndteringAlgoritmer);
@@ -149,10 +149,10 @@ public class RunProsessTaskIT {
         repo.flushAndClear();
 
         AtomicBoolean allDone = new AtomicBoolean();
-        ProsessTaskDispatcher dispatcher = (task) -> {
+        ProsessTaskDispatcher dispatcher = new DummyProsessTaskDispatcher((task) -> {
             allDone.set(task != null);
             throw new SavepointRolledbackException("Save me!", new UnsupportedOperationException("ignored"));
-        };
+        });
 
         // Act
         RunTask runTask = new RunTask(taskManagerRepo, null, feilhåndteringAlgoritmer);
@@ -183,10 +183,10 @@ public class RunProsessTaskIT {
         repo.flushAndClear();
 
         AtomicBoolean allDone = new AtomicBoolean();
-        ProsessTaskDispatcher dispatcher = (task) -> {
+        ProsessTaskDispatcher dispatcher = new DummyProsessTaskDispatcher((task) -> {
             allDone.set(task != null);
             throw new SQLTransientException("I am NOT a walrus!");
-        };
+        });
 
         // Acts
         RunTask runTask = new RunTask(taskManagerRepo, null, feilhåndteringAlgoritmer);
@@ -209,5 +209,23 @@ public class RunProsessTaskIT {
         ProsessTaskData task = new ProsessTaskData(taskNavn);
         task.setNesteKjøringEtter(now.plusSeconds(nesteKjøringRelativt));
         return task;
+    }
+    
+    interface DummyConsumer {
+        void dispatch(ProsessTaskData task) throws Exception; 
+    }
+
+    class DummyProsessTaskDispatcher extends BasicCdiProsessTaskDispatcher {
+        
+        private DummyConsumer consumer;
+
+        public DummyProsessTaskDispatcher(DummyConsumer consumer) {
+            this.consumer = consumer;
+        }
+        
+        @Override
+        public void dispatch(ProsessTaskData task) throws Exception {
+            consumer.dispatch(task);
+        }
     }
 }

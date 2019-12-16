@@ -14,4 +14,7 @@ public interface ProsessTaskDispatcher {
 
     void dispatch(ProsessTaskData task) throws Exception; // NOSONAR
 
+    /** Skal benytte feilhåndtering algoritme for angitt exception. Hvis ikke håndteres den som fatal feil. */
+    boolean feilhåndterException(String taskType, Throwable e);
+
 }

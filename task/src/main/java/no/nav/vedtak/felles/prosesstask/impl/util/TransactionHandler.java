@@ -21,7 +21,7 @@ public abstract class TransactionHandler<R> {
             commit = true;
             return o;
         } catch (SavepointRolledbackException e) {
-            // vi skal fortsatt committe, kun et 'savepoint' er rullet tilbake.
+            // will still commit, only one savepoint rolled back
             commit = true;
             throw e;
         } finally {

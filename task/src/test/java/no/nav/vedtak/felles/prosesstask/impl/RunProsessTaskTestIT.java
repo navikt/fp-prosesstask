@@ -69,7 +69,12 @@ public class RunProsessTaskTestIT {
     @Test
     public void skal_starte_TaskManager_polle_og_kjøre_tasks_i_egne_tråder() throws Exception {
         AtomicBoolean kjørt = new AtomicBoolean();
-        ProsessTaskDispatcher taskDispatcher = (task) -> kjørt.set(true);
+        ProsessTaskDispatcher taskDispatcher = new BasicCdiProsessTaskDispatcher() {
+            @Override
+            public void dispatch(ProsessTaskData task) throws Exception {
+                kjørt.set(true);
+            }
+        };
 
         testEnTask(taskDispatcher);
 

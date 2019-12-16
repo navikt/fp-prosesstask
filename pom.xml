@@ -34,6 +34,7 @@
 
 	<modules>
 		<module>task</module>
+		<module>legacy</module>
 		<module>rest</module>
 	</modules>
 	
@@ -65,7 +66,7 @@
 				<artifactId>felles</artifactId>
 				<scope>import</scope>
 				<type>pom</type>
-				<version>1.4.1-20191213133952-cc3a574</version>
+				<version>1.4.2-20191216072225-afaf53e</version>
 			</dependency>
 
 			<dependency>
@@ -77,6 +78,12 @@
 			<dependency>
 				<groupId>no.nav.vedtak.prosesstask</groupId>
 				<artifactId>prosesstask-rest-api</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			
+			<dependency>
+				<groupId>no.nav.vedtak.prosesstask</groupId>
+				<artifactId>prosesstask-legacy</artifactId>
 				<version>${project.version}</version>
 			</dependency>
 			

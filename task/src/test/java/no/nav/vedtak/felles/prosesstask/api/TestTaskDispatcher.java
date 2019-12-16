@@ -9,5 +9,10 @@ public class TestTaskDispatcher implements ProsessTaskDispatcher {
     public void dispatch(ProsessTaskData task) throws Exception {
         System.out.println("HELLO " + task);
     }
+    
+    @Override
+    public boolean feilhåndterException(String taskType, Throwable e) {
+        return false;
+    }
 
 }

@@ -1,11 +1,9 @@
-package no.nav.vedtak.felles.prosesstask.rest.dto;
-
-import no.nav.vedtak.log.sporingslogg.SporingsloggId;
+package no.nav.vedtak.felles.prosesstask.api;
 
 /**
  * Inneholder sporingslogg id'er brukt av prosess task for sikkerhet/sporingslogging.
  */
-public enum ProsessTaskSporingsloggId implements SporingsloggId {
+public enum ProsessTaskSporingsloggId {
 
     FNR("fnr"),
     
@@ -36,7 +34,6 @@ public enum ProsessTaskSporingsloggId implements SporingsloggId {
         this.eksternKode = eksternKode;
     }
 
-    @Override
     public String getSporingsloggKode() {
         return eksternKode;
     }
