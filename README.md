@@ -1,3 +1,5 @@
+![](https://github.com/navikt/fp-prosesstask/workflows/Bygg%20og%20deploy/badge.svg)
+
 # Prosess Task
 Enkelt bibliotek for strukturerte tasks som kan kjøres på et cluster av maskiner, i definerte rekkefølger (sekvensielt, parallellt), med transaksjonstøtte og feilhåndtering.  
 
