@@ -62,16 +62,32 @@ public class ProsessTaskRepositoryImpl implements ProsessTaskRepository {
         this.handleLifecycleObserver = eventPubliserer == null ? null : new HandleProsessTaskLifecycleObserver() /* init kun dersom eventer lyttes på. */;
     }
 
+    /** 
+     * Ctor - oppretter repository basert på CDI injection av relevante beans.
+     * 
+     * @param entityManager - Required - kan p.t. bare finnes en av. Dersom en ønsker flere, subklass dette repoet
+     * @param subjectProvider - Optional - hvis definert og eksisterer vil sette brukernavn som endrer tasks ved lagring
+     * @param eventPubliserer
+     * @param handleLifecycleObserver
+     */
     @Inject
     public ProsessTaskRepositoryImpl(@Any Instance<EntityManager> entityManager,
-                                     SubjectProvider subjectProvider,
+                                     @Any Instance<SubjectProvider> subjectProvider,
                                      ProsessTaskEventPubliserer eventPubliserer,
                                      HandleProsessTaskLifecycleObserver handleLifecycleObserver) {
         Objects.requireNonNull(entityManager, "entityManager");
+        
+        if(subjectProvider.isAmbiguous()) {
+           // vil kaste exception siden flere mulige instanser med detaljert feilmelding
+            @SuppressWarnings("unused")
+            var instans = subjectProvider.get(); 
+        }
+
         this.entityManager = entityManager.get();
         this.eventPubliserer = eventPubliserer;
         this.handleLifecycleObserver = handleLifecycleObserver;
-        this.subjectProvider = subjectProvider;
+        this.subjectProvider = subjectProvider.isResolvable() ? subjectProvider.get() : null;
+        
     }
 
     @Override

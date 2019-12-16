@@ -1,6 +1,7 @@
 package no.nav.vedtak.felles.prosesstask.impl;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -22,6 +23,8 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.inject.Any;
+import javax.enterprise.inject.Instance;
 import javax.enterprise.inject.spi.CDI;
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
@@ -54,7 +57,6 @@ public class TaskManager implements AppServiceHandler {
      */
     private final String threadPoolNamePrefix = getClass().getSimpleName();
 
-
     /**
      * Antall parallelle tråder for å plukke tasks.
      */
@@ -63,12 +65,12 @@ public class TaskManager implements AppServiceHandler {
      * Delay between each interval of polling. (millis)
      */
     private long delayBetweenPollingMillis = getSystemPropertyWithLowerBoundry(TASK_MANAGER_POLLING_DELAY, 500L, 1L);
-    
+
     /**
      * Max number of tasks that will be attempted to poll on every try.
      */
     private int maxNumberOfTasksToPoll = getSystemPropertyWithLowerBoundry(TASK_MANAGER_POLLING_TASKS_SIZE, numberOfTaskRunnerThreads, 0);
-    
+
     /**
      * Ventetid før neste polling forsøk (antar dersom task ikke plukkes raskt nok, kan en annen poller ta over).
      * (sekunder)
@@ -104,12 +106,36 @@ public class TaskManager implements AppServiceHandler {
     }
 
     @Inject
-    public TaskManager(TaskManagerRepositoryImpl taskManagerRepository) {
+    public TaskManager(TaskManagerRepositoryImpl taskManagerRepository, @Any Instance<ProsessTaskDispatcher> dispatcher) {
         Objects.requireNonNull(taskManagerRepository, "taskManagerRepository"); //$NON-NLS-1$
         this.taskManagerRepository = taskManagerRepository;
+
+        if (dispatcher != null) {
+            this.taskDispatcher = selectProsessTaskDispatcher(dispatcher);
+        }
     }
 
-    @Inject
+    private static ProsessTaskDispatcher selectProsessTaskDispatcher(Instance<ProsessTaskDispatcher> dispatcher) {
+        if (dispatcher.isResolvable()) {
+            return dispatcher.get();
+        } else if (dispatcher.isAmbiguous()) {
+            List<ProsessTaskDispatcher> dispatcherList = new ArrayList<>();
+            for(var disp : dispatcher) {
+                if(!(disp instanceof DefaultProsessTaskDispatcher)) {
+                    dispatcherList.add(disp);
+                }
+            }
+            if(dispatcherList.size() == 1) {
+                return dispatcherList.get(0);
+            } else {
+                // kast exception har fler enn 2 instanser tilgjengelig, vet ikke hvilken vi skal velge
+                throw new IllegalArgumentException("Utvikler-feil: har flere mulige instanser å velge mellom, vet ikke hvilken som skal benyttes: "+ dispatcherList);
+            }
+        } else {
+            throw new IllegalArgumentException("Utvikler-feil: skal ikke komme hit (unsatifisied dependency) - har ingen ProsessTaskDispatcher");
+        }
+    }
+
     public synchronized void setProsessTaskDispatcher(ProsessTaskDispatcher taskDispatcher) {
         Objects.requireNonNull(taskDispatcher, "taskDispatcher"); //$NON-NLS-1$
         this.taskDispatcher = taskDispatcher;
@@ -141,7 +167,8 @@ public class TaskManager implements AppServiceHandler {
             startTaskThreads();
             startPollerThread();
         } else {
-            log.info("Kan ikke starte {}, ingen tråder konfigurert, sjekk om du har konfigurert kontaineren din riktig bør ha minst en cpu tilgjengelig.", getClass().getSimpleName());
+            log.info("Kan ikke starte {}, ingen tråder konfigurert, sjekk om du har konfigurert kontaineren din riktig bør ha minst en cpu tilgjengelig.",
+                getClass().getSimpleName());
         }
     }
 
@@ -416,7 +443,7 @@ public class TaskManager implements AppServiceHandler {
                 protected <T> RunnableFuture<T> newTaskFor(Runnable runnable, T value) {
                     return new IdentFutureTask<T>((IdentRunnable) runnable, value);
                 }
-                
+
             };
         }
 
@@ -430,9 +457,9 @@ public class TaskManager implements AppServiceHandler {
 
         Set<Long> getTaskIds() {
             return executor.getQueue().stream()
-                    .map(IdentFutureTask.class::cast)
-                    .map(IdentFutureTask::getId)
-                    .collect(Collectors.toSet());
+                .map(IdentFutureTask.class::cast)
+                .map(IdentFutureTask::getId)
+                .collect(Collectors.toSet());
         }
 
         void stop() {
@@ -443,7 +470,7 @@ public class TaskManager implements AppServiceHandler {
                 Thread.currentThread().interrupt();
             }
         }
-        
+
     }
 
     static final class IdentFutureTask<T> extends FutureTask<T> implements IdentRunnable {
@@ -461,7 +488,7 @@ public class TaskManager implements AppServiceHandler {
         public Long getId() {
             return id;
         }
-        
+
         /** Tid denne future tasken ble opprettet (i minne). */
         @Override
         public LocalDateTime getCreateTime() {

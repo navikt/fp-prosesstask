@@ -9,11 +9,8 @@ import javax.persistence.Id;
 import javax.persistence.PrePersist;
 import javax.persistence.Table;
 
-import org.hibernate.annotations.Immutable;
-
 import no.nav.vedtak.felles.prosesstask.spi.ProsessTaskFeilHåndteringParametere;
 
-@Immutable
 @Entity(name = "ProsessTaskFeilhand")
 @Table(name = "PROSESS_TASK_FEILHAND")
 public class ProsessTaskFeilhand implements ProsessTaskFeilHåndteringParametere {
