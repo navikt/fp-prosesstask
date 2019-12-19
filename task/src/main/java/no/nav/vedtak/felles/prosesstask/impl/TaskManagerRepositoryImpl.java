@@ -34,7 +34,6 @@ import org.slf4j.LoggerFactory;
 
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskStatus;
-import no.nav.vedtak.util.FPDateUtil;
 
 @ApplicationScoped
 public class TaskManagerRepositoryImpl {
@@ -99,7 +98,7 @@ public class TaskManagerRepositoryImpl {
         @SuppressWarnings("unchecked")
         List<ProsessTaskEntitet> resultList = entityManager
             .createNativeQuery(sqlForPolling, ProsessTaskEntitet.class) // NOSONAR - statisk SQL
-            .setParameter("neste_kjoering", etterTid)
+            .setParameter("neste_kjoering", Timestamp.valueOf(etterTid), TemporalType.TIMESTAMP)
             .setParameter("skip_ids", Set.of(-1))
             .setHint(QueryHints.HINT_CACHE_MODE, "IGNORE")
             .getResultList();
@@ -120,7 +119,7 @@ public class TaskManagerRepositoryImpl {
         int tasks = entityManager
             .createNativeQuery(updateSql)
             .setParameter("id", blokkerendeTask.getId())
-            .setParameter("neste", nesteKjøringEtter == null ? null : Timestamp.valueOf(nesteKjøringEtter), TemporalType.TIME) // NOSONAR
+            .setParameter("neste", nesteKjøringEtter == null ? null : Timestamp.valueOf(nesteKjøringEtter), TemporalType.TIMESTAMP) // NOSONAR
             .executeUpdate();
         if (tasks > 0) {
             log.info("ProssessTask [{}] FERDIG. Frigitt {} tidligere blokkerte tasks", blokkerendeTask.getId(), tasks);
@@ -146,7 +145,7 @@ public class TaskManagerRepositoryImpl {
             .setParameter("id", prosessTaskId) // NOSONAR
             .setParameter("status", status) // NOSONAR
             .setParameter("status_ts", now)
-            .setParameter("neste", nesteKjøringEtter == null ? null : Timestamp.valueOf(nesteKjøringEtter), TemporalType.TIME) // NOSONAR
+            .setParameter("neste", nesteKjøringEtter == null ? null : Timestamp.valueOf(nesteKjøringEtter), TemporalType.TIMESTAMP) // NOSONAR
             .setParameter("feilkode", feilkode)// NOSONAR
             .setParameter("feiltekst", feiltekst)// NOSONAR
             .setParameter("forsoek", feilforsøk)// NOSONAR
@@ -173,7 +172,7 @@ public class TaskManagerRepositoryImpl {
         int tasks = entityManager.createNativeQuery(updateSql)  // NOSONAR
             .setParameter("id", prosessTaskId)
             .setParameter("status", status)
-            .setParameter("status_ts", now)
+            .setParameter("status_ts", Timestamp.valueOf(now), TemporalType.TIMESTAMP)
             .executeUpdate();
 
     }
@@ -188,7 +187,7 @@ public class TaskManagerRepositoryImpl {
         @SuppressWarnings("unused")
         int tasks = entityManager.createNativeQuery(updateSql)  // NOSONAR
             .setParameter("id", prosessTaskId)
-            .setParameter("naa", now)
+            .setParameter("naa", Timestamp.valueOf(now), TemporalType.TIMESTAMP)
             .executeUpdate();
 
     }
@@ -206,7 +205,7 @@ public class TaskManagerRepositoryImpl {
         int tasks = entityManager.createNativeQuery(updateSql)  // NOSONAR
             .setParameter("id", prosessTaskId)
             .setParameter("neste_kjoering", nesteKjøring)
-            .setParameter("naa", now)
+            .setParameter("naa", Timestamp.valueOf(now), TemporalType.TIMESTAMP)
             .setParameter("server", jvmUniqueProcessName)
             .executeUpdate();
 
@@ -260,7 +259,7 @@ public class TaskManagerRepositoryImpl {
     LocalDateTime getNåTidSekundOppløsning() {
         // nåtid trunkeres til seconds siden det er det nestekjøring presisjon i db tilsier.  Merk at her må også sistekjøring settes 
         // med sekund oppløsning siden disse sammenlignes i hand-over til RunTask
-        return FPDateUtil.nå().truncatedTo(ChronoUnit.SECONDS);
+        return LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
     }
 
     void logTaskPollet(ProsessTaskEntitet pte) {
@@ -289,7 +288,7 @@ public class TaskManagerRepositoryImpl {
             .setParameter("id", taskInfo.getId())// NOSONAR
             .setParameter("taskType", taskInfo.getTaskType())// NOSONAR
             .setParameter("status", ProsessTaskStatus.KLAR.getDbKode())// NOSONAR
-            .setParameter("sisteTs", taskInfo.getTimestampLowWatermark());
+            .setParameter("sisteTs", Timestamp.valueOf(taskInfo.getTimestampLowWatermark()), TemporalType.TIMESTAMP);
 
         return query.getResultList().stream().findFirst();
 
