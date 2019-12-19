@@ -3,6 +3,7 @@ package no.nav.vedtak.felles.prosesstask.impl;
 import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -242,8 +243,8 @@ public class ProsessTaskRepositoryImpl implements ProsessTaskRepository {
 
         query.setParameter("statuses", statusNames) // NOSONAR $NON-NLS-1$
             .setParameter("gruppe", gruppeId, StringType.INSTANCE) // NOSONAR $NON-NLS-1$
-            .setParameter("nesteKjoeringFraOgMed", nesteKjoeringFraOgMed) // max oppløsning på neste_kjoering_etter er sekunder
-            .setParameter("nesteKjoeringTilOgMed", nesteKjoeringTilOgMed) // NOSONAR $NON-NLS-1$
+            .setParameter("nesteKjoeringFraOgMed", nesteKjoeringFraOgMed.atZone(ZoneId.systemDefault())) // max oppløsning på neste_kjoering_etter er sekunder
+            .setParameter("nesteKjoeringTilOgMed", nesteKjoeringTilOgMed.atZone(ZoneId.systemDefault())) // NOSONAR $NON-NLS-1$
             .setParameter("likeSearch", paramLikeSearch) // NOSONAR $NON-NLS-1$
             .setHint(QueryHints.HINT_READONLY, "true");
 
@@ -370,7 +371,7 @@ public class ProsessTaskRepositoryImpl implements ProsessTaskRepository {
         Query query = entityManager.createNativeQuery(sqlString); //$NON-NLS-1$
         return String.valueOf(query.getSingleResult());
     }
-
+    
     public static Boolean isPostgres(EntityManager entityManager) {
         EntityManagerFactory emf = entityManager.getEntityManagerFactory();
         Map<String, Object> emfProperties = emf.getProperties();
