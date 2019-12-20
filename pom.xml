@@ -142,11 +142,13 @@
 					<groupId>org.jacoco</groupId>
 					<artifactId>jacoco-maven-plugin</artifactId>
 					<version>0.8.5</version>
-					<execution>
-					    <goals>
-					      <goal>prepare-agent</goal>
-					    </goals>
-					</execution>
+					<executions>
+						<execution>
+						    <goals>
+						      <goal>prepare-agent</goal>
+						    </goals>
+						</execution>
+					</executions>
 			      	</plugin>
 				<plugin>
 					<groupId>org.codehaus.mojo</groupId>
