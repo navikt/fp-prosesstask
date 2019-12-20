@@ -50,6 +50,12 @@
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
 		<additionalparam>-Xdoclint:none</additionalparam>
+		
+		<!-- SonarCloud options -->
+		<sonar.host.url>https://sonarcloud.io</sonar.host.url>
+		<!-- Organization and project keys are displayed in the right sidebar of the project homepage -->
+		<sonar.organization>navit</sonar.organization>
+		<sonar.coverage.jacoco.xmlReportPaths>${user.dir}/target/site/jacoco-aggregate/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
 
 	</properties>
 
@@ -134,6 +140,17 @@
 		<pluginManagement>
 			<plugins>
 				<plugin>
+					<groupId>org.jacoco</groupId>
+					<artifactId>jacoco-maven-plugin</artifactId>
+						<executions>
+						  <execution>
+						    <goals>
+						      <goal>prepare-agent</goal>
+						    </goals>
+						  </execution>
+					</executions>
+			      	</plugin>
+				<plugin>
 					<groupId>org.codehaus.mojo</groupId>
 					<artifactId>buildnumber-maven-plugin</artifactId>
 					<version>1.4</version>
@@ -216,7 +233,19 @@
 					<artifactId>flatten-maven-plugin</artifactId>
 					<version>1.1.0</version>
 				</plugin>
-
+				
+				<plugin>
+					<groupId>org.sonarsource.scanner.maven</groupId>
+					<artifactId>sonar-maven-plugin</artifactId>
+					<version>3.6.1.1688</version>
+				</plugin>
+				
+				<plugin>
+					<groupId>org.jacoco</groupId>
+					<artifactId>jacoco-maven-plugin</artifactId>
+					<version>0.8.5</version>
+				</plugin>
+				
 			</plugins>
 
 		</pluginManagement>
@@ -248,6 +277,20 @@
 						</goals>
 					</execution>
 				</executions>
+			</plugin>
+			
+			<plugin>
+			      <groupId>org.jacoco</groupId>
+			      <artifactId>jacoco-maven-plugin</artifactId>
+			      <executions>
+				<execution>
+				  <id>report</id>
+				  <goals>
+				    <goal>report-aggregate</goal>
+				  </goals>
+				  <phase>verify</phase>
+				</execution>
+			      </executions>
 			</plugin>
 
 			<plugin>
