@@ -55,7 +55,6 @@
 		<sonar.host.url>https://sonarcloud.io</sonar.host.url>
 		<!-- Organization and project keys are displayed in the right sidebar of the project homepage -->
 		<sonar.organization>navit</sonar.organization>
-		<sonar.coverage.jacoco.xmlReportPaths>${maven.multiModuleProjectDirectory}/target/site/jacoco-aggregate/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
 
 	</properties>
 
@@ -143,6 +142,11 @@
 					<groupId>org.jacoco</groupId>
 					<artifactId>jacoco-maven-plugin</artifactId>
 					<version>0.8.5</version>
+					<execution>
+					    <goals>
+					      <goal>prepare-agent</goal>
+					    </goals>
+					</execution>
 			      	</plugin>
 				<plugin>
 					<groupId>org.codehaus.mojo</groupId>
