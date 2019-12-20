@@ -35,7 +35,7 @@ jobs:
         shell: bash
         run: |
           echo "Building artifacts $(echo $GITHUB_SHA | cut -c1-7)"
-          mvn deploy sonar:sonar -e --batch-mode --settings .github/.m2/settings.xml --file pom.xml -Dmaven.wagon.http.pool=false -Dchangelist= -Dsha1=-$(git log -1 --pretty='%ad' --date=format:'%Y%m%d%H%M%S')-$(echo $GITHUB_SHA | cut -c1-7) -Dfile.encoding=UTF-8
+          mvn deploy org.sonarsource.scanner.maven:sonar -e --batch-mode --settings .github/.m2/settings.xml --file pom.xml -Dmaven.wagon.http.pool=false -Dchangelist= -Dsha1=-$(git log -1 --pretty='%ad' --date=format:'%Y%m%d%H%M%S')-$(echo $GITHUB_SHA | cut -c1-7) -Dfile.encoding=UTF-8
           echo "Deployed artifacts"
         env:
           GITHUB_USERNAME: x-access-token
