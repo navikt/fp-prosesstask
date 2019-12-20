@@ -62,7 +62,7 @@ Se `task/src/test/resources/db/migration/defaultDS` for eksempel tabell DDL (pas
 ## Legg til i persistence.xml
 Nåværende implementasjon forventer at `META-INF/pu-default.prosesstask.orm.xml`er definert i applikasjonens persistence.xml (eller tilsvarende) og dermed er en del av samme EntityManager som applikasjoen benytter. Det gir tilgang til å dele transaksjon for en kjøring (krever dermed ikke midlertidig bokføring for status på tasks eller egen opprydding når noe går galt utover å sette en task til KLAR igjen)
 
-## Sett opp SubjectProvider (Optional)
+## Sett opp SubjectProvider (Optional - ikke nødvendig om prosesstask-legacy brukes)
 Dette benyttes til sporing for endring av prosesstasks.
 ```
 @ApplicationScoped
@@ -75,7 +75,7 @@ public class MinSubjectProvider implements SubjectProvider{
 }
 ```
 
-## Definer en ProsessTaskDispatcher
+## Definer en ProsessTaskDispatcher (Optional - ikke nødvendig om prosesstask-legacy brukes)
 Dette er kobling mellom prosesstask data som er satt opp og implementasjon av en task.
 ```
 @ApplicationScoped
@@ -122,7 +122,7 @@ TaskManager startes f.eks. fra en WebListener
 ## Highlights ved implementasjon
 
 1. Tasks polles fra database i rekkefølge de er definert (innenfor en gruppe)
-2. Kjøring av tasks foregår i en transaksjon, denne deles med andre database operasjoner som utføres i tasken, avgrenset av savepoints for bokføring.
+2. Kjøring av tasks foregår i en transaksjon, denne deles med andre database operasjoner som utføres i tasken, avgrenset av savepoints for bokføring (for feilhåndtering etc).
 3. En task gruppe kan definere både sekvensielle og parallelle tasks (se Bruk).
 4. Kun en maskin (jvm) vil kjøre en task til enhver tid. Dersom flere jvmer er satt opp fordeles tasks broderlig mellom dem.
 5. Ved polling har jvmen 30sekunder til å påstarte arbeid på tasken, etter det står andre jvmer fritt til å stjele denne.
@@ -132,10 +132,8 @@ TaskManager startes f.eks. fra en WebListener
 1. Skalerbarhet:  avhenger av antall transaksjoner databasen kan kjøre samtidig og connections tilgjenglig på en pod. Hver JVM settes opp default med 3 worker threads for kjøring av tasks, og 1 poller thread.  Dvs. connection pool for database bør tillate minimum 3 connections for utelukkende kjøre tasks ved default oppsett (trenger normalt noen flere dersom andre ting kjøres i samme jvm).
 
 ## For utviklere
-1. Se [TaskManager Polling SQL](https://github.com/navikt/fp-prosesstask/blob/master/task/src/main/resources/no/nav/vedtak/felles/prosesstask/impl/TaskManager_pollTask.sql) for algoritme som håndterer sekvensiell/parallell plukking av tasks, samt sørger for å fordele tasks utover ulike konsumenter. Dette gjøres vha. SQL WINDOW functions + SKIP LOCKED syntaks
-2. Savepoints brukes til bokføring av kjørende tasks og feilhåndtering dersom noen tasks kaster exceptions.  Enkelte exceptions (SQLTransientException etc) oppfører seg transient og vil automatisk retryes, mens andre er avhengig av definert feilhåndteringalgoritme.
-
-
+1. Se [TaskManager Polling SQL](https://github.com/navikt/fp-prosesstask/blob/master/task/src/main/resources/no/nav/vedtak/felles/prosesstask/impl/TaskManager_pollTask.sql) for algoritme som håndterer sekvensiell/parallell plukking av tasks, samt sørger for å fordele tasks utover ulike konsumenter. Dette gjøres vha. SQL WINDOW functions + SKIP LOCKED syntaks. Dette er hjertet av hele dette bibliotektet. Alt annet er støtte feilhåndtering, konfigurasjon, dispatch og API.
+2. Savepoints brukes til bokføring av kjørende tasks og feilhåndtering dersom noen tasks kaster exceptions.  Enkelte exceptions (SQLTransientException etc) oppfører seg transient og vil automatisk retryes, mens andre er avhengig av definert feilhåndteringalgoritme. Hvilke defineres av angitt implementasjon av `ProsessTaskDispatcher`
 
 ### Licenses and attribution
 *For updated information, always see LICENSE first!*
