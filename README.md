@@ -3,18 +3,58 @@
  [![SonarCloud Coverage](https://sonarcloud.io/api/project_badges/measure?project=navikt_fp-prosesstask&metric=coverage)](https://sonarcloud.io/component_measures/metric/coverage/list?id=navikt_fp-prosesstask)
  [![SonarCloud Bugs](https://sonarcloud.io/api/project_badges/measure?project=navikt_fp-prosesstask&metric=bugs)](https://sonarcloud.io/component_measures/metric/reliability_rating/list?id=navikt_fp-prosesstask)
  [![SonarCloud Vulnerabilities](https://sonarcloud.io/api/project_badges/measure?project=navikt_fp-prosesstask&metric=vulnerabilities)](https://sonarcloud.io/component_measures/metric/security_rating/list?id=navikt_fp-prosesstask)
+ 
+# Ta i bruk
+
+## Definer i Maven DependencyManagement
+```
+        -- legg til i root pom
+	<dependency>
+		<groupId>no.nav.vedtak.prosesstask</groupId>
+		<artifactId>prosesstask-root</artifactId>
+		<version>2.0.0-20191216124556-a028808</version>
+		<scope>import</scope>
+		<type>pom</type>
+	</dependency>
+```
+
+## Bruk 
+Vanlig bruk. Krever at applikasjonen har en egen implementasjon av ProsessTaskDispatcher (se Konfigurasjon under)
+```
+	<dependency>
+	    <groupId>no.nav.vedtak.prosesstask</groupId>
+	    <artifactId>prosesstask</artifactId>
+	</dependency>
+```
+
+## Legacy bruk
+Denne kommer med avhengighet til felles-sikkerhet, og autentiserer bruker ved hver kjøring av task (i `AuthenticatedCdiProsessTaskDispatcher`).
+
+
+```
+	<dependency>
+	    <groupId>no.nav.vedtak.prosesstask</groupId>
+	    <artifactId>prosesstask-legacy</artifactId>
+	</dependency>
+```
+
+
 
 # Prosess Task
 Enkelt bibliotek for strukturerte tasks som kan kjøres på et cluster av maskiner, i definerte rekkefølger (sekvensielt, parallellt), med transaksjonstøtte og feilhåndtering.  
 
-Denne modulen implementerer rammeverk for å kjøre og fordele Prosess Tasks.
-Dette er asynkrone bakgrunnsjobber som kjøres fordelt utover tilgjengelig podder.  Muliggjør prosessering av transaksjoner og arbeidsflyt som paralle og sekvensielle oppgaver og kan spres utover 1 eller flere jvmer på ulike podder.
+Denne modulen implementerer rammeverk for å kjøre og fordele Prosess Tasks.  En prosess task kan anses som en jobb som kjører asynkront, transaksjonelt, og kan kjøre avhengig av andre jobber. Ved feil under kjøring kan applikasjonen beskrive en feilhåndteringsalgoritme som skal benyttes før rekjøring eller varsling.
+
+Prosesstasks er asynkrone bakgrunnsjobber som kjøres fordelt utover tilgjengelig podder.  Muliggjør prosessering av transaksjoner og arbeidsflyt som paralle og sekvensielle oppgaver og kan spres utover 1 eller flere jvmer på ulike podder.
 
 Ytterligere bakgrunnsinformasjon finnes her: [Automasjon](https://confluence.adeo.no/display/SVF/10.5+Tema+-+Automasjon).
 
 ProsessTasks kan enten kjøres med en gang, i en definert rekkefølge, eller på angitt tid (eks. cron uttrykk).
 
-# Bruk
+# Anvendelse
+
+## ProsesstaskGruppe - for Sekvensielle og Parallelle Prosesstasks
+
 En `ProsessTaskGruppe` definerer et sett med ProsessTask som skal kjøres sekvensielt/parallelt
 Det er mulig å definere en digraph av prosesstasks i en jafs. 
 
@@ -62,7 +102,8 @@ Se `task/src/test/resources/db/migration/defaultDS` for eksempel tabell DDL (pas
 ## Legg til i persistence.xml
 Nåværende implementasjon forventer at `META-INF/pu-default.prosesstask.orm.xml`er definert i applikasjonens persistence.xml (eller tilsvarende) og dermed er en del av samme EntityManager som applikasjoen benytter. Det gir tilgang til å dele transaksjon for en kjøring (krever dermed ikke midlertidig bokføring for status på tasks eller egen opprydding når noe går galt utover å sette en task til KLAR igjen)
 
-## Sett opp SubjectProvider (Optional - ikke nødvendig om prosesstask-legacy brukes)
+## Sett opp SubjectProvider 
+*(NB: brukes ikke dersom prosesstask-legacy brukes)*
 Dette benyttes til sporing for endring av prosesstasks.
 ```
 @ApplicationScoped
@@ -75,7 +116,8 @@ public class MinSubjectProvider implements SubjectProvider{
 }
 ```
 
-## Definer en ProsessTaskDispatcher (Optional - ikke nødvendig om prosesstask-legacy brukes)
+## Definer en ProsessTaskDispatcher
+*(NB: brukes ikke dersom prosesstask-legacy brukes)*
 Dette er kobling mellom prosesstask data som er satt opp og implementasjon av en task.
 ```
 @ApplicationScoped
