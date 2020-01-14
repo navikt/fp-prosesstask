@@ -36,21 +36,22 @@ jobs:
         run: |
           echo "Building artifacts $(echo $GITHUB_SHA | cut -c1-7)"
           mvn deploy sonar:sonar -e --batch-mode --settings .github/.m2/settings.xml --file pom.xml -Dmaven.wagon.http.pool=false -Dchangelist= -Dsha1=-$(git log -1 --pretty='%ad' --date=format:'%Y%m%d%H%M%S')-$(echo $GITHUB_SHA | cut -c1-7) -Dfile.encoding=UTF-8 -Dsonar.projectKey="navikt_fp-prosesstask" -Dsonar.login=${SONAR_TOKEN}
+          echo ::set-env name=:MVN_VERSION::$(mvn help:evaluate --batch-mode --settings .github/.m2/settings.xml --file .flattened -Dexpression=project.version -q -DforceStdout)
         env:
           GITHUB_USERNAME: x-access-token
           GITHUB_PASSWORD: ${{ secrets.GITHUB_ACCESS_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }} 
           DATASOURCE_HOST: localhost
-          DATASOURCE_PORT: ${{ job.services.postgres.ports[5432] }} # get randomly assigned published port
+          DATASOURCE_PORT: ${{ job.services.postgres.ports[5432] }} # get randomly assigned published 
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
         with:
-          tag_name: $(mvn help:evaluate --batch-mode --settings .github/.m2/settings.xml --file .flattened -Dexpression=project.version -q -DforceStdout)
-          release_name: Release ${{ env.tag_name }}
+          tag_name: ${{ env.MVN_VERSION }}
+          release_name: Release ${{ env.MVN_VERSION }}
           draft: false
           prerelease: false
 
