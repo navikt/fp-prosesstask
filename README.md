@@ -3,6 +3,8 @@
  [![SonarCloud Coverage](https://sonarcloud.io/api/project_badges/measure?project=navikt_fp-prosesstask&metric=coverage)](https://sonarcloud.io/component_measures/metric/coverage/list?id=navikt_fp-prosesstask)
  [![SonarCloud Bugs](https://sonarcloud.io/api/project_badges/measure?project=navikt_fp-prosesstask&metric=bugs)](https://sonarcloud.io/component_measures/metric/reliability_rating/list?id=navikt_fp-prosesstask)
  [![SonarCloud Vulnerabilities](https://sonarcloud.io/api/project_badges/measure?project=navikt_fp-prosesstask&metric=vulnerabilities)](https://sonarcloud.io/component_measures/metric/security_rating/list?id=navikt_fp-prosesstask) 
+[![GitHub version](https://badge.fury.io/gh/navikt%2Ffp-prosesstask.svg)](http://badge.fury.io/gh/navikt%2Ffp-prosesstask)
+[![MIT license](http://img.shields.io/badge/license-MIT-brightgreen.svg)](http://opensource.org/licenses/MIT)
 
 # Prosess Task
 Enkelt bibliotek for strukturerte tasks som kan kjøres på et cluster av maskiner, i definerte rekkefølger (sekvensielt, parallellt), med transaksjonstøtte og feilhåndtering.  
