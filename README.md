@@ -2,43 +2,7 @@
 [![Sonarcloud Status](https://sonarcloud.io/api/project_badges/measure?project=navikt_fp-prosesstask&metric=alert_status)](https://sonarcloud.io/dashboard?id=navikt_fp-prosesstask) 
  [![SonarCloud Coverage](https://sonarcloud.io/api/project_badges/measure?project=navikt_fp-prosesstask&metric=coverage)](https://sonarcloud.io/component_measures/metric/coverage/list?id=navikt_fp-prosesstask)
  [![SonarCloud Bugs](https://sonarcloud.io/api/project_badges/measure?project=navikt_fp-prosesstask&metric=bugs)](https://sonarcloud.io/component_measures/metric/reliability_rating/list?id=navikt_fp-prosesstask)
- [![SonarCloud Vulnerabilities](https://sonarcloud.io/api/project_badges/measure?project=navikt_fp-prosesstask&metric=vulnerabilities)](https://sonarcloud.io/component_measures/metric/security_rating/list?id=navikt_fp-prosesstask)
- 
-# Ta i bruk
-
-## Definer i Maven DependencyManagement
-```
-        -- legg til i root pom
-	<dependency>
-		<groupId>no.nav.vedtak.prosesstask</groupId>
-		<artifactId>prosesstask-root</artifactId>
-		<version>2.0.0-20191216124556-a028808</version>
-		<scope>import</scope>
-		<type>pom</type>
-	</dependency>
-```
-
-## Bruk 
-Vanlig bruk. Krever at applikasjonen har en egen implementasjon av ProsessTaskDispatcher (se Konfigurasjon under)
-```
-	<dependency>
-	    <groupId>no.nav.vedtak.prosesstask</groupId>
-	    <artifactId>prosesstask</artifactId>
-	</dependency>
-```
-
-## Legacy bruk
-Denne kommer med avhengighet til felles-sikkerhet, og autentiserer bruker ved hver kjøring av task (i `AuthenticatedCdiProsessTaskDispatcher`).
-
-
-```
-	<dependency>
-	    <groupId>no.nav.vedtak.prosesstask</groupId>
-	    <artifactId>prosesstask-legacy</artifactId>
-	</dependency>
-```
-
-
+ [![SonarCloud Vulnerabilities](https://sonarcloud.io/api/project_badges/measure?project=navikt_fp-prosesstask&metric=vulnerabilities)](https://sonarcloud.io/component_measures/metric/security_rating/list?id=navikt_fp-prosesstask) 
 
 # Prosess Task
 Enkelt bibliotek for strukturerte tasks som kan kjøres på et cluster av maskiner, i definerte rekkefølger (sekvensielt, parallellt), med transaksjonstøtte og feilhåndtering.  
@@ -50,6 +14,42 @@ Prosesstasks er asynkrone bakgrunnsjobber som kjøres fordelt utover tilgjengeli
 Ytterligere bakgrunnsinformasjon finnes her: [Automasjon](https://confluence.adeo.no/display/SVF/10.5+Tema+-+Automasjon).
 
 ProsessTasks kan enten kjøres med en gang, i en definert rekkefølge, eller på angitt tid (eks. cron uttrykk).
+
+## Ta i bruk
+
+### Definer i Maven DependencyManagement
+```
+        -- legg til i root pom
+	<dependency>
+		<groupId>no.nav.vedtak.prosesstask</groupId>
+		<artifactId>prosesstask-root</artifactId>
+		<version>2.0.0-20191216124556-a028808</version>
+		<scope>import</scope>
+		<type>pom</type>
+	</dependency>
+```
+
+### Bruk 
+Vanlig bruk. Krever at applikasjonen har en egen implementasjon av ProsessTaskDispatcher (se Konfigurasjon under)
+```
+	<dependency>
+	    <groupId>no.nav.vedtak.prosesstask</groupId>
+	    <artifactId>prosesstask</artifactId>
+	</dependency>
+```
+
+### Legacy bruk
+Denne kommer med avhengighet til felles-sikkerhet, og autentiserer bruker ved hver kjøring av task (i `AuthenticatedCdiProsessTaskDispatcher`).
+
+
+```
+	<dependency>
+	    <groupId>no.nav.vedtak.prosesstask</groupId>
+	    <artifactId>prosesstask-legacy</artifactId>
+	</dependency>
+```
+
+
 
 # Anvendelse
 
