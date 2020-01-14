@@ -3,7 +3,7 @@
  [![SonarCloud Coverage](https://sonarcloud.io/api/project_badges/measure?project=navikt_fp-prosesstask&metric=coverage)](https://sonarcloud.io/component_measures/metric/coverage/list?id=navikt_fp-prosesstask)
  [![SonarCloud Bugs](https://sonarcloud.io/api/project_badges/measure?project=navikt_fp-prosesstask&metric=bugs)](https://sonarcloud.io/component_measures/metric/reliability_rating/list?id=navikt_fp-prosesstask)
  [![SonarCloud Vulnerabilities](https://sonarcloud.io/api/project_badges/measure?project=navikt_fp-prosesstask&metric=vulnerabilities)](https://sonarcloud.io/component_measures/metric/security_rating/list?id=navikt_fp-prosesstask) 
-[![GitHub version](https://badge.fury.io/gh/navikt%2Ffp-prosesstask.svg)](http://badge.fury.io/gh/navikt%2Ffp-prosesstask)
+![GitHub release (latest by date)](https://img.shields.io/github/v/release/navikt/fp-prosesstask)
 ![GitHub](https://img.shields.io/github/license/navikt/fp-prosesstask)
 
 # Prosess Task
