@@ -25,7 +25,7 @@ ProsessTasks kan enten kjøres med en gang, i en definert rekkefølge, eller på
 	<dependency>
 		<groupId>no.nav.vedtak.prosesstask</groupId>
 		<artifactId>prosesstask-root</artifactId>
-		<version>2.0.0-20200114110159-ad2c31b</version>
+		<version>2.1.0-20200131125359-9b02742</version>
 		<scope>import</scope>
 		<type>pom</type>
 	</dependency>
