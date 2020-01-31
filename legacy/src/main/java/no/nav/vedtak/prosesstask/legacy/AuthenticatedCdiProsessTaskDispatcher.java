@@ -56,9 +56,9 @@ public class AuthenticatedCdiProsessTaskDispatcher extends BasicCdiProsessTaskDi
         if (fagsakId != null) {
             sporingsdata.leggTilId("fagsakId", fagsakId.toString());
         }
-        Long behandlingId = data.getBehandlingId();
+        String behandlingId = data.getBehandlingId();
         if (behandlingId != null) {
-            sporingsdata.leggTilId("behandlingId", behandlingId.toString());
+            sporingsdata.leggTilId("behandlingId", behandlingId);
         }
 
         SporingsloggHelper.logSporingForTask(AuthenticatedCdiProsessTaskDispatcher.class, sporingsdata, data.getTaskType());

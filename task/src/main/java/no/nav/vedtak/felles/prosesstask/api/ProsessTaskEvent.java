@@ -42,11 +42,11 @@ public class ProsessTaskEvent implements ProsessTaskInfo {
     public Exception getException() {
         return exception;
     }
-    
+
     public ProsessTaskStatus getGammelStatus() {
         return gammelStatus;
     }
-    
+
     public ProsessTaskStatus getNyStatus() {
         return nyStatus;
     }
@@ -62,10 +62,16 @@ public class ProsessTaskEvent implements ProsessTaskInfo {
     }
 
     @Override
-    public Long getBehandlingId() {
+    public String getSaksnummer() {
+        return data.getSaksnummer();
+    }
+
+    @Override
+    public String getBehandlingId() {
         return data.getBehandlingId();
     }
 
+    @SuppressWarnings("removal")
     @Override
     public Long getFagsakId() {
         return data.getFagsakId();
@@ -75,7 +81,7 @@ public class ProsessTaskEvent implements ProsessTaskInfo {
     public String getGruppe() {
         return data.getGruppe();
     }
-    
+
     /** Rapportert feil hvis task har feilet. */
     public Feil getFeil() {
         return feil;

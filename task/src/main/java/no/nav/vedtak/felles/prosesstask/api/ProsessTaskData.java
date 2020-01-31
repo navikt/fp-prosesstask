@@ -28,8 +28,17 @@ public class ProsessTaskData implements ProsessTaskInfo {
     public static final String BEHANDLING_ID = "behandlingId"; // NOSONAR //$NON-NLS-1$
     /**
      * Standard properties - fagsakId.
+     * 
+     * @deprecated foretrekk Saksnummer property i stedet
      */
+    @Deprecated(forRemoval = true)
     public static final String FAGSAK_ID = "fagsakId"; // NOSONAR //$NON-NLS-1$
+
+    /**
+     * Standard properties - saksnummer.
+     */
+    public static final String SAKSNUMMER = "saksnummer"; // NOSONAR //$NON-NLS-1$
+
     /**
      * Standard properties - hendelse som tasken venter på eller har behandlet.
      */
@@ -38,7 +47,7 @@ public class ProsessTaskData implements ProsessTaskInfo {
      * Standard properties - hendelse som tasken venter på eller har behandlet.
      */
     public static final String OPPGAVE_ID = "oppgaveId";
-    
+
     public static final Pattern VALID_KEY_PATTERN = Pattern.compile("[a-zA-Z0-9_\\.]+$"); //$NON-NLS-1$
     private final Properties props = new Properties();
     private final String taskType;
@@ -68,7 +77,7 @@ public class ProsessTaskData implements ProsessTaskInfo {
         }
         ProsessTaskData other = (ProsessTaskData) obj;
         return Objects.equals(taskType, other.taskType)
-                && Objects.equals(props, other.props);
+            && Objects.equals(props, other.props);
 
     }
 
@@ -91,17 +100,23 @@ public class ProsessTaskData implements ProsessTaskInfo {
     }
 
     @Override
-    public Long getBehandlingId() {
-        return getPropertyValue(BEHANDLING_ID) != null ? Long.valueOf(getPropertyValue(BEHANDLING_ID)) : null;
+    public String getBehandlingId() {
+        return getPropertyValue(BEHANDLING_ID);
     }
 
-    protected void setBehandlingId(Long id) {
+    protected void setBehandlingId(String id) {
         setProperty(BEHANDLING_ID, id.toString());
     }
 
+    @SuppressWarnings("removal")
     @Override
     public Long getFagsakId() {
         return getPropertyValue(FAGSAK_ID) != null ? Long.valueOf(getPropertyValue(FAGSAK_ID)) : null;
+    }
+
+    @Override
+    public String getSaksnummer() {
+        return getPropertyValue(SAKSNUMMER);
     }
 
     public void setFagsakId(Long id) {
@@ -308,14 +323,39 @@ public class ProsessTaskData implements ProsessTaskInfo {
         return this;
     }
 
+    /**
+     * @deprecated bruk {@link #setBehandling(String, String, String)} i stedet.
+     */
+    @Deprecated(forRemoval = true)
     public void setBehandling(Long fagsakId, Long behandlingId, String aktørId) {
         Objects.requireNonNull(fagsakId, "fagsakId"); // NOSONAR //$NON-NLS-1$
         Objects.requireNonNull(behandlingId, "behandlingId"); // NOSONAR //$NON-NLS-1$
         Objects.requireNonNull(aktørId, "aktørId"); // NOSONAR //$NON-NLS-1$
 
         setFagsakId(fagsakId);
+        setBehandlingId(behandlingId.toString());
+        setAktørId(aktørId);
+    }
+
+    /**
+     * Convenience API - Angi (optional) hvilken behandling/sak denne prosesstasken kjøres for.
+     * 
+     * @param saksnummer offisielt saksnummer
+     * @param behandlingId angitt behandlingId definert av fagsystem (kan være Long, UUID, etc)
+     * @param aktørId angitt AktørId gyldig i AktørRegisteret.
+     */
+    public void setBehandling(String saksnummer, String behandlingId, String aktørId) {
+        Objects.requireNonNull(saksnummer, "saksnummer"); // NOSONAR //$NON-NLS-1$
+        Objects.requireNonNull(behandlingId, "behandlingId"); // NOSONAR //$NON-NLS-1$
+        Objects.requireNonNull(aktørId, "aktørId"); // NOSONAR //$NON-NLS-1$
+
+        setSaksnummer(saksnummer);
         setBehandlingId(behandlingId);
         setAktørId(aktørId);
+    }
+
+    public void setSaksnummer(String saksnummer) {
+        setProperty(SAKSNUMMER, Objects.requireNonNull(saksnummer, "saksnummer"));
     }
 
     public void setFagsak(Long fagsakId, String aktørId) {
@@ -344,11 +384,11 @@ public class ProsessTaskData implements ProsessTaskInfo {
     @Override
     public String toString() {
         return getClass().getSimpleName()
-                + "<id=" + getId() //$NON-NLS-1$
-                + ", taskType=" + getTaskType() //$NON-NLS-1$
-                + ", props=" + getProperties() //$NON-NLS-1$
-                + ", status=" + getStatus() //$NON-NLS-1$
-                + ">"; //$NON-NLS-1$
+            + "<id=" + getId() //$NON-NLS-1$
+            + ", taskType=" + getTaskType() //$NON-NLS-1$
+            + ", props=" + getProperties() //$NON-NLS-1$
+            + ", status=" + getStatus() //$NON-NLS-1$
+            + ">"; //$NON-NLS-1$
     }
 
     public void venterPåHendelse(ProsessTaskHendelse hendelse) {

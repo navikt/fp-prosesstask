@@ -35,9 +35,15 @@ public interface ProsessTaskInfo {
 
     String getAktørId();
 
+    /**
+     * @deprecated foretrekk {@link #getSaksnummer()}
+     */
+    @Deprecated(forRemoval = true)
     Long getFagsakId();
 
-    Long getBehandlingId();
+    String getSaksnummer();
+    
+    String getBehandlingId();
     
     String getPayloadAsString();
 
