@@ -24,10 +24,13 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      - uses: actions/cache@v1
+      - name: Set cache key 
+        run: |
+          echo "::set-env name=CACHE_KEY::$(date +%U)"
+      - uses: actions/cache@v1.1.0
         with:
-          path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          path: ~/.m2
+          key: ${{ runner.os }}-maven-${{ env.CACHE_KEY }}
       - uses: actions/setup-java@v1
         with:
           java-version: 1.11
@@ -35,7 +38,8 @@ jobs:
         shell: bash
         run: |
           echo "Building artifacts $(echo $GITHUB_SHA | cut -c1-7)"
-          mvn deploy sonar:sonar -e --batch-mode --settings .github/.m2/settings.xml --file pom.xml -Dmaven.wagon.http.pool=false -Dchangelist= -Dsha1=-$(git log -1 --pretty='%ad' --date=format:'%Y%m%d%H%M%S')-$(echo $GITHUB_SHA | cut -c1-7) -Dfile.encoding=UTF-8 -Dsonar.projectKey="navikt_fp-prosesstask" -Dsonar.login=${SONAR_TOKEN}
+          mvn jacoco:prepare-agent deploy -e --batch-mode --settings .github/.m2/settings.xml  -Dmaven.wagon.http.pool=false --file pom.xml -Dchangelist= -Dsha1=-$(git log -1 --pretty='%ad' --date=format:'%Y%m%d%H%M%S')-$(echo $GITHUB_SHA | cut -c1-7) -Dfile.encoding=UTF-8 -DinstallAtEnd=true -DdeployAtEnd=true  -Djacoco.destFile=$(pwd)/target/jacoco.exec
+          mvn jacoco:report sonar:sonar -e --batch-mode --settings .github/.m2/settings.xml  --file pom.xml -Djacoco.dataFile=$(pwd)/target/jacoco.exec -Dsonar.projectKey="navikt_fp-prosesstask" -Dsonar.host.url='https://sonarcloud.io' -Dsonar.organization=navit -Dsonar.login=${SONAR_TOKEN}
           echo "::set-env name=MVN_VERSION::$(mvn help:evaluate --batch-mode --settings .github/.m2/settings.xml --file .flattened -Dexpression=project.version -q -DforceStdout)"
         env:
           GITHUB_USERNAME: x-access-token
