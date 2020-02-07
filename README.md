@@ -17,6 +17,15 @@ Ytterligere bakgrunnsinformasjon finnes her: [Automasjon](https://confluence.ade
 
 ProsessTasks kan enten kjøres med en gang, i en definert rekkefølge, eller på angitt tid (eks. cron uttrykk).
 
+## Use Cases
+De benyttes som en grunnleggende byggekloss for å implementere følgende, med transaksjonssikkerhet, og skalering over et cluster av maskiner og tråder:
+
+* [Outbox pattern](https://microservices.io/patterns/data/transactional-outbox.html). Ved kall til REST/Kafka/MQ/etc tjenester som ikke inngår i samme transaksjon som oppdatering av egen database. Tjenesten som kalles på bør være idempotent / ha støtte for at-least-once semantikk.
+* [Inbox pattern] Fanger innkommende meldinger lokalt før videre prosessering internt (dvs. overtar ansvar for videre håndtering fra tjeneste som avleverer melding.
+* [Saga pattern](https://microservices.io/patterns/data/saga.html) Orkestrert Saga pattern i samspill med Outbox pattern.
+* Scheduled jobs (cron).  Kan angis som tasks som starter regelmessig
+
+
 ## Ta i bruk
 
 ### Definer i Maven DependencyManagement
