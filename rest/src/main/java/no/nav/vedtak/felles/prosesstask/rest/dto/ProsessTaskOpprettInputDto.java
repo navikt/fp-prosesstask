@@ -7,10 +7,7 @@ import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
 
-import no.nav.vedtak.sikkerhet.abac.AbacDataAttributter;
-import no.nav.vedtak.sikkerhet.abac.AbacDto;
-
-public class ProsessTaskOpprettInputDto implements AbacDto {
+public class ProsessTaskOpprettInputDto {
 
     @NotNull
     @Size(min = 1, max = 100)
@@ -38,8 +35,4 @@ public class ProsessTaskOpprettInputDto implements AbacDto {
         this.taskParametre = taskParametre;
     }
 
-    @Override
-    public AbacDataAttributter abacAttributter() {
-        return AbacDataAttributter.opprett();
-    }
 }

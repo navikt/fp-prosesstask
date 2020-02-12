@@ -3,19 +3,14 @@ package no.nav.vedtak.felles.prosesstask.rest.dto;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import javax.validation.Valid;
 import javax.validation.constraints.Size;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import no.nav.vedtak.felles.prosesstask.api.ProsessTaskSporingsloggId;
-import no.nav.vedtak.log.sporingslogg.Sporingsdata;
-import no.nav.vedtak.sikkerhet.abac.AbacDataAttributter;
-import no.nav.vedtak.sikkerhet.abac.AbacDto;
 
 @Schema
-public class SokeFilterDto implements AbacDto {
+public class SokeFilterDto {
 
     @Size(max = 10)
     @Valid
@@ -53,15 +48,4 @@ public class SokeFilterDto implements AbacDto {
         this.sisteKjoeretidspunktTilOgMed = sisteKjoeretidspunktTilOgMed;
     }
 
-    public Sporingsdata lagSporingsloggData(String action) {
-        Sporingsdata sporingsdata = Sporingsdata.opprett(action);
-        sporingsdata.leggTilId(ProsessTaskSporingsloggId.PROSESS_TASK_STATUS.getSporingsloggKode(), prosessTaskStatuser.stream().map(ProsessTaskStatusDto::getProsessTaskStatusName).collect(Collectors.joining(",")));
-        sporingsdata.leggTilId(ProsessTaskSporingsloggId.PROSESS_TASK_KJORETIDSINTERVALL.getSporingsloggKode(), String.format("%s-%s", sisteKjoeretidspunktFraOgMed, sisteKjoeretidspunktTilOgMed));
-        return sporingsdata;
-    }
-
-    @Override
-    public AbacDataAttributter abacAttributter() {
-        return AbacDataAttributter.opprett(); //denne er tom, ProsessTask-API har i praksis rollebasert tilgangskontroll
-    }
 }

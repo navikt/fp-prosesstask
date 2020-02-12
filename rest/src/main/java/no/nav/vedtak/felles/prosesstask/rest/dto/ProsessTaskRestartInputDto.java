@@ -7,11 +7,9 @@ import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import no.nav.vedtak.sikkerhet.abac.AbacDataAttributter;
-import no.nav.vedtak.sikkerhet.abac.AbacDto;
 
 @Schema(description = "Informasjon for restart av en eksisterende prosesstask")
-public class ProsessTaskRestartInputDto implements AbacDto {
+public class ProsessTaskRestartInputDto {
 
     @Min(0)
     @Max(Long.MAX_VALUE)
@@ -45,8 +43,4 @@ public class ProsessTaskRestartInputDto implements AbacDto {
         this.naaVaaerendeStatus = naaVaaerendeStatus;
     }
 
-    @Override
-    public AbacDataAttributter abacAttributter() {
-        return AbacDataAttributter.opprett(); //denne er tom, ProsessTask-API har i praksis rollebasert tilgangskontroll
-    }
 }

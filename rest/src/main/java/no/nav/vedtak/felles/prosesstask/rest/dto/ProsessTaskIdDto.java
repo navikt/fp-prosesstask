@@ -9,7 +9,7 @@ import no.nav.vedtak.sikkerhet.abac.AbacDataAttributter;
 import no.nav.vedtak.sikkerhet.abac.AbacDto;
 
 @Schema
-public class ProsessTaskIdDto implements AbacDto {
+public class ProsessTaskIdDto {
 
     @NotNull
     @Min(0)
@@ -26,10 +26,5 @@ public class ProsessTaskIdDto implements AbacDto {
     @Schema(required = true, description = "Prosesstask-id for en eksisterende prosesstask")
     public Long getProsessTaskId() {
         return prosessTaskId;
-    }
-
-    @Override
-    public AbacDataAttributter abacAttributter() {
-        return AbacDataAttributter.opprett(); //denne er tom, ProsessTask-API har i praksis rollebasert tilgangskontroll
     }
 }
