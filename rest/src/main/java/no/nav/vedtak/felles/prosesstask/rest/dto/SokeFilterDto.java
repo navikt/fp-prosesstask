@@ -5,17 +5,34 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
+
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
+@JsonFormat(shape = JsonFormat.Shape.OBJECT)
+@JsonAutoDetect(getterVisibility = Visibility.NONE, setterVisibility = Visibility.NONE, fieldVisibility = Visibility.ANY)
 @Schema
 public class SokeFilterDto {
 
+    @JsonProperty(value = "prosessTaskStatuser")
     @Size(max = 10)
     @Valid
-    private List<ProsessTaskStatusDto> prosessTaskStatuser = new ArrayList<>();
+    private List<@NotNull ProsessTaskStatusDto> prosessTaskStatuser = new ArrayList<>();
+    
+    @JsonProperty(value = "sisteKjoeretidspunktFraOgMed")
+    @Valid
     private LocalDateTime sisteKjoeretidspunktFraOgMed = LocalDateTime.now().minusHours(24);
+    
+    @JsonProperty(value = "sisteKjoeretidspunktTilOgMed")
+    @Valid
     private LocalDateTime sisteKjoeretidspunktTilOgMed = LocalDateTime.now();
 
     public SokeFilterDto() {
