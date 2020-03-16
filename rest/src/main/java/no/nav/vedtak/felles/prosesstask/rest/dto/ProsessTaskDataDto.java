@@ -4,10 +4,23 @@ import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.Properties;
 
+import javax.validation.Valid;
+import javax.validation.constraints.Pattern;
+import javax.validation.constraints.Size;
+
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import io.swagger.v3.oas.annotations.media.Schema;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskSporingsloggId;
 import no.nav.vedtak.log.sporingslogg.Sporingsdata;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
+@JsonFormat(shape = JsonFormat.Shape.OBJECT)
+@JsonAutoDetect(getterVisibility = Visibility.NONE, setterVisibility = Visibility.NONE, fieldVisibility = Visibility.ANY)
 @Schema
 public class ProsessTaskDataDto implements ProsessTaskDataInfo {
 
@@ -16,14 +29,44 @@ public class ProsessTaskDataDto implements ProsessTaskDataInfo {
     private static final String FAGSAK_ID = "fagsakId";
     private static final String PNR_ID = "personidentifikator";
 
+    @JsonProperty(value = "id", required = true)
     private Long id;
+
+    @JsonProperty(value = "taskType", required = true)
+    @Size(max = 200)
+    @Pattern(regexp = "^[\\p{Alnum}_.\\-]*$")
     private String taskType;
+
+    @JsonProperty(value = "nesteKjøringEtter")
+    @Valid
     private LocalDateTime nesteKjøringEtter;
+
+    @JsonProperty(value = "gruppe", required = true)
+    @Size(max = 200)
+    @Pattern(regexp = "^[\\p{Alnum}_.\\-]*$")
     private String gruppe;
+
+    @JsonProperty(value = "sekvens", required = true)
+    @Size(max = 200)
+    @Pattern(regexp = "^[\\p{Alnum}_.\\-]*$")
     private String sekvens;
+
+    @JsonProperty(value = "status", required = true)
+    @Size(max = 20)
+    @Pattern(regexp = "^[\\p{Alnum}_.\\-]*$")
     private String status;
+
+    @JsonProperty(value = "sistKjørt")
+    @Valid
     private LocalDateTime sistKjørt;
+
+    @JsonProperty(value = "sisteFeilKode")
+    @Size(max = 200)
+    @Pattern(regexp = "^[\\p{Alnum}_.\\-]*$")
     private String sisteFeilKode;
+
+    @JsonProperty(value = "taskParametre")
+    @Size(max = 20)
     private Properties taskParametre = new Properties();
 
     public ProsessTaskDataDto() {
