@@ -57,6 +57,14 @@
 		<sonar.organization>navit</sonar.organization>
 
 	</properties>
+	
+	<repositories>
+		<repository>
+		    <id>github</id>
+		    <name>GitHub Apache Maven Packages</name>
+		    <url>https://maven.pkg.github.com/navikt/fp-felles/</url>
+		</repository>
+	</repositories>
 
 	<dependencyManagement>
 		<dependencies>
