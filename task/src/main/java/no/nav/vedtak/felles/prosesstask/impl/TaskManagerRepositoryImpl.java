@@ -321,7 +321,7 @@ public class TaskManagerRepositoryImpl {
             .setParameter("inputTid", Timestamp.valueOf(now), TemporalType.TIMESTAMP)
             .getSingleResult();
 
-        Object hibernateTz = entityManager.getProperties().get("hibernate.jdbc.time_zone");
+        Object hibernateTz = entityManager.getEntityManagerFactory().getProperties().get("hibernate.jdbc.time_zone");
         String userTz = System.getProperty("user.timezone");
         log.info("Startup: DB(tz={}, current_timestamp={}), App(user.timezone={}, hibernate.jdbc.time_zone={}, inputtid={}, inputtid2={}). Drift={}",
             result.dbtz, result.dbtid, userTz, hibernateTz, result.inputtid, result.inputtid2,result.drift);
