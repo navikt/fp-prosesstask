@@ -26,10 +26,10 @@ public class ProsessTaskEventPubliserer {
     }
 
     @Inject
-    public ProsessTaskEventPubliserer(Event<ProsessTaskEvent> publiserer, HandleProsessTaskLifecycleObserver lifecycleObserver) {
+    public ProsessTaskEventPubliserer(Event<ProsessTaskEvent> publiserer) {
         super();
         this.publiserer = publiserer;
-        handleProsessTaskLifecycleObserver = lifecycleObserver;
+        handleProsessTaskLifecycleObserver = new HandleProsessTaskLifecycleObserver();
     }
     
     public void fireEvent(ProsessTaskData data, ProsessTaskStatus gammelStatus, ProsessTaskStatus nyStatus) {
