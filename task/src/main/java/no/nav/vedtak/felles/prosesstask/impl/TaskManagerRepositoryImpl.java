@@ -15,12 +15,14 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.context.control.ActivateRequestContext;
 import javax.enterprise.inject.Any;
 import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
 import javax.persistence.TemporalType;
+import javax.transaction.Transactional;
 
 import org.hibernate.FlushMode;
 import org.hibernate.ScrollMode;
@@ -304,6 +306,8 @@ public class TaskManagerRepositoryImpl {
 
     }
 
+    @ActivateRequestContext
+    @Transactional
     void verifyStartup() {
 
         String sql = "select current_setting('TIMEZONE') as dbtz,"
