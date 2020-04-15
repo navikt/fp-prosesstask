@@ -164,6 +164,7 @@ public class TaskManager implements AppServiceHandler {
     @Override
     public synchronized void start() {
         if (this.numberOfTaskRunnerThreads > 0) {
+            getTransactionManagerRepository().verifyStartup();
             startTaskThreads();
             startPollerThread();
         } else {
@@ -210,6 +211,9 @@ public class TaskManager implements AppServiceHandler {
      * Poller for tasks og logger jevnlig om det ikke er ledig kapasitet (i in-memory queue) eller ingen tasks funnet (i db).
      */
     protected synchronized List<IdentRunnable> pollForAvailableTasks() {
+        
+        taskManagerRepository.flyttAlleKjoertTilFerdig();
+
         LocalDateTime now = LocalDateTime.now();
 
         int capacity = getRunTaskService().remainingCapacity();
@@ -260,6 +264,7 @@ public class TaskManager implements AppServiceHandler {
         int numberOfTasksStillToGo = numberOfTasksToPoll;
 
         Set<Long> inmemoryTaskIds = getRunTaskService().getTaskIds();
+        
         List<ProsessTaskEntitet> tasksEntiteter = taskManagerRepository
             .pollNesteScrollingUpdate(numberOfTasksStillToGo, waitTimeBeforeNextPollingAttemptSecs, inmemoryTaskIds);
 

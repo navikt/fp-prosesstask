@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.management.ManagementFactory;
 import java.sql.Timestamp;
-import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -15,7 +14,7 @@ import java.util.Scanner;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.context.Dependent;
 import javax.enterprise.inject.Any;
 import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
@@ -35,20 +34,20 @@ import org.slf4j.LoggerFactory;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskStatus;
 
-@ApplicationScoped
+@Dependent
 public class TaskManagerRepositoryImpl {
 
     private static final Logger log = LoggerFactory.getLogger(TaskManagerRepositoryImpl.class);
-    
+
     private String jvmUniqueProcessName = getJvmUniqueProcessName();
     private String sqlFraFil = getSqlFraFil(TaskManager.class.getSimpleName() + "_pollTask.sql");
-    
+
     private EntityManager entityManager;
 
-    TaskManagerRepositoryImpl() {
+    protected TaskManagerRepositoryImpl() {
         // for CDI proxying
     }
-    
+
     public TaskManagerRepositoryImpl(EntityManager entityMangager) {
         Objects.requireNonNull(entityMangager, "entityManager");
         this.entityManager = entityMangager;
@@ -68,7 +67,7 @@ public class TaskManagerRepositoryImpl {
         return getSqlForPollingTemplate();
     }
 
-     String getSqlForPollingTemplate() {
+    String getSqlForPollingTemplate() {
         return sqlFraFil;
     }
 
@@ -115,7 +114,7 @@ public class TaskManagerRepositoryImpl {
             + " WHERE status='VETO' and blokkert_av=:id";
 
         LocalDateTime nesteKjøringEtter = LocalDateTime.now();
-        
+
         int tasks = entityManager
             .createNativeQuery(updateSql)
             .setParameter("id", blokkerendeTask.getId())
@@ -135,7 +134,7 @@ public class TaskManagerRepositoryImpl {
             " ,feilede_forsoek = :forsoek" +
             " ,siste_kjoering_feil_kode = :feilkode" +
             " ,siste_kjoering_feil_tekst = :feiltekst" +
-            ", siste_kjoering_slutt_ts = :status_ts" + 
+            ", siste_kjoering_slutt_ts = :status_ts" +
             " ,versjon=versjon+1 " +
             " WHERE id = :id";
 
@@ -156,20 +155,20 @@ public class TaskManagerRepositoryImpl {
         }
     }
 
-    void oppdaterStatusOgTilFerdig(Long prosessTaskId, ProsessTaskStatus taskStatus) {
+    void oppdaterStatus(Long prosessTaskId, ProsessTaskStatus taskStatus) {
         String updateSql = "update PROSESS_TASK set" +
             " status =:status" +
             " ,neste_kjoering_etter= NULL" +
             " ,siste_kjoering_feil_kode = NULL" +
             " ,siste_kjoering_feil_tekst = NULL" +
-            ", siste_kjoering_slutt_ts = :status_ts" + 
+            ", siste_kjoering_slutt_ts = :status_ts" +
             " ,versjon=versjon+1 " +
             " WHERE id = :id";
 
         String status = taskStatus.getDbKode();
         LocalDateTime now = LocalDateTime.now();
         @SuppressWarnings("unused")
-        int tasks = entityManager.createNativeQuery(updateSql)  // NOSONAR
+        int tasks = entityManager.createNativeQuery(updateSql) // NOSONAR
             .setParameter("id", prosessTaskId)
             .setParameter("status", status)
             .setParameter("status_ts", Timestamp.valueOf(now), TemporalType.TIMESTAMP)
@@ -185,13 +184,23 @@ public class TaskManagerRepositoryImpl {
             " WHERE id = :id";
 
         @SuppressWarnings("unused")
-        int tasks = entityManager.createNativeQuery(updateSql)  // NOSONAR
+        int tasks = entityManager.createNativeQuery(updateSql) // NOSONAR
             .setParameter("id", prosessTaskId)
             .setParameter("naa", Timestamp.valueOf(now), TemporalType.TIMESTAMP)
             .executeUpdate();
 
     }
-    
+
+    /** Markere tasks om er kjørt FERDIG. Dette har som konsekvens at det flytter tasks fra default partisjon til FERDIG partisjoner. */
+    void flyttAlleKjoertTilFerdig() {
+        String updateSql = "update PROSESS_TASK set status = 'FERDIG' WHERE status='KJOERT'";
+
+        @SuppressWarnings("unused")
+        int tasks = entityManager.createNativeQuery(updateSql)
+            .executeUpdate();
+
+    }
+
     /** Markere task plukket til arbeid (ligger på in-memory kø). */
     void oppdaterTaskPlukket(Long prosessTaskId, LocalDateTime nesteKjøring, LocalDateTime now) {
         String updateSql = "update PROSESS_TASK set" +
@@ -202,7 +211,7 @@ public class TaskManagerRepositoryImpl {
             " WHERE id = :id";
 
         @SuppressWarnings("unused")
-        int tasks = entityManager.createNativeQuery(updateSql)  // NOSONAR
+        int tasks = entityManager.createNativeQuery(updateSql) // NOSONAR
             .setParameter("id", prosessTaskId)
             .setParameter("neste_kjoering", nesteKjøring)
             .setParameter("naa", now)
@@ -237,12 +246,12 @@ public class TaskManagerRepositoryImpl {
             // hent kun 1 av gangen for å la andre pollere slippe til
             .setHint(QueryHints.HINT_FETCH_SIZE, 1)
             .setParameter("neste_kjoering", timestamp, TemporalType.TIMESTAMP)
-            .setParameter("skip_ids", skipIds.isEmpty()? Set.of(-1) : skipIds)
+            .setParameter("skip_ids", skipIds.isEmpty() ? Set.of(-1) : skipIds)
             .scroll(ScrollMode.FORWARD_ONLY);) {
 
             LocalDateTime now = getNåTidSekundOppløsning();
             LocalDateTime nyNesteTid = now.plusSeconds(waitTimeBeforeNextPollingAttemptSecs);
-            
+
             while (results.next() && --numberOfTasksStillToGo >= 0) {
                 Object[] resultObjects = results.get();
                 if (resultObjects.length > 0) {
@@ -258,7 +267,7 @@ public class TaskManagerRepositoryImpl {
     }
 
     LocalDateTime getNåTidSekundOppløsning() {
-        // nåtid trunkeres til seconds siden det er det nestekjøring presisjon i db tilsier.  Merk at her må også sistekjøring settes 
+        // nåtid trunkeres til seconds siden det er det nestekjøring presisjon i db tilsier. Merk at her må også sistekjøring settes
         // med sekund oppløsning siden disse sammenlignes i hand-over til RunTask
         return LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
     }
@@ -282,7 +291,7 @@ public class TaskManagerRepositoryImpl {
             + "   AND ( pte.siste_kjoering_ts IS NULL OR pte.siste_kjoering_ts >=:sisteTs )"
             + "   FOR UPDATE SKIP LOCKED" //$NON-NLS-1$
         ;
-        
+
         Query query = entityManager.createNativeQuery(sql, ProsessTaskEntitet.class)
             .setHint(org.hibernate.annotations.QueryHints.FETCH_SIZE, 1)
             .setHint("javax.persistence.cache.storeMode", "REFRESH") //$NON-NLS-1$ //$NON-NLS-2$
@@ -295,10 +304,29 @@ public class TaskManagerRepositoryImpl {
 
     }
 
+    void verifyStartup() {
+
+        String sql = "select current_setting('TIMEZONE') as dbtz,"
+            + "  to_char(current_timestamp, 'YYYY-MM-DD HH24:MI:SS.US+TZ') as dbtid,"
+            + "  to_char(cast(:inputTid as timestamp with time zone), 'YYYY-MM-DD HH24:MI:SS.US+TZ') as inputtid,"
+            + "  :inputTid as inputtid2,"
+            + "  (current_timestamp - :inputTid) as drift";
+
+        LocalDateTime now = LocalDateTime.now();
+        var result = (StartupData) entityManager.createNativeQuery(sql, StartupData.class)
+            .setParameter("inputTid", Timestamp.valueOf(now), TemporalType.TIMESTAMP)
+            .getSingleResult();
+
+        Object hibernateTz = entityManager.getProperties().get("hibernate.jdbc.time_zone");
+        String userTz = System.getProperty("user.timezone");
+        log.info("Startup: DB(tz={}, current_timestamp={}), App(user.timezone={}, hibernate.jdbc.time_zone={}, inputtid={}, inputtid2={}). Drift={}",
+            result.dbtz, result.dbtid, userTz, hibernateTz, result.inputtid, result.inputtid2,result.drift);
+    }
+
     ProsessTaskType getTaskType(String taskName) {
         return entityManager.find(ProsessTaskType.class, taskName);
     }
-    
+
     static synchronized String getJvmUniqueProcessName() {
         return ManagementFactory.getRuntimeMXBean().getName();
     }

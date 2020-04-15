@@ -122,7 +122,7 @@ public class TaskManagerRekkefølgeIT {
         assertThat(neste).containsExactly(tasks);
 
         neste.forEach(pt -> {
-            pt.setStatus(ProsessTaskStatus.FERDIG);
+            pt.setStatus(ProsessTaskStatus.KJOERT);
             repo.lagre(pt);
         });
 

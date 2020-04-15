@@ -255,7 +255,7 @@ public class ProsessTaskRepositoryImpl implements ProsessTaskRepository {
     @Override
     public List<ProsessTaskData> finnUferdigeBatchTasks(String task) {
         TypedQuery<ProsessTaskEntitet> query = entityManager
-            .createQuery("from ProsessTaskEntitet pt where pt.status != 'FERDIG' and pt.taskType = :task", ProsessTaskEntitet.class)
+            .createQuery("from ProsessTaskEntitet pt where pt.status NOT IN ('FERDIG', 'KJOERT') and pt.taskType = :task", ProsessTaskEntitet.class)
             .setParameter("task", task); // NOSONAR $NON-NLS-1$
 
         return tilProsessTask(query.getResultList());
@@ -299,7 +299,7 @@ public class ProsessTaskRepositoryImpl implements ProsessTaskRepository {
         for (ProsessTaskData pt : tasks) {
             // lås alle først
             TypedQuery<ProsessTaskEntitet> query = entityManager
-                .createQuery("from ProsessTaskEntitet pt where pt.status NOT IN (:status, 'FERDIG') and pt.taskType = :task AND pt.id=:id",
+                .createQuery("from ProsessTaskEntitet pt where pt.status NOT IN (:status, 'FERDIG', 'KJOERT') and pt.taskType = :task AND pt.id=:id",
                     ProsessTaskEntitet.class)
                 .setHint(org.hibernate.annotations.QueryHints.FETCH_SIZE, 1)
                 .setParameter("status", status.getDbKode()) // NOSONAR $NON-NLS-1$

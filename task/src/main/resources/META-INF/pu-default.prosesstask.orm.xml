@@ -9,5 +9,6 @@
     <entity class="no.nav.vedtak.felles.prosesstask.impl.ProsessTaskEntitet"/>
     <entity class="no.nav.vedtak.felles.prosesstask.impl.ProsessTaskType"/>
     <entity class="no.nav.vedtak.felles.prosesstask.impl.ProsessTaskFeilhand"/>
+    <entity class="no.nav.vedtak.felles.prosesstask.impl.StartupData"/>
 
 </entity-mappings>
