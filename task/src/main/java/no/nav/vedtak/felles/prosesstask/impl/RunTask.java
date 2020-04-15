@@ -194,8 +194,8 @@ public class RunTask {
         }
 
         ProsessTaskStatus markerTaskFerdig(ProsessTaskEntitet pte) {
-            ProsessTaskStatus nyStatus = ProsessTaskStatus.FERDIG;
-            taskManagerRepository.oppdaterStatusOgTilFerdig(pte.getId(), nyStatus);
+            ProsessTaskStatus nyStatus = ProsessTaskStatus.KJOERT;
+            taskManagerRepository.oppdaterStatus(pte.getId(), nyStatus);
 
             pte = refreshProsessTask(pte.getId());
             feilOgStatushåndterer.publiserNyStatusEvent(pte.tilProsessTask(), ProsessTaskStatus.KLAR, nyStatus);

@@ -3,6 +3,7 @@ package no.nav.vedtak.felles.prosesstask.api;
 public enum ProsessTaskStatus {
 
     KLAR("KLAR"), //$NON-NLS-1$
+    KJOERT("KJOERT"),
     FERDIG("FERDIG"), //$NON-NLS-1$
     VENTER_SVAR("VENTER_SVAR"), //$NON-NLS-1$
     VETO("VETO"), //$NON-NLS-1$

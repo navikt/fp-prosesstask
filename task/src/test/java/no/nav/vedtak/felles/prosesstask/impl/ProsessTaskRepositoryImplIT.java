@@ -1,5 +1,7 @@
 package no.nav.vedtak.felles.prosesstask.impl;
 
+import static org.junit.Assert.*;
+
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
@@ -40,7 +42,7 @@ public class ProsessTaskRepositoryImplIT {
     @Test
     public void test_ingen_match_innenfor_et_kjøretidsintervall() throws Exception {
         List<ProsessTaskStatus> statuser = Arrays.asList(ProsessTaskStatus.values());
-        List<ProsessTaskData> prosessTaskData = prosessTaskRepository.finnAlle(statuser, NÅ.minusHours(1), NÅ);
+        List<ProsessTaskData> prosessTaskData = prosessTaskRepository.finnAlle(statuser, NÅ.minusMinutes(58), NÅ);
 
         Assertions.assertThat(prosessTaskData).isEmpty();
     }
@@ -48,7 +50,7 @@ public class ProsessTaskRepositoryImplIT {
     @Test
     public void test_har_match_innenfor_et_kjøretidsntervall() throws Exception {
         List<ProsessTaskStatus> statuser = Arrays.asList(ProsessTaskStatus.values());
-        List<ProsessTaskData> prosessTaskData = prosessTaskRepository.finnAlle(statuser, NÅ.minusHours(2), NÅ);
+        List<ProsessTaskData> prosessTaskData = prosessTaskRepository.finnAlle(statuser, NÅ.minusHours(2), NÅ.minusHours(1));
 
         Assertions.assertThat(prosessTaskData).hasSize(1);
         Assertions.assertThat(prosessTaskData.get(0).getStatus()).isEqualTo(ProsessTaskStatus.FERDIG);
@@ -89,6 +91,7 @@ public class ProsessTaskRepositoryImplIT {
         flushAndClear();
 
         lagre(lagTestEntitet(ProsessTaskStatus.FERDIG, NÅ.minusHours(2), "hello.world"));
+        lagre(lagTestEntitet(ProsessTaskStatus.KJOERT, NÅ.minusMinutes(59), "hello.world"));
         lagre(lagTestEntitet(ProsessTaskStatus.VENTER_SVAR, NÅ.minusHours(3), "hello.world"));
         lagre(lagTestEntitet(ProsessTaskStatus.FEILET, NÅ.minusHours(4), "hello.world"));
         lagre(lagTestEntitet(ProsessTaskStatus.KLAR, NÅ.minusHours(5), "hello.world"));
