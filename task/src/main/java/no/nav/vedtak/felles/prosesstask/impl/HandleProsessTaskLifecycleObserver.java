@@ -7,7 +7,6 @@ import java.util.Optional;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.spi.CDI;
-import javax.inject.Inject;
 
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskGruppe;
@@ -19,7 +18,6 @@ public class HandleProsessTaskLifecycleObserver {
 
     private final List<ProsessTaskLifecycleObserver> lifecycleObservers = new ArrayList<>();
 
-    @Inject
     public HandleProsessTaskLifecycleObserver() {
         // for CDI proxies
         for (ProsessTaskLifecycleObserver obs : CDI.current().select(ProsessTaskLifecycleObserver.class)) {
