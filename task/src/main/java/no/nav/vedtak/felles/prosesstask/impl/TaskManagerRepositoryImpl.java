@@ -205,7 +205,7 @@ public class TaskManagerRepositoryImpl {
         int tasks = entityManager.createNativeQuery(updateSql)  // NOSONAR
             .setParameter("id", prosessTaskId)
             .setParameter("neste_kjoering", nesteKjøring)
-            .setParameter("naa", Timestamp.valueOf(now), TemporalType.TIMESTAMP)
+            .setParameter("naa", now)
             .setParameter("server", jvmUniqueProcessName)
             .executeUpdate();
 
@@ -230,12 +230,13 @@ public class TaskManagerRepositoryImpl {
         if (em instanceof TargetInstanceProxy) {
             em = (EntityManager) ((TargetInstanceProxy) em).weld_getTargetInstance();
         }
+        Timestamp timestamp = Timestamp.valueOf(LocalDateTime.now());
         try (ScrollableResults results = em.unwrap(Session.class)
             .createNativeQuery(getSqlForPolling(), ProsessTaskEntitet.class)
             .setFlushMode(FlushMode.MANUAL)
             // hent kun 1 av gangen for å la andre pollere slippe til
             .setHint(QueryHints.HINT_FETCH_SIZE, 1)
-            .setParameter("neste_kjoering", Instant.now(), TemporalType.TIMESTAMP)
+            .setParameter("neste_kjoering", timestamp, TemporalType.TIMESTAMP)
             .setParameter("skip_ids", skipIds.isEmpty()? Set.of(-1) : skipIds)
             .scroll(ScrollMode.FORWARD_ONLY);) {
 
