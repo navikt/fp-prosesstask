@@ -233,10 +233,12 @@ public class RunTask {
                 getEntityManager().persist(nyPte);
                 getEntityManager().flush();
 
-                log.info("Oppretter ny prosesstask [{}], id={}, status={}, kjøretidspunktEtter={}",
+                log.info("Oppretter ny prosesstask [{}], id={}, status={}, cron={}, nå={}, nytt kjøretidspunkt etter={}",
                     nyPte.getTaskName(),
                     nyPte.getId(),
                     nyPte.getStatus(),
+                    now,
+                    taskType.getCronExpression(),
                     nyPte.getNesteKjøringEtter());
             }
         }

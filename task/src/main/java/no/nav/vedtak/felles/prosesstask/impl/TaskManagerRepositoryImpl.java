@@ -275,8 +275,8 @@ public class TaskManagerRepositoryImpl {
     }
 
     void logTaskPollet(ProsessTaskEntitet pte) {
-        log.info("Pollet task for kjøring: id={}, type={}, gruppe={}, sekvens={}, status={}, tidligereFeiledeForsøk={}", // NOSONAR
-            pte.getId(), pte.getTaskName(), pte.getGruppe(), pte.getSekvens(), pte.getStatus(), pte.getFeiledeForsøk());
+        log.info("Pollet task for kjøring: id={}, type={}, gruppe={}, sekvens={}, status={}, tidligereFeiledeForsøk={}, angitt nesteKjøringEtter={}", // NOSONAR
+            pte.getId(), pte.getTaskName(), pte.getGruppe(), pte.getSekvens(), pte.getStatus(), pte.getFeiledeForsøk(), pte.getNesteKjøringEtter());
     }
 
     List<ProsessTaskData> tilProsessTask(List<ProsessTaskEntitet> resultList) {
