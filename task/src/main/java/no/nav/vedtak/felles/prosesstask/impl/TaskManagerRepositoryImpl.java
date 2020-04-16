@@ -241,7 +241,7 @@ public class TaskManagerRepositoryImpl {
         if (em instanceof TargetInstanceProxy) {
             em = (EntityManager) ((TargetInstanceProxy) em).weld_getTargetInstance();
         }
-        Timestamp timestamp = Timestamp.valueOf(LocalDateTime.now());
+        var timestamp = LocalDateTime.now();
         try (ScrollableResults results = em.unwrap(Session.class)
             .createNativeQuery(getSqlForPolling(), ProsessTaskEntitet.class)
             .setFlushMode(FlushMode.MANUAL)

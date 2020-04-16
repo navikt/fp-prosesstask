@@ -44,7 +44,7 @@ WHERE pt.id
       )
   -- fjerner de som har mindre enn maks antall feilde forsøk
   -- håndterer at kjøring ikke skjer før angitt tidstempel
-  AND (pt.neste_kjoering_etter IS NULL OR pt.neste_kjoering_etter < COALESCE(:neste_kjoering, CURRENT_TIMESTAMP))
+  AND (pt.neste_kjoering_etter IS NULL OR pt.neste_kjoering_etter < :neste_kjoering)
   AND status = 'KLAR' -- effektiviserer planen med bedre indeks
   AND pt.id NOT IN (:skip_ids) -- sjekk mot skip ids i ytre loop ellers paavirkes rekkefølge
   -- sorter etter prioritet og når de sist ble kjørt
