@@ -194,7 +194,7 @@ public class TaskManagerRepositoryImpl {
     }
 
     /** Markere tasks om er kjørt FERDIG. Dette har som konsekvens at det flytter tasks fra default partisjon til FERDIG partisjoner. */
-    void flyttAlleKjoertTilFerdig() {
+    void moveToDonePartition() {
         String updateSql = "update PROSESS_TASK set status = 'FERDIG' WHERE status='KJOERT'";
 
         @SuppressWarnings("unused")

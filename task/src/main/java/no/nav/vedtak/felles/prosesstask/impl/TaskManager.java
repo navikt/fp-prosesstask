@@ -90,7 +90,7 @@ public class TaskManager implements AppServiceHandler {
     /**
      * Future for å kunne kansellere polling.
      */
-    private ScheduledFuture<?> pollingServiceScheduledFuture;
+    private List<ScheduledFuture<?>> pollingServiceScheduledFutures;
 
     /**
      * Implementasjon av dispatcher for å faktisk kjøre tasks.
@@ -120,16 +120,17 @@ public class TaskManager implements AppServiceHandler {
             return dispatcher.get();
         } else if (dispatcher.isAmbiguous()) {
             List<ProsessTaskDispatcher> dispatcherList = new ArrayList<>();
-            for(var disp : dispatcher) {
-                if(!(disp instanceof DefaultProsessTaskDispatcher)) {
+            for (var disp : dispatcher) {
+                if (!(disp instanceof DefaultProsessTaskDispatcher)) {
                     dispatcherList.add(disp);
                 }
             }
-            if(dispatcherList.size() == 1) {
+            if (dispatcherList.size() == 1) {
                 return dispatcherList.get(0);
             } else {
                 // kast exception har fler enn 2 instanser tilgjengelig, vet ikke hvilken vi skal velge
-                throw new IllegalArgumentException("Utvikler-feil: har flere mulige instanser å velge mellom, vet ikke hvilken som skal benyttes: "+ dispatcherList);
+                throw new IllegalArgumentException(
+                    "Utvikler-feil: har flere mulige instanser å velge mellom, vet ikke hvilken som skal benyttes: " + dispatcherList);
             }
         } else {
             throw new IllegalArgumentException("Utvikler-feil: skal ikke komme hit (unsatifisied dependency) - har ingen ProsessTaskDispatcher");
@@ -175,9 +176,9 @@ public class TaskManager implements AppServiceHandler {
 
     @Override
     public synchronized void stop() {
-        if (pollingServiceScheduledFuture != null) {
-            pollingServiceScheduledFuture.cancel(true);
-            pollingServiceScheduledFuture = null;
+        if (pollingServiceScheduledFutures != null) {
+            pollingServiceScheduledFutures.forEach(s -> s.cancel(true));
+            pollingServiceScheduledFutures = null;
         }
         if (runTaskService != null) {
             runTaskService.stop();
@@ -186,15 +187,16 @@ public class TaskManager implements AppServiceHandler {
     }
 
     synchronized void startPollerThread() {
-        if (pollingServiceScheduledFuture != null) {
+        if (pollingServiceScheduledFutures != null) {
             throw new IllegalStateException("Service allerede startet, stopp først");//$NON-NLS-1$
         }
         if (pollingService == null) {
             this.pollingService = Executors
                 .newSingleThreadScheduledExecutor(new NamedThreadFactory(threadPoolNamePrefix + "-poller", false)); //$NON-NLS-1$
         }
-        this.pollingServiceScheduledFuture = pollingService.scheduleWithFixedDelay(new PollAvailableTasks(), delayBetweenPollingMillis / 2,
-            delayBetweenPollingMillis, TimeUnit.MILLISECONDS); // NOSONAR
+        this.pollingServiceScheduledFutures = List.of(
+            pollingService.scheduleWithFixedDelay(new PollAvailableTasks(), delayBetweenPollingMillis / 2, delayBetweenPollingMillis, TimeUnit.MILLISECONDS),
+            pollingService.scheduleWithFixedDelay(new MoveToDonePartition(), 30 * 1000L, 5 * 60 * 1000L, TimeUnit.MILLISECONDS));
     }
 
     synchronized void startTaskThreads() {
@@ -211,8 +213,6 @@ public class TaskManager implements AppServiceHandler {
      * Poller for tasks og logger jevnlig om det ikke er ledig kapasitet (i in-memory queue) eller ingen tasks funnet (i db).
      */
     protected synchronized List<IdentRunnable> pollForAvailableTasks() {
-        
-        taskManagerRepository.flyttAlleKjoertTilFerdig();
 
         LocalDateTime now = LocalDateTime.now();
 
@@ -264,7 +264,7 @@ public class TaskManager implements AppServiceHandler {
         int numberOfTasksStillToGo = numberOfTasksToPoll;
 
         Set<Long> inmemoryTaskIds = getRunTaskService().getTaskIds();
-        
+
         List<ProsessTaskEntitet> tasksEntiteter = taskManagerRepository
             .pollNesteScrollingUpdate(numberOfTasksStillToGo, waitTimeBeforeNextPollingAttemptSecs, inmemoryTaskIds);
 
@@ -419,6 +419,32 @@ public class TaskManager implements AppServiceHandler {
             return lowerBoundry;
         }
         return systemPropertyValue;
+    }
+
+    /** Flytter fra KJOERT til FERDIG status i en separat tråd/transaksjon. */
+    class MoveToDonePartition extends TransactionHandler<Void> implements Runnable {
+
+        @Override
+        public void run() {
+            try {
+                EntityManager entityManager = getTransactionManagerRepository().getEntityManager();
+                try {
+                    super.apply(entityManager);
+                } finally {
+                    CDI.current().destroy(entityManager);
+                }
+            } catch (Throwable t) { // NOSONAR
+                // logg, ikke rethrow feil her da det dreper trådene
+                log.error("Kunne ikke flytte KJOERT tasks til FERDIG partisjoner", t);
+            }
+        }
+
+        @Override
+        protected Void doWork(EntityManager entityManager) throws Exception {
+            getTransactionManagerRepository().moveToDonePartition();
+            return null;
+        }
+
     }
 
     /** Internal executor that also tracks ids of currently queue or running tasks. */
