@@ -188,6 +188,33 @@ TaskManager startes f.eks. fra en WebListener
 1. Se [TaskManager Polling SQL](https://github.com/navikt/fp-prosesstask/blob/master/task/src/main/resources/no/nav/vedtak/felles/prosesstask/impl/TaskManager_pollTask.sql) for algoritme som håndterer sekvensiell/parallell plukking av tasks, samt sørger for å fordele tasks utover ulike konsumenter. Dette gjøres vha. SQL WINDOW functions + SKIP LOCKED syntaks. Dette er hjertet av hele dette bibliotektet. Alt annet er støtte feilhåndtering, konfigurasjon, dispatch og API.
 2. Savepoints brukes til bokføring av kjørende tasks og feilhåndtering dersom noen tasks kaster exceptions.  Enkelte exceptions (SQLTransientException etc) oppfører seg transient og vil automatisk retryes, mens andre er avhengig av definert feilhåndteringalgoritme. Hvilke defineres av angitt implementasjon av `ProsessTaskDispatcher`
 
+## Statuser
+Tasks har en livssyklus av statuser
+```
+		       +-------->VENTER_SVAR
+		       |                 +
+		       |                 |
+		       +                 v
+		    KLAR+------------>KJOERT+-------->FERDIG
+		     + ^
+		     | |
+		     v +
+		SUSPENDERT/
+		VETO
+
+```
+* KLAR - Alle som har denne vil bli kjørt såfremt deres tid, sekvens, gruppe og prioritet matcher
+* KJOERT - Task er ferdig. Er en pseudo-status som markerer ferdig, men i samme partisjon
+* FERDIG - Task er ferdig og arkivert til partisjon
+* SUSPENDERT - vil stoppe kjøring av alle tasks i samme gruppe. Kan kun settes utenfra
+* VETO - en task kan legge ned veto mot andre i samme gruppe, inntil denne er kjørt. Kan kun settes ved kjøring
+* VENTER_SVAR - en task kan settes på pause inntil den reaktiveres av en hendelse. Kan kun settes ved kjøring
+
+Det er ikke noe eget status for når tasken kjører, i dette øyeblikket vil det holdes en lås på raden til den er ferdig kjørt. Dette gjøres, som alternativ til egne statuser for kjøring, da det minimerer antall transaksjoner nødvendig, og unngår administrasjon og opprydding av tasks hvis de krasjer.
+
+## Work Stealing
+Når en tasks polles (gjøres klart til å kjøres) vil det flagges et vindu på 30s til en node kan ha påbegynt en task.  Dersom noden ikke er ferdig (har KJOERT) tasken innen dette vinduet, eller påbegynt den (tatt rad lås) så står andre noder fritt til å prøve å ta tak i den. Når andre noder tar tak i en task har de også et vindu før andre noder kan stjele den.  Første som faktisk påbegynner en task etter polling vinner, mens de andre vil ignorere kjøring.  Dette unngår også administrasjon og opprydding av tasks som krasjer, samtidig som det fordeler lasten bedre over nodene.
+
 ### Licenses and attribution
 *For updated information, always see LICENSE first!*
 
