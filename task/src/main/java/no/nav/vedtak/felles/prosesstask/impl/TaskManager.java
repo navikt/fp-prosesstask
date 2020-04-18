@@ -422,27 +422,41 @@ public class TaskManager implements AppServiceHandler {
     }
 
     /** Flytter fra KJOERT til FERDIG status i en separat tråd/transaksjon. */
-    class MoveToDonePartition extends TransactionHandler<Void> implements Runnable {
+    class MoveToDonePartition implements Runnable {
 
-        @Override
-        public void run() {
-            try {
+        /** splittet fra for å kjøre i {@link TransactionHandler}. */
+        private final class DoInNewTransaction extends TransactionHandler<Integer> {
+
+            Integer doWork() throws Exception {
                 EntityManager entityManager = getTransactionManagerRepository().getEntityManager();
                 try {
-                    super.apply(entityManager);
+                    return super.apply(entityManager);
                 } finally {
                     CDI.current().destroy(entityManager);
                 }
+            }
+
+            @Override
+            protected Integer doWork(EntityManager entityManager) throws Exception {
+                getTransactionManagerRepository().moveToDonePartition();
+                return 0;
+            }
+        }
+
+        /** splittet fra {@link #run()} for å kjøre med ActivateRequestContext. */
+        public Integer doWithContext() {
+            try {
+                return new DoInNewTransaction().doWork();
             } catch (Throwable t) { // NOSONAR
                 // logg, ikke rethrow feil her da det dreper trådene
                 log.error("Kunne ikke flytte KJOERT tasks til FERDIG partisjoner", t);
             }
+            return 1;
         }
 
         @Override
-        protected Void doWork(EntityManager entityManager) throws Exception {
-            getTransactionManagerRepository().moveToDonePartition();
-            return null;
+        public void run() {
+            RequestContextHandler.doWithRequestContext(this::doWithContext);
         }
 
     }
