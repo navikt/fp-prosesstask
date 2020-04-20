@@ -9,7 +9,6 @@ import java.lang.annotation.Target;
 
 import javax.enterprise.inject.Stereotype;
 import javax.inject.Qualifier;
-import javax.transaction.Transactional;
 
 /**
  * Marker type som implementerer interface {@link ProsessTaskHandler}.<br>
@@ -40,7 +39,6 @@ import javax.transaction.Transactional;
  */
 @Qualifier
 @Stereotype
-@Transactional
 @Inherited
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.TYPE, ElementType.FIELD, ElementType.ANNOTATION_TYPE})
