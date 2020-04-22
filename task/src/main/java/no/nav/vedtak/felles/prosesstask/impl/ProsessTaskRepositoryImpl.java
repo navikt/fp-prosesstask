@@ -20,7 +20,6 @@ import javax.enterprise.inject.Any;
 import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
 import javax.persistence.LockModeType;
 import javax.persistence.Query;
 import javax.persistence.TypedQuery;
@@ -36,6 +35,7 @@ import no.nav.vedtak.felles.prosesstask.api.ProsessTaskRepository;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskStatus;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskTypeInfo;
 import no.nav.vedtak.felles.prosesstask.api.TaskStatus;
+import no.nav.vedtak.felles.prosesstask.impl.util.DatabaseUtil;
 
 /**
  * Implementasjon av repository som er tilgjengelig for å lagre og opprette nye tasks.
@@ -363,7 +363,7 @@ public class ProsessTaskRepositoryImpl implements ProsessTaskRepository {
      */
     public static String getUniktProsessTaskGruppeNavn(EntityManager entityManager) throws SQLException {
         String sqlString;
-        if (isPostgres(entityManager)) {
+        if (DatabaseUtil.isPostgres(entityManager)) {
             sqlString = "SELECT nextval('seq_prosess_task_gruppe')";
         } else {
             sqlString = "SELECT seq_prosess_task_gruppe.nextval FROM dual";
@@ -372,12 +372,7 @@ public class ProsessTaskRepositoryImpl implements ProsessTaskRepository {
         return String.valueOf(query.getSingleResult());
     }
     
-    public static Boolean isPostgres(EntityManager entityManager) {
-        EntityManagerFactory emf = entityManager.getEntityManagerFactory();
-        Map<String, Object> emfProperties = emf.getProperties();
-        String dialect = (String) emfProperties.get("hibernate.dialect");
-        return dialect.contains("PostgreSQL");
-    }
+
 
     void flushAndClear() {
         entityManager.flush();

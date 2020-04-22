@@ -35,6 +35,7 @@ import org.slf4j.LoggerFactory;
 
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskStatus;
+import no.nav.vedtak.felles.prosesstask.impl.util.DatabaseUtil;
 
 @ApplicationScoped
 public class TaskManagerRepositoryImpl {
@@ -309,12 +310,22 @@ public class TaskManagerRepositoryImpl {
     @ActivateRequestContext
     @Transactional
     void verifyStartup() {
-
-        String sql = "select current_setting('TIMEZONE') as dbtz,"
-            + "  to_char(current_timestamp, 'YYYY-MM-DD HH24:MI:SS.US+TZ') as dbtid,"
-            + "  to_char(cast(:inputTid as timestamp with time zone), 'YYYY-MM-DD HH24:MI:SS.US+TZ') as inputtid,"
-            + "  :inputTid as inputtid2,"
-            + "  (current_timestamp - :inputTid) as drift";
+        boolean isPostgres = DatabaseUtil.isPostgres(entityManager);
+        String sql;
+        if (isPostgres){
+            sql = "select current_setting('TIMEZONE') as dbtz,"
+                    + "  to_char(current_timestamp, 'YYYY-MM-DD HH24:MI:SS.US+TZ') as dbtid,"
+                    + "  to_char(cast(:inputTid as timestamp with time zone), 'YYYY-MM-DD HH24:MI:SS.US+TZ') as inputtid,"
+                    + "  :inputTid as inputtid2,"
+                    + "  (current_timestamp - :inputTid) as drift";
+        } else {
+            sql = "select DBTIMEZONE as dbtz,"
+                    + "  to_char(current_timestamp, 'YYYY-MM-DD HH24:MI:SSxFF6+TZH:TZM') as dbtid,"
+                    + "  to_char(cast(:inputTid as timestamp with time zone), 'YYYY-MM-DD HH24:MI:SSxFF6+TZH:TZM') as inputtid,"
+                    + "  :inputTid as inputtid2,"
+                    + "  (current_timestamp - :inputTid) as drift"
+                    + " from dual";
+        }
 
         LocalDateTime now = LocalDateTime.now();
         var result = (StartupData) entityManager.createNativeQuery(sql, StartupData.class)
