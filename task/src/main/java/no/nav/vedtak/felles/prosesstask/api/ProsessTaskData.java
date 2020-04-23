@@ -63,6 +63,7 @@ public class ProsessTaskData implements ProsessTaskInfo {
     private String sisteKjøringServerProsess;
     private LocalDateTime sistKjørt;
     private ProsessTaskStatus status = ProsessTaskStatus.KLAR;
+    private Long blokkertAvProsessTaskId;
 
     public ProsessTaskData(String taskType) {
         this.taskType = taskType;
@@ -126,6 +127,11 @@ public class ProsessTaskData implements ProsessTaskInfo {
     @Override
     public String getGruppe() {
         return gruppe;
+    }
+    
+    @Override
+    public Long getBlokkertAvProsessTaskId() {
+        return blokkertAvProsessTaskId;
     }
 
     /**
@@ -306,6 +312,10 @@ public class ProsessTaskData implements ProsessTaskInfo {
     public void setOppgaveId(String oppgaveId) {
         Objects.requireNonNull(oppgaveId);
         setProperty(OPPGAVE_ID, oppgaveId);
+    }
+
+    public void setBlokkertAvProsessTaskId(Long blokkertAvProsessTaskId) {
+        this.blokkertAvProsessTaskId = blokkertAvProsessTaskId;
     }
 
     @Override

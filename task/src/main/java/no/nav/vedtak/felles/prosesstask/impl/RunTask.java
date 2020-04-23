@@ -196,12 +196,12 @@ public class RunTask {
         ProsessTaskStatus markerTaskFerdig(ProsessTaskEntitet pte) {
             ProsessTaskStatus nyStatus = ProsessTaskStatus.KJOERT;
             taskManagerRepository.oppdaterStatus(pte.getId(), nyStatus);
+            
+            // frigir veto etter at event handlere er fyrt
+            taskManagerRepository.frigiVeto(pte);
 
             pte = refreshProsessTask(pte.getId());
             feilOgStatushåndterer.publiserNyStatusEvent(pte.tilProsessTask(), ProsessTaskStatus.KLAR, nyStatus);
-
-            // frigir veto etter at event handlere er fyrt
-            taskManagerRepository.frigiVeto(pte);
             return nyStatus;
         }
 

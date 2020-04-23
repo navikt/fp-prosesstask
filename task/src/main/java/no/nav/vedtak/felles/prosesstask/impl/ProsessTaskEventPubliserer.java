@@ -1,6 +1,6 @@
 package no.nav.vedtak.felles.prosesstask.impl;
 
-import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.context.Dependent;
 import javax.enterprise.event.Event;
 import javax.inject.Inject;
 
@@ -12,7 +12,7 @@ import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskEvent;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskStatus;
 
-@ApplicationScoped
+@Dependent
 public class ProsessTaskEventPubliserer {
 
     private static final Logger log = LoggerFactory.getLogger(ProsessTaskEventPubliserer.class);

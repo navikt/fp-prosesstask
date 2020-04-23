@@ -81,6 +81,11 @@ public class ProsessTaskEvent implements ProsessTaskInfo {
     public String getGruppe() {
         return data.getGruppe();
     }
+    
+    @Override
+    public Long getBlokkertAvProsessTaskId() {
+        return data.getBlokkertAvProsessTaskId();
+    }
 
     /** Rapportert feil hvis task har feilet. */
     public Feil getFeil() {

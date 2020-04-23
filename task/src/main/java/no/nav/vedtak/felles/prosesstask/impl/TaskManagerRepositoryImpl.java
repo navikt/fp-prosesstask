@@ -134,7 +134,7 @@ public class TaskManagerRepositoryImpl {
             .setParameter("neste", nesteKjøringEtter, TemporalType.TIMESTAMP) // NOSONAR
             .executeUpdate();
         if (tasks > 0) {
-            log.info("ProssessTask [{}] FERDIG. Frigitt {} tidligere blokkerte tasks", blokkerendeTask.getId(), tasks);
+            log.info("ProsessTask [{}] FERDIG. Frigitt {} tidligere blokkerte tasks", blokkerendeTask.getId(), tasks);
         }
     }
 
@@ -151,13 +151,13 @@ public class TaskManagerRepositoryImpl {
             " ,versjon=versjon+1 " +
             " WHERE id = :id";
 
-        String status = taskStatus.getDbKode();
         LocalDateTime now = LocalDateTime.now();
+        String status = taskStatus.getDbKode();
         @SuppressWarnings("resource")
         int tasks = getEntityManagerAsSession().createNativeQuery(updateSql)
             .setParameter("id", prosessTaskId) // NOSONAR
             .setParameter("status", status) // NOSONAR
-            .setParameter("status_ts", now)
+            .setParameter("status_ts", now, TemporalType.TIMESTAMP) // NOSONAR
             .setParameter("neste", nesteKjøringEtter, TemporalType.TIMESTAMP) // NOSONAR
             .setParameter("feilkode", feilkode)// NOSONAR
             .setParameter("feiltekst", feiltekst)// NOSONAR

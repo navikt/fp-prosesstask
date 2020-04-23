@@ -12,7 +12,7 @@ import javax.enterprise.inject.Any;
 import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
 
-import org.jboss.weld.exceptions.UnsupportedOperationException;
+import java.lang.UnsupportedOperationException;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
