@@ -122,16 +122,14 @@ public class TaskManagerRepositoryImpl {
             + ", blokkert_av=NULL"
             + ", siste_kjoering_feil_kode=NULL"
             + ", siste_kjoering_feil_tekst=NULL"
-            + ", neste_kjoering_etter=:neste"
-            + " WHERE status='VETO' and blokkert_av=:id";
-
-        LocalDateTime nesteKjøringEtter = LocalDateTime.now();
+            + ", neste_kjoering_etter=NULL"
+            + ", versjon = versjon +1"
+            + " WHERE blokkert_av=:id";
 
         @SuppressWarnings("resource")
         int tasks = getEntityManagerAsSession()
             .createNativeQuery(updateSql)
             .setParameter("id", blokkerendeTask.getId())
-            .setParameter("neste", nesteKjøringEtter, TemporalType.TIMESTAMP) // NOSONAR
             .executeUpdate();
         if (tasks > 0) {
             log.info("ProsessTask [{}] FERDIG. Frigitt {} tidligere blokkerte tasks", blokkerendeTask.getId(), tasks);
@@ -149,7 +147,7 @@ public class TaskManagerRepositoryImpl {
             " ,siste_kjoering_feil_tekst = :feiltekst" +
             ", siste_kjoering_slutt_ts = :status_ts" +
             " ,versjon=versjon+1 " +
-            " WHERE id = :id";
+            " WHERE id = :id AND status NOT IN ('VETO', 'SUSPENDERT', 'KJOERT', 'FERDIG')";
 
         LocalDateTime now = LocalDateTime.now();
         String status = taskStatus.getDbKode();
