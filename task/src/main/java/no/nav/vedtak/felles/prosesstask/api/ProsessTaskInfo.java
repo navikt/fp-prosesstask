@@ -34,6 +34,8 @@ public interface ProsessTaskInfo {
     String getSekvens();
 
     String getAktørId();
+    
+    Long getBlokkertAvProsessTaskId();
 
     /**
      * @deprecated foretrekk {@link #getSaksnummer()}

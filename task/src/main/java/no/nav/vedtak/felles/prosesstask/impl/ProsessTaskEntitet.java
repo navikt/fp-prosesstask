@@ -42,6 +42,9 @@ public class ProsessTaskEntitet {
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "SEQ_PROSESS_TASK")
     private Long id;
 
+    @Column(name="blokkert_av")
+    private Long blokkertAvProsessTaskId;
+    
     @Column(name = "neste_kjoering_etter")
     private LocalDateTime nesteKjøringEtter;
 
@@ -125,6 +128,14 @@ public class ProsessTaskEntitet {
     public void setNesteKjøringEtter(LocalDateTime nesteKjøringEtter) {
         this.nesteKjøringEtter = nesteKjøringEtter;
     }
+    
+    public void setBlokkertAvProsessTaskId(Long blokkertAvProsessTaskId) {
+        this.blokkertAvProsessTaskId = blokkertAvProsessTaskId;
+    }
+    
+    public Long getBlokkertAvProsessTaskId() {
+        return blokkertAvProsessTaskId;
+    }
 
     public void setSisteKjøringServer(String sisteKjøringServerProsess) {
         this.sisteKjøringServerProsess = sisteKjøringServerProsess;
@@ -194,6 +205,7 @@ public class ProsessTaskEntitet {
         task.setSekvens(getSekvens());
         task.setPayload(getPayload());
         task.setSisteKjøringServerProsess(getSisteKjøringServerProsess());
+        task.setBlokkertAvProsessTaskId(getBlokkertAvProsessTaskId());
         return task;
     }
 
@@ -240,6 +252,7 @@ public class ProsessTaskEntitet {
         this.gruppe = prosessTask.getGruppe();
         this.sekvens = prosessTask.getSekvens();
         this.payload = prosessTask.getPayloadAsString();
+        this.blokkertAvProsessTaskId = prosessTask.getBlokkertAvProsessTaskId();
         return this;
     }
 

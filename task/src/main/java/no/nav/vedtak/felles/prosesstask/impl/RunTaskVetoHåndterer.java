@@ -1,7 +1,6 @@
 package no.nav.vedtak.felles.prosesstask.impl;
 
 import java.io.IOException;
-import java.time.LocalDateTime;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.Optional;
 
@@ -39,14 +38,17 @@ public class RunTaskVetoHåndterer {
             ProsessTaskVeto veto = entry.getValue();
             if (veto.isVeto()) {
                 vetoed = true;
-                Feil feil = TaskManagerFeil.FACTORY.kanIkkeKjøreFikkVeto(pte.getId(), pte.getTaskName(), veto.getBlokkertAvProsessTaskId(),
-                    veto.getBegrunnelse());
+                Long blokkerId = veto.getBlokkertAvProsessTaskId();
+                
+                Feil feil = TaskManagerFeil.FACTORY.kanIkkeKjøreFikkVeto(pte.getId(), pte.getTaskName(), blokkerId, veto.getBegrunnelse());
                 ProsessTaskFeil taskFeil = new ProsessTaskFeil(pte.tilProsessTask(), feil);
-                taskFeil.setBlokkerendeProsessTaskId(veto.getBlokkertAvProsessTaskId());
-
+                taskFeil.setBlokkerendeProsessTaskId(blokkerId);
                 pte.setSisteFeil(taskFeil.getFeilkode(), taskFeil.writeValueAsString());
+
+                pte.setBlokkertAvProsessTaskId(blokkerId);
                 pte.setStatus(ProsessTaskStatus.VETO); // setter også status slik at den ikke forsøker på nytt. Blokkerende task må resette denne.
-                pte.setNesteKjøringEtter(LocalDateTime.now()); // kjør umiddelbart når veto opphører
+                pte.setNesteKjøringEtter(null); // kjør umiddelbart når veto opphører
+                
                 EntityManager em = entityManager;
                 em.persist(pte);
                 em.flush();
