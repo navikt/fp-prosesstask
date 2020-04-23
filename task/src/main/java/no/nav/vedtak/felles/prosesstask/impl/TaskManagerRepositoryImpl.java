@@ -3,7 +3,6 @@ package no.nav.vedtak.felles.prosesstask.impl;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.management.ManagementFactory;
-import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -97,14 +96,24 @@ public class TaskManagerRepositoryImpl {
     List<ProsessTaskData> pollNeste(LocalDateTime etterTid) {
         final String sqlForPolling = getSqlForPolling();
 
-        @SuppressWarnings("unchecked")
-        List<ProsessTaskEntitet> resultList = entityManager
+        @SuppressWarnings("resource")
+        List<ProsessTaskEntitet> resultList = getEntityManagerAsSession()
             .createNativeQuery(sqlForPolling, ProsessTaskEntitet.class) // NOSONAR - statisk SQL
-            .setParameter("neste_kjoering", Timestamp.valueOf(etterTid), TemporalType.TIMESTAMP)
+            .setParameter("neste_kjoering", etterTid, TemporalType.TIMESTAMP)
             .setParameter("skip_ids", Set.of(-1))
             .setHint(QueryHints.HINT_CACHE_MODE, "IGNORE")
             .getResultList();
         return tilProsessTask(resultList);
+    }
+
+    @SuppressWarnings("rawtypes")
+    private Session getEntityManagerAsSession() {
+        EntityManager em = entityManager;
+        // workaround for hibernate issue HHH-11020
+        if (em instanceof TargetInstanceProxy) {
+            em = (EntityManager) ((TargetInstanceProxy) em).weld_getTargetInstance();
+        }
+        return em.unwrap(Session.class);
     }
 
     void frigiVeto(ProsessTaskEntitet blokkerendeTask) {
@@ -118,10 +127,11 @@ public class TaskManagerRepositoryImpl {
 
         LocalDateTime nesteKjøringEtter = LocalDateTime.now();
 
-        int tasks = entityManager
+        @SuppressWarnings("resource")
+        int tasks = getEntityManagerAsSession()
             .createNativeQuery(updateSql)
             .setParameter("id", blokkerendeTask.getId())
-            .setParameter("neste", nesteKjøringEtter == null ? null : Timestamp.valueOf(nesteKjøringEtter), TemporalType.TIMESTAMP) // NOSONAR
+            .setParameter("neste", nesteKjøringEtter, TemporalType.TIMESTAMP) // NOSONAR
             .executeUpdate();
         if (tasks > 0) {
             log.info("ProssessTask [{}] FERDIG. Frigitt {} tidligere blokkerte tasks", blokkerendeTask.getId(), tasks);
@@ -143,11 +153,12 @@ public class TaskManagerRepositoryImpl {
 
         String status = taskStatus.getDbKode();
         LocalDateTime now = LocalDateTime.now();
-        int tasks = entityManager.createNativeQuery(updateSql)
+        @SuppressWarnings("resource")
+        int tasks = getEntityManagerAsSession().createNativeQuery(updateSql)
             .setParameter("id", prosessTaskId) // NOSONAR
             .setParameter("status", status) // NOSONAR
             .setParameter("status_ts", now)
-            .setParameter("neste", nesteKjøringEtter == null ? null : Timestamp.valueOf(nesteKjøringEtter), TemporalType.TIMESTAMP) // NOSONAR
+            .setParameter("neste", nesteKjøringEtter, TemporalType.TIMESTAMP) // NOSONAR
             .setParameter("feilkode", feilkode)// NOSONAR
             .setParameter("feiltekst", feiltekst)// NOSONAR
             .setParameter("forsoek", feilforsøk)// NOSONAR
@@ -170,16 +181,17 @@ public class TaskManagerRepositoryImpl {
 
         String status = taskStatus.getDbKode();
         LocalDateTime now = LocalDateTime.now();
-        @SuppressWarnings("unused")
-        int tasks = entityManager.createNativeQuery(updateSql) // NOSONAR
+        @SuppressWarnings({ "unused", "resource" })
+        int tasks = getEntityManagerAsSession().createNativeQuery(updateSql) // NOSONAR
             .setParameter("id", prosessTaskId)
             .setParameter("status", status)
-            .setParameter("status_ts", Timestamp.valueOf(now), TemporalType.TIMESTAMP)
+            .setParameter("status_ts", now, TemporalType.TIMESTAMP)
             .executeUpdate();
 
     }
 
     /** Markere task under arbeid (kjøres nå). */
+    @SuppressWarnings("resource")
     void oppdaterTaskUnderArbeid(Long prosessTaskId, LocalDateTime now) {
         String updateSql = "update PROSESS_TASK set" +
             "  siste_kjoering_ts = :naa" +
@@ -187,9 +199,9 @@ public class TaskManagerRepositoryImpl {
             " WHERE id = :id";
 
         @SuppressWarnings("unused")
-        int tasks = entityManager.createNativeQuery(updateSql) // NOSONAR
+        int tasks = getEntityManagerAsSession().createNativeQuery(updateSql) // NOSONAR
             .setParameter("id", prosessTaskId)
-            .setParameter("naa", Timestamp.valueOf(now), TemporalType.TIMESTAMP)
+            .setParameter("naa", now, TemporalType.TIMESTAMP)
             .executeUpdate();
 
     }
@@ -227,7 +239,7 @@ public class TaskManagerRepositoryImpl {
      * Poll neste vha. scrolling. Dvs. vi plukker en og en task og håndterer den får vi laster mer fra databasen. Sikrer
      * at flere pollere kan opere samtidig og uavhengig av hverandre.
      */
-    @SuppressWarnings({ "rawtypes", "resource" })
+    @SuppressWarnings({ "resource" })
     List<ProsessTaskEntitet> pollNesteScrollingUpdate(int numberOfTasks, long waitTimeBeforeNextPollingAttemptSecs, Set<Long> skipIds) {
         int numberOfTasksStillToGo = numberOfTasks;
         List<ProsessTaskEntitet> tasksToRun = new ArrayList<>(numberOfTasks);
@@ -236,14 +248,8 @@ public class TaskManagerRepositoryImpl {
         // gangen) og definere eksakt spørring.
 
         // Scroller for å kunne oppdatere en og en rad uten å ta lås på neste.
-        EntityManager em = entityManager;
-
-        // workaround for hibernate issue HHH-11020
-        if (em instanceof TargetInstanceProxy) {
-            em = (EntityManager) ((TargetInstanceProxy) em).weld_getTargetInstance();
-        }
         var timestamp = LocalDateTime.now();
-        try (ScrollableResults results = em.unwrap(Session.class)
+        try (ScrollableResults results = getEntityManagerAsSession()
             .createNativeQuery(getSqlForPolling(), ProsessTaskEntitet.class)
             .setFlushMode(FlushMode.MANUAL)
             // hent kun 1 av gangen for å la andre pollere slippe til
@@ -295,13 +301,14 @@ public class TaskManagerRepositoryImpl {
             + "   FOR UPDATE SKIP LOCKED" //$NON-NLS-1$
         ;
 
-        Query query = entityManager.createNativeQuery(sql, ProsessTaskEntitet.class)
+        @SuppressWarnings("resource")
+        Query query = getEntityManagerAsSession().createNativeQuery(sql, ProsessTaskEntitet.class)
             .setHint(org.hibernate.annotations.QueryHints.FETCH_SIZE, 1)
             .setHint("javax.persistence.cache.storeMode", "REFRESH") //$NON-NLS-1$ //$NON-NLS-2$
             .setParameter("id", taskInfo.getId())// NOSONAR
             .setParameter("taskType", taskInfo.getTaskType())// NOSONAR
             .setParameter("status", ProsessTaskStatus.KLAR.getDbKode())// NOSONAR
-            .setParameter("sisteTs", Timestamp.valueOf(taskInfo.getTimestampLowWatermark()), TemporalType.TIMESTAMP);
+            .setParameter("sisteTs", taskInfo.getTimestampLowWatermark(), TemporalType.TIMESTAMP);
 
         return query.getResultList().stream().findFirst();
 
@@ -328,8 +335,9 @@ public class TaskManagerRepositoryImpl {
         }
 
         LocalDateTime now = LocalDateTime.now();
-        var result = (StartupData) entityManager.createNativeQuery(sql, StartupData.class)
-            .setParameter("inputTid", Timestamp.valueOf(now), TemporalType.TIMESTAMP)
+        @SuppressWarnings({ "resource", "cast" })
+        var result = (StartupData) getEntityManagerAsSession().createNativeQuery(sql, StartupData.class)
+            .setParameter("inputTid", now, TemporalType.TIMESTAMP)
             .getSingleResult();
 
         Object hibernateTz = entityManager.getEntityManagerFactory().getProperties().get("hibernate.jdbc.time_zone");
