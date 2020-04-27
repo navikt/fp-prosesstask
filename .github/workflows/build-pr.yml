@@ -1,6 +1,12 @@
 name: Bygg pull request
 
-on: [pull_request]
+on: 
+  pull_request:
+    paths-ignore:
+      - '**.md'
+      - '.gitignore'
+      - 'LICENCE'
+      - 'CODEOWNERS'
 
 jobs:
   build:
