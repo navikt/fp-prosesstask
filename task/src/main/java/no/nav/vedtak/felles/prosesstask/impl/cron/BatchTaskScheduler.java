@@ -26,16 +26,16 @@ import no.nav.vedtak.felles.prosesstask.impl.ProsessTaskType;
 @ApplicationScoped
 @ActivateRequestContext
 @Transactional
-public class BatchTaskSchedueler implements AppServiceHandler {
+public class BatchTaskScheduler implements AppServiceHandler {
 
-    private static final Logger log = LoggerFactory.getLogger(BatchTaskSchedueler.class);
+    private static final Logger log = LoggerFactory.getLogger(BatchTaskScheduler.class);
     private ProsessTaskRepository taskRepository;
 
-    BatchTaskSchedueler() {
+    BatchTaskScheduler() {
     }
 
     @Inject
-    public BatchTaskSchedueler(ProsessTaskRepository taskRepository) {
+    public BatchTaskScheduler(ProsessTaskRepository taskRepository) {
         this.taskRepository = taskRepository;
     }
 
