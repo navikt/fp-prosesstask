@@ -34,7 +34,7 @@ De benyttes som en grunnleggende byggekloss for å implementere følgende, med t
 	<dependency>
 		<groupId>no.nav.vedtak.prosesstask</groupId>
 		<artifactId>prosesstask-root</artifactId>
-		<version>2.3-20200416081441-06b31dc</version>
+		<version>2.3-20200428100737-d340f81</version>
 		<scope>import</scope>
 		<type>pom</type>
 	</dependency>
