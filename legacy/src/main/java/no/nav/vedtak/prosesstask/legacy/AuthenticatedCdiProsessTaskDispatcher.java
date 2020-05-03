@@ -3,6 +3,7 @@ package no.nav.vedtak.prosesstask.legacy;
 import java.util.Set;
 
 import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
 
 import no.nav.vedtak.exception.IntegrasjonException;
 import no.nav.vedtak.exception.TekniskException;
@@ -21,9 +22,13 @@ import no.nav.vedtak.sikkerhet.loginmodule.ContainerLogin;
 @ApplicationScoped
 public class AuthenticatedCdiProsessTaskDispatcher extends BasicCdiProsessTaskDispatcher {
     private static final MdcExtendedLogContext LOG_CONTEXT = MdcExtendedLogContext.getContext("prosess"); //$NON-NLS-1$
+    
+    private  TaskAuditlogger taskAuditlogger;
 
-    public AuthenticatedCdiProsessTaskDispatcher() {
+    @Inject
+    public AuthenticatedCdiProsessTaskDispatcher(TaskAuditlogger taskAuditlogger) {
         super(Set.of(TekniskException.class, IntegrasjonException.class));
+        this.taskAuditlogger = taskAuditlogger;
     }
 
     @Override
@@ -37,7 +42,12 @@ public class AuthenticatedCdiProsessTaskDispatcher extends BasicCdiProsessTaskDi
             }
 
             prosessTaskHandler.doTask(task);
-            sporingslogg(task);
+            
+            if (taskAuditlogger.isEnabled()) {
+                taskAuditlogger.logg(task);
+            } else {
+                sporingslogg(task);
+            }
 
             // renser ikke LOG_CONTEXT her. tar alt i RunTask slik at vi kan logge exceptions også
         }
