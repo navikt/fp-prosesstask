@@ -23,21 +23,21 @@ import no.nav.vedtak.felles.prosesstask.api.ProsessTaskInfo;
  * Implementerer dispatch vha. CDI scoped beans.
  */
 public class BasicCdiProsessTaskDispatcher implements ProsessTaskDispatcher {
-    
+
     /** Disse delegres til Feilhåndteringsalgoritme for håndtering. Andre vil alltid gi FEILET status. */
     private static final Set<Class<?>> DEFAULT_FEILHÅNDTERING_EXCEPTIONS = Set.of(
-        JDBCConnectionException.class, 
-        QueryTimeoutException.class, 
-        SQLTransientException.class, 
+        JDBCConnectionException.class,
+        QueryTimeoutException.class,
+        SQLTransientException.class,
         SQLNonTransientConnectionException.class,
         SQLRecoverableException.class);
-    
+
     private Set<Class<?>> feilhåndteringExceptions = new LinkedHashSet<>();
 
     protected BasicCdiProsessTaskDispatcher() {
         this(Set.of());
     }
-    
+
     protected BasicCdiProsessTaskDispatcher(Set<Class<?>> feilhåndteringExceptions) {
         this.feilhåndteringExceptions.addAll(feilhåndteringExceptions);
         this.feilhåndteringExceptions.addAll(DEFAULT_FEILHÅNDTERING_EXCEPTIONS);
@@ -49,10 +49,11 @@ public class BasicCdiProsessTaskDispatcher implements ProsessTaskDispatcher {
             prosessTaskHandler.doTask(task);
         }
     }
-    
+
     @Override
     public boolean feilhåndterException(String taskType, Throwable e) {
-        return (feilhåndteringExceptions.stream().anyMatch(fatal -> fatal.isAssignableFrom(e.getClass())));
+        return (feilhåndteringExceptions.stream()
+            .anyMatch(fatal -> fatal.isAssignableFrom(e.getClass()) || (e.getCause() != null && fatal.isAssignableFrom(e.getCause().getClass()))));
     }
 
     public ProsessTaskHandlerRef findHandler(ProsessTaskInfo task) {
@@ -75,7 +76,7 @@ public class BasicCdiProsessTaskDispatcher implements ProsessTaskDispatcher {
             if (bean == null) {
                 return;
             }
-            
+
             if (bean.getClass().isAnnotationPresent(Dependent.class)) {
                 // må closes hvis @Dependent scoped siden vi slår opp. ApplicationScoped alltid ok. RequestScope også ok siden vi kjører med det.
                 CDI.current().destroy(bean);
@@ -85,7 +86,7 @@ public class BasicCdiProsessTaskDispatcher implements ProsessTaskDispatcher {
         public void doTask(ProsessTaskData prosessTaskData) {
             bean.doTask(prosessTaskData);
         }
-        
+
         public ProsessTaskHandler getBean() {
             return bean;
         }
