@@ -52,6 +52,7 @@ import no.nav.vedtak.sikkerhet.abac.TilpassetAbacAttributt;
 public class ProsessTaskRestTjeneste {
 
     private static final Logger logger = LoggerFactory.getLogger(ProsessTaskRestTjeneste.class);
+    private static final String FORELDREPENGER_DRIFT = "no.nav.abac.attributter.foreldrepenger.drift";
 
     private ProsessTaskApplikasjonTjeneste prosessTaskApplikasjonTjeneste;
 
@@ -71,7 +72,7 @@ public class ProsessTaskRestTjeneste {
             @ApiResponse(responseCode = "202", description = "Prosesstaskens oppdatert informasjon"),
             @ApiResponse(responseCode = "500", description = "Feilet pga ukjent feil eller tekniske/funksjonelle feil")
     })
-    @BeskyttetRessurs(action = CREATE, ressurs = DRIFT)
+    @BeskyttetRessurs(action = CREATE, resource = FORELDREPENGER_DRIFT, ressurs = DRIFT)
     public ProsessTaskDataDto createProsessTask(@Parameter(description = "Informasjon for restart en eksisterende prosesstask") @TilpassetAbacAttributt(supplierClass = AbacEmptySupplier.class) @Valid ProsessTaskOpprettInputDto inputDto) {
         // kjøres manuelt for å avhjelpe feilsituasjon, da er det veldig greit at det blir logget!
         logger.info("Oppretter prossess task av type {}", inputDto.getTaskType());
