@@ -28,6 +28,7 @@ public class WeldContext {
         return INSTANCE;
     }
 
+    @SuppressWarnings("resource")
     public WeldContext() {
         // syntetisk bean
         this.weld = new Weld();

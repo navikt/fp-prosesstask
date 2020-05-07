@@ -16,7 +16,7 @@ import com.fasterxml.jackson.databind.ObjectWriter;
 
 import no.nav.vedtak.exception.VLException;
 import no.nav.vedtak.feil.Feil;
-import no.nav.vedtak.felles.prosesstask.impl.util.SavepointRolledbackException;
+import no.nav.vedtak.felles.jpa.savepoint.SavepointRolledbackException;
 
 /**
  * Json struktur for feil som kan oppstå. Dupliserer noen properties for enkelthets skyld til senere prosessering.
