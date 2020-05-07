@@ -19,8 +19,8 @@ import org.junit.runners.model.Statement;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 
-import no.nav.vedtak.felles.prosesstask.impl.util.TransactionHandler;
-import no.nav.vedtak.felles.prosesstask.impl.util.TransactionHandler.Work;
+import no.nav.vedtak.felles.jpa.TransactionHandler;
+import no.nav.vedtak.felles.jpa.TransactionHandler.Work;
 
 public class UnittestRepositoryRule implements MethodRule {
 

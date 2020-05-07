@@ -8,7 +8,7 @@ import javax.interceptor.InvocationContext;
 import javax.persistence.EntityManager;
 import javax.transaction.Transactional;
 
-import no.nav.vedtak.felles.prosesstask.impl.util.TransactionHandler;
+import no.nav.vedtak.felles.jpa.TransactionHandler;
 
 /**
  * Local Transaction Manager, kun for test.

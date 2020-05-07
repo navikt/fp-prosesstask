@@ -34,8 +34,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import no.nav.vedtak.apptjeneste.AppServiceHandler;
+import no.nav.vedtak.felles.jpa.TransactionHandler;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskDispatcher;
-import no.nav.vedtak.felles.prosesstask.impl.util.TransactionHandler;
 
 /**
  * Main class handling polling tasks and dispatching these.
