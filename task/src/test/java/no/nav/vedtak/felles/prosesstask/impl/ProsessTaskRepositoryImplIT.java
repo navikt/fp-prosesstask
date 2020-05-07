@@ -1,7 +1,5 @@
 package no.nav.vedtak.felles.prosesstask.impl;
 
-import static org.junit.Assert.*;
-
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
