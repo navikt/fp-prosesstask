@@ -11,10 +11,9 @@ import no.nav.vedtak.feil.Feil;
  * CDI Event for ProsessTask.
  * Publiseres når en ProsessTask opprettes eller endrer status.
  * <p>
- * ADVARSEL:<br>
+ * NB:<br>
  * Publisering skjer før den eventuelt lagres, så når eventer observeres synkront og det feiler kan dette avbryte
  * transaksjonen<br>
- * I CDI 2.0 vil dette kunne endres til asynkron håndtering.
  * <p>
  */
 public class ProsessTaskEvent implements ProsessTaskInfo {
@@ -81,7 +80,7 @@ public class ProsessTaskEvent implements ProsessTaskInfo {
     public String getGruppe() {
         return data.getGruppe();
     }
-    
+
     @Override
     public Long getBlokkertAvProsessTaskId() {
         return data.getBlokkertAvProsessTaskId();
@@ -151,6 +150,12 @@ public class ProsessTaskEvent implements ProsessTaskInfo {
     @Override
     public ProsessTaskStatus getStatus() {
         return data.getStatus();
+    }
+
+    /** Tidspunkt ProsessTask ble opprettet (ikke event.) */
+    @Override
+    public LocalDateTime getOpprettetTid() {
+        return data.getOpprettetTid();
     }
 
     @Override

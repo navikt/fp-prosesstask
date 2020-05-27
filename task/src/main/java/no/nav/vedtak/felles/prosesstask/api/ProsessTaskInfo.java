@@ -53,4 +53,6 @@ public interface ProsessTaskInfo {
 
     Properties getProperties();
 
+    LocalDateTime getOpprettetTid();
+
 }

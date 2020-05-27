@@ -85,7 +85,7 @@ public class FatalErrorTask {
                         String taskName = pte.getTaskName();
                         Long taskId = pte.getId();
                         Feil feil = TaskManagerFeil.FACTORY.kunneIkkeProsessereTaskPgaFatalFeilVilIkkePrøveIgjen(taskId, taskName, feiledeForsøk, t);
-                        String feilMelding = RunTaskFeilOgStatusEventHåndterer.getFeiltekstOgLoggHvisFørstegang(pte, feil, t);
+                        String feilMelding = RunTaskFeilOgStatusEventHåndterer.getFeiltekstOgLoggEventueltHvisEndret(pte, feil, t, true);
 
                         // TODO: denne bør harmoniseres med RunTaskFeilOgStatusEventHåndterer#handleTaskFeil?
                         taskManagerRepository.oppdaterStatusOgNesteKjøring(pte.getId(), ProsessTaskStatus.FEILET, null, feil.getKode(), feilMelding,
