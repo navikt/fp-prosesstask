@@ -90,7 +90,7 @@ public class ProsessTaskEntitet {
     @Column(name = "versjon", nullable = false)
     private Long versjon;
     
-    @Column(name = "opprettet_tid")
+    @Column(name = "opprettet_tid", insertable=false, updatable = false)
     private LocalDateTime opprettetTid;
 
     ProsessTaskEntitet() {
