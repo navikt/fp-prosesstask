@@ -1,11 +1,11 @@
 package no.nav.vedtak.prosesstask.legacy;
 
-import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.context.Dependent;
 
 import no.nav.vedtak.felles.prosesstask.impl.SubjectProvider;
 import no.nav.vedtak.sikkerhet.context.SubjectHandler;
 
-@ApplicationScoped
+@Dependent
 public class LegacySubjectProvider implements SubjectProvider {
 
     @Override

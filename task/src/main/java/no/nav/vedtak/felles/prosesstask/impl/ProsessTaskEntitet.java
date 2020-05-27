@@ -89,6 +89,9 @@ public class ProsessTaskEntitet {
     @Version
     @Column(name = "versjon", nullable = false)
     private Long versjon;
+    
+    @Column(name = "opprettet_tid")
+    private LocalDateTime opprettetTid;
 
     ProsessTaskEntitet() {
         // for hibernate
@@ -188,6 +191,10 @@ public class ProsessTaskEntitet {
     public String getTaskName() {
         return taskType;
     }
+    
+    public LocalDateTime getOpprettetTid() {
+        return opprettetTid;
+    }
 
     public ProsessTaskData tilProsessTask() {
         ProsessTaskData task = new ProsessTaskData(getTaskName());
@@ -206,6 +213,7 @@ public class ProsessTaskEntitet {
         task.setPayload(getPayload());
         task.setSisteKjøringServerProsess(getSisteKjøringServerProsess());
         task.setBlokkertAvProsessTaskId(getBlokkertAvProsessTaskId());
+        task.setOpprettetTid(getOpprettetTid());
         return task;
     }
 
@@ -253,6 +261,7 @@ public class ProsessTaskEntitet {
         this.sekvens = prosessTask.getSekvens();
         this.payload = prosessTask.getPayloadAsString();
         this.blokkertAvProsessTaskId = prosessTask.getBlokkertAvProsessTaskId();
+        this.opprettetTid= prosessTask.getOpprettetTid();
         return this;
     }
 

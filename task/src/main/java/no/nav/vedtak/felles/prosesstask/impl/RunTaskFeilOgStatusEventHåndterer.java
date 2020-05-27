@@ -65,7 +65,7 @@ public class RunTaskFeilOgStatusEventHåndterer {
             Feil feil = TaskManagerFeil.FACTORY.kunneIkkeProsessereTaskVilPrøveIgjenEnkelFeilmelding(taskInfo.getId(), taskName, failureAttempt,
                 nyTid, e);
 
-            String feiltekst = getFeiltekstOgLoggHvisFørstegang(pte, feil, e);
+            String feiltekst = getFeiltekstOgLoggEventueltHvisEndret(pte, feil, e, false);
             taskManagerRepository.oppdaterStatusOgNesteKjøring(pte.getId(), ProsessTaskStatus.KLAR, nyTid, feil.getKode(), feiltekst, failureAttempt);
 
             // endrer ikke status ved nytt forsøk eller publiserer event p.t.
@@ -84,7 +84,7 @@ public class RunTaskFeilOgStatusEventHåndterer {
             publiserNyStatusEvent(pte.tilProsessTask(), pte.getStatus(), nyStatus, feil, e);
         } finally {
             int failureAttempt = pte.getFeiledeForsøk() + 1;
-            String feiltekst = getFeiltekstOgLoggHvisFørstegang(pte, feil, e);
+            String feiltekst = getFeiltekstOgLoggEventueltHvisEndret(pte, feil, e, true);
             taskManagerRepository.oppdaterStatusOgNesteKjøring(pte.getId(), nyStatus, null, feil.getKode(), feiltekst, failureAttempt);
         }
     }
@@ -122,20 +122,25 @@ public class RunTaskFeilOgStatusEventHåndterer {
         return taskInfo.feilhåndterException(e);
     }
 
-    protected static String getFeiltekstOgLoggHvisFørstegang(ProsessTaskEntitet pte, Feil feil, Throwable t) {
+    protected static String getFeiltekstOgLoggEventueltHvisEndret(ProsessTaskEntitet pte, Feil feil, Throwable t, boolean erEndeligFeil) {
 
         ProsessTaskFeil taskFeil = new ProsessTaskFeil(pte.tilProsessTask(), feil);
 
-        String tidligereFeil = pte.getSisteFeilKode();
         String feilkode = taskFeil.getFeilkode();
         String feiltekst = null;
         try {
             feiltekst = taskFeil.writeValueAsString();
         } catch (IOException e1) {
             // kunne ikke skrive ut json, log stack trace
-            log.warn("Kunne ikke skrive ut json struktur for feil: " + feilkode + ", json exception: " + e1, t); // NOSONAR
+            feiltekst = "Kunne ikke skrive ut json struktur for feil: " + feilkode + ", json exception: " + e1;
+            log.warn(feiltekst, t); // NOSONAR
         }
-        if (feilkode == null || !Objects.equals(tidligereFeil, feilkode)) {
+
+        if (erEndeligFeil
+            || feilkode == null
+            || !Objects.equals(feilkode, pte.getSisteFeilKode())
+            || !Objects.equals(feiltekst, pte.getSisteFeilTekst())) {
+            // logg hvis første gang feil, er feil som ikke vil rekjøres, eller feil er endret
             feil.log(log);
         }
         return feiltekst;

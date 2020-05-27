@@ -13,7 +13,7 @@ import java.util.Scanner;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.context.Dependent;
 import javax.enterprise.context.control.ActivateRequestContext;
 import javax.enterprise.inject.Any;
 import javax.enterprise.inject.Instance;
@@ -36,7 +36,7 @@ import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskStatus;
 import no.nav.vedtak.felles.prosesstask.impl.util.DatabaseUtil;
 
-@ApplicationScoped
+@Dependent
 public class TaskManagerRepositoryImpl {
 
     private static final Logger log = LoggerFactory.getLogger(TaskManagerRepositoryImpl.class);
@@ -315,21 +315,22 @@ public class TaskManagerRepositoryImpl {
     @ActivateRequestContext
     @Transactional
     void verifyStartup() {
-        boolean isPostgres = DatabaseUtil.isPostgres(entityManager);
         String sql;
-        if (isPostgres){
+        if (DatabaseUtil.isPostgres(entityManager)) {
             sql = "select current_setting('TIMEZONE') as dbtz,"
-                    + "  to_char(current_timestamp, 'YYYY-MM-DD HH24:MI:SS.US+TZ') as dbtid,"
-                    + "  to_char(cast(:inputTid as timestamp with time zone), 'YYYY-MM-DD HH24:MI:SS.US+TZ') as inputtid,"
-                    + "  :inputTid as inputtid2,"
-                    + "  (current_timestamp - :inputTid) as drift";
-        } else {
+                + "  to_char(current_timestamp, 'YYYY-MM-DD HH24:MI:SS.US+TZ') as dbtid,"
+                + "  to_char(cast(:inputTid as timestamp with time zone), 'YYYY-MM-DD HH24:MI:SS.US+TZ') as inputtid,"
+                + "  :inputTid as inputtid2,"
+                + "  (current_timestamp - :inputTid) as drift";
+        } else if (DatabaseUtil.isOracle(entityManager)) {
             sql = "select DBTIMEZONE as dbtz,"
-                    + "  to_char(current_timestamp, 'YYYY-MM-DD HH24:MI:SSxFF6+TZH:TZM') as dbtid,"
-                    + "  to_char(cast(:inputTid as timestamp with time zone), 'YYYY-MM-DD HH24:MI:SSxFF6+TZH:TZM') as inputtid,"
-                    + "  :inputTid as inputtid2,"
-                    + "  (current_timestamp - :inputTid) as drift"
-                    + " from dual";
+                + "  to_char(current_timestamp, 'YYYY-MM-DD HH24:MI:SSxFF6+TZH:TZM') as dbtid,"
+                + "  to_char(cast(:inputTid as timestamp with time zone), 'YYYY-MM-DD HH24:MI:SSxFF6+TZH:TZM') as inputtid,"
+                + "  :inputTid as inputtid2,"
+                + "  (current_timestamp - :inputTid) as drift"
+                + " from dual";
+        } else {
+            throw new UnsupportedOperationException("Unsupported Database: " + DatabaseUtil.getDialect(entityManager));
         }
 
         LocalDateTime now = LocalDateTime.now();
@@ -341,7 +342,7 @@ public class TaskManagerRepositoryImpl {
         Object hibernateTz = entityManager.getEntityManagerFactory().getProperties().get("hibernate.jdbc.time_zone");
         String userTz = System.getProperty("user.timezone");
         log.info("Startup: DB(tz={}, current_timestamp={}), App(user.timezone={}, hibernate.jdbc.time_zone={}, inputtid={}, inputtid2={}). Drift={}",
-            result.dbtz, result.dbtid, userTz, hibernateTz, result.inputtid, result.inputtid2,result.drift);
+            result.dbtz, result.dbtid, userTz, hibernateTz, result.inputtid, result.inputtid2, result.drift);
     }
 
     ProsessTaskType getTaskType(String taskName) {

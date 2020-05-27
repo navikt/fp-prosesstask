@@ -64,6 +64,7 @@ public class ProsessTaskData implements ProsessTaskInfo {
     private LocalDateTime sistKjørt;
     private ProsessTaskStatus status = ProsessTaskStatus.KLAR;
     private Long blokkertAvProsessTaskId;
+    private LocalDateTime opprettetTid;
 
     public ProsessTaskData(String taskType) {
         this.taskType = taskType;
@@ -308,6 +309,10 @@ public class ProsessTaskData implements ProsessTaskInfo {
             return Optional.of(value);
         }
     }
+    
+    public LocalDateTime getOpprettetTid() {
+        return opprettetTid;
+    }
 
     public void setOppgaveId(String oppgaveId) {
         Objects.requireNonNull(oppgaveId);
@@ -374,6 +379,10 @@ public class ProsessTaskData implements ProsessTaskInfo {
 
         setFagsakId(fagsakId);
         setAktørId(aktørId);
+    }
+
+    public void setOpprettetTid(LocalDateTime opprettetTid) {
+        this.opprettetTid = opprettetTid;
     }
 
     public void setPrioritet(int prioritet) {

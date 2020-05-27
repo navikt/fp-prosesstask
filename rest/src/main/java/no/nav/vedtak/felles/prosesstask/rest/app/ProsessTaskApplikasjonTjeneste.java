@@ -8,7 +8,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.context.Dependent;
 import javax.inject.Inject;
 
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
@@ -27,7 +27,7 @@ import no.nav.vedtak.felles.prosesstask.rest.dto.ProsessTaskRetryAllResultatDto;
 import no.nav.vedtak.felles.prosesstask.rest.dto.ProsessTaskStatusDto;
 import no.nav.vedtak.felles.prosesstask.rest.dto.SokeFilterDto;
 
-@ApplicationScoped
+@Dependent
 public class ProsessTaskApplikasjonTjeneste {
 
     private ProsessTaskRepository prosessTaskRepository;
