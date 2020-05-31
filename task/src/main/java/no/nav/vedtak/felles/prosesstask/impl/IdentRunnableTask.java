@@ -2,6 +2,8 @@ package no.nav.vedtak.felles.prosesstask.impl;
 
 import java.time.LocalDateTime;
 
+import org.slf4j.MDC;
+
 /** IdentRunnable som tar id og Runnable. */
 class IdentRunnableTask implements IdentRunnable {
     private final Long id;
@@ -16,6 +18,7 @@ class IdentRunnableTask implements IdentRunnable {
 
     @Override
     public void run() {
+        MDC.clear();
         runnable.run();
     }
 

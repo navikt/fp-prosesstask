@@ -25,6 +25,7 @@ class TaskManagerRunnableTask implements Runnable {
 
     @Override
     public void run() {
+        MDC.clear();
         
         RunTask runSingleTask = newRunTaskInstance();
         IdentRunnable errorCallback = null;
@@ -45,7 +46,6 @@ class TaskManagerRunnableTask implements Runnable {
             clearLogContext();
             // dispose CDI etter bruk
             TaskManagerGenerateRunnableTasks.CURRENT.destroy(runSingleTask);
-            
             // kjør etter at runTask er destroyed og logcontext renset
             handleErrorCallback(errorCallback);
         }
@@ -53,7 +53,9 @@ class TaskManagerRunnableTask implements Runnable {
     
     IdentRunnable lagErrorCallback(final RunTaskInfo taskInfo, final String callId, final Throwable fatal) {
         Runnable errorCallback;
+        var mdcCopy = MDC.getCopyOfContextMap();
         errorCallback = () -> {
+            MDC.setContextMap(mdcCopy); // later som vi fortsetter med samme MDC nøkler, men nå i ny tråd
             final FatalErrorTask errorTask = TaskManagerGenerateRunnableTasks.CURRENT.select(FatalErrorTask.class).get();
             try {
                 initLogContext(callId, taskInfo.getTaskType());
@@ -76,8 +78,7 @@ class TaskManagerRunnableTask implements Runnable {
     }
 
     void clearLogContext() {
-        TaskManagerGenerateRunnableTasks.LOG_CONTEXT.clear();
-        MDC.remove(CallId.CALL_ID);
+        MDC.clear();
     }
 
     void initLogContext(final String callId, String taskName) {
