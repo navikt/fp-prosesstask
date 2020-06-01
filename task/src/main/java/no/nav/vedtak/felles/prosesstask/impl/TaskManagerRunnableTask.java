@@ -30,7 +30,7 @@ class TaskManagerRunnableTask implements Runnable {
         RunTask runSingleTask = newRunTaskInstance();
         IdentRunnable errorCallback = null;
         try {
-            initLogContext(callId, taskName);
+            initLogContext(callId, taskName, taskInfo.getId());
 
             runSingleTask.doRun(taskInfo);
 
@@ -58,7 +58,7 @@ class TaskManagerRunnableTask implements Runnable {
             MDC.setContextMap(mdcCopy); // later som vi fortsetter med samme MDC nøkler, men nå i ny tråd
             final FatalErrorTask errorTask = TaskManagerGenerateRunnableTasks.CURRENT.select(FatalErrorTask.class).get();
             try {
-                initLogContext(callId, taskInfo.getTaskType());
+                initLogContext(callId, taskInfo.getTaskType(), taskInfo.getId());
                 errorTask.doRun(taskInfo, fatal);
             } catch (Throwable t) {  // NOSONAR
                 // logg at vi ikke klarte å registrer feilen i db
@@ -81,13 +81,14 @@ class TaskManagerRunnableTask implements Runnable {
         MDC.clear();
     }
 
-    void initLogContext(final String callId, String taskName) {
+    void initLogContext(final String callId, String taskName, Long taskId) {
         if (callId != null) {
             MDC.put(CallId.CALL_ID, callId);
         } else {
             MDC.put(CallId.CALL_ID, CallId.generateCallId());
         }
-        TaskManagerGenerateRunnableTasks.LOG_CONTEXT.add("task", taskName); //$NON-NLS-1$
+        TaskManagerGenerateRunnableTasks.LOG_CONTEXT.add("task", taskName);
+        TaskManagerGenerateRunnableTasks.LOG_CONTEXT.add("task_id", taskId);
     }
     
     void handleErrorCallback(IdentRunnable errorCallback) {
