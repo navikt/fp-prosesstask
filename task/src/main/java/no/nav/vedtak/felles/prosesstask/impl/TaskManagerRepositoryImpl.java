@@ -6,12 +6,14 @@ import java.lang.management.ManagementFactory;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Scanner;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.enterprise.context.Dependent;
 import javax.enterprise.context.control.ActivateRequestContext;
@@ -19,6 +21,8 @@ import javax.enterprise.inject.Any;
 import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
+import javax.persistence.LockModeType;
+import javax.persistence.LockTimeoutException;
 import javax.persistence.Query;
 import javax.persistence.TemporalType;
 import javax.transaction.Transactional;
@@ -38,6 +42,9 @@ import no.nav.vedtak.felles.prosesstask.impl.util.DatabaseUtil;
 
 @Dependent
 public class TaskManagerRepositoryImpl {
+
+    private static final Set<ProsessTaskStatus> IKKE_KJØRT_STATUSER = EnumSet.complementOf(EnumSet.of(ProsessTaskStatus.FERDIG, ProsessTaskStatus.KJOERT))
+        .stream().collect(Collectors.toUnmodifiableSet());
 
     private static final Logger log = LoggerFactory.getLogger(TaskManagerRepositoryImpl.class);
 
@@ -300,25 +307,25 @@ public class TaskManagerRepositoryImpl {
         return query.getResultList().stream().findFirst();
     }
 
+    /**
+     * @param blokkerendeTaskId
+     * @return blokkerende task hvis ikke låst eller er allerede ferdig
+     */
     @SuppressWarnings("unchecked")
-    Optional<ProsessTaskEntitet> finnOgLås(Long taskId, String taskType) {
-        // plukk task kun dersom id og task er samme (ellers er den allerede håndtert av andre).
-        String sql = " select pte.* from PROSESS_TASK pte "
-            + " WHERE pte.id=:id"
-            + "   AND pte.task_type=:taskType"
-            + "   AND pte.status=:status"
-            + "   AND ( pte.siste_kjoering_ts IS NULL OR pte.siste_kjoering_ts >=:sisteTs )"
-            + "   FOR UPDATE SKIP LOCKED";
+    Optional<ProsessTaskEntitet> finnOgLåsBlokker(Long blokkerendeTaskId) throws LockTimeoutException {
+        String sql = " select pte.* from PROSESS_TASK pte WHERE pte.id=:id FOR UPDATE SKIP LOCKED";
 
         @SuppressWarnings("resource")
         Query query = getEntityManagerAsSession().createNativeQuery(sql, ProsessTaskEntitet.class)
             .setHint(org.hibernate.annotations.QueryHints.FETCH_SIZE, 1)
             .setHint("javax.persistence.cache.storeMode", "REFRESH")
-            .setParameter("id", taskId)// NOSONAR
-            .setParameter("taskType", taskType)// NOSONAR
-            ;
+            .setParameter("id", blokkerendeTaskId)// NOSONAR
+            .setLockMode(LockModeType.PESSIMISTIC_WRITE);
 
-        return query.getResultList().stream().findFirst();
+        Stream<ProsessTaskEntitet> stream = query.getResultList().stream();
+        return stream
+            .filter(p -> IKKE_KJØRT_STATUSER.contains(p.getStatus()))
+            .findFirst();
     }
 
     @ActivateRequestContext
@@ -360,6 +367,16 @@ public class TaskManagerRepositoryImpl {
 
     static synchronized String getJvmUniqueProcessName() {
         return ManagementFactory.getRuntimeMXBean().getName();
+    }
+
+    ProsessTaskEntitet finn(Long id) {
+        String sql = " select pte.* from PROSESS_TASK pte WHERE pte.id=:id";
+        @SuppressWarnings("resource")
+        Query query = getEntityManagerAsSession().createNativeQuery(sql, ProsessTaskEntitet.class)
+            .setHint(org.hibernate.annotations.QueryHints.FETCH_SIZE, 1)
+            .setHint("javax.persistence.cache.storeMode", "REFRESH")
+            .setParameter("id", id);// NOSONAR
+        return (ProsessTaskEntitet) query.getSingleResult();
     }
 
 }

@@ -10,6 +10,7 @@ public enum ProsessTaskStatus {
     SUSPENDERT("SUSPENDERT"), //$NON-NLS-1$
     FEILET("FEILET") //$NON-NLS-1$
     ;
+
     private String dbKode;
 
     ProsessTaskStatus(String dbKode) {
@@ -19,9 +20,13 @@ public enum ProsessTaskStatus {
     public String getDbKode() {
         return dbKode;
     }
-    
+
     @Override
     public String toString() {
         return getDbKode();
+    }
+
+    public boolean erKjørt() {
+        return this == FERDIG || this == KJOERT;
     }
 }

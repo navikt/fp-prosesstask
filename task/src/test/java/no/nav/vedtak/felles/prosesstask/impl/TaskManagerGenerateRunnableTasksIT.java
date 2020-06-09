@@ -8,6 +8,7 @@ import javax.persistence.PersistenceException;
 
 import org.junit.Rule;
 import org.junit.Test;
+import org.mockito.Mockito;
 
 import no.nav.vedtak.felles.prosesstask.UnittestRepositoryRule;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
@@ -45,7 +46,7 @@ public class TaskManagerGenerateRunnableTasksIT {
                     @Override
                     RunTask newRunTaskInstance() {
                         // TEST override for å kaste exception
-                        return new RunTask(null, null, null) {
+                        return new RunTask(Mockito.mock(TaskManagerRepositoryImpl.class), null, null) {
                             @Override
                             public void doRun(RunTaskInfo taskInfo) {
                                 throw new PersistenceException("howdy!");
@@ -68,7 +69,7 @@ public class TaskManagerGenerateRunnableTasksIT {
         // Act
         sut.run();
 
-        logSniffer.assertHasWarnMessage("FP-876628");
+        logSniffer.assertHasWarnMessage("PT-876628");
         logSniffer.assertNoErrors();
         logSniffer.clearLog();
 
