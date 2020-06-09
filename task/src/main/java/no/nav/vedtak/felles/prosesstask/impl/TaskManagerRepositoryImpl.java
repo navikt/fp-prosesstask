@@ -332,7 +332,6 @@ public class TaskManagerRepositoryImpl {
     @Transactional
     void verifyStartup() {
         logDatabaseDetaljer();
-        unblokkerTasks();
     }
 
     private void logDatabaseDetaljer() {
@@ -366,19 +365,26 @@ public class TaskManagerRepositoryImpl {
             result.dbtz, result.dbtid, userTz, hibernateTz, result.inputtid, result.inputtid2, result.drift);
     }
 
-    private void unblokkerTasks() {
-        var kjørtStatusKoder = KJØRT_STATUSER.stream().map(ProsessTaskStatus::getDbKode).collect(Collectors.toList());
-        var ikkeKjørtStatuser = IKKE_KJØRT_STATUSER.stream().map(ProsessTaskStatus::getDbKode).collect(Collectors.toList());
-
-        // midlertidig fiks dersom noe er veto som ikke bør være lenger
-        String sqlUnveto = "update prosess_task a set blokkert_av=NULL"
-            + " WHERE status IN (:statuserIkkeKjoert)"
+    /**
+     * Når vi setter veto/blokkert på en task er vi ikke garantert at ikke den som blokkerer ikke er i ferd med å kjøres/snart er ferdig (fordi
+     * vi opererer med read committed / ikke serialzable rea)
+     * istdf å ta lås på blokkerende tasks før hvert veto, ettergår vi bare de som har blitt blokkert og opphever veto dersom det ikke er
+     * nødvendig lenger.
+     */
+    void unblockTasks() {
+        String sqlUnveto = "update prosess_task a set "
+            + " status='KLAR'"
+            + ", blokkert_av=NULL"
+            + ", feilede_forsoek=0"
+            + ", siste_kjoering_feil_kode=NULL"
+            + ", siste_kjoering_feil_tekst=NULL"
+            + ", neste_kjoering_etter=NULL"
+            + ", versjon = versjon +1"
+            + " WHERE status = 'VETO'"
             + "   AND blokkert_av IS NOT NULL"
-            + "   AND EXISTS (select 1 from prosess_task b where b.id=a.blokkert_av AND b.status IN (:statuserKjoert))";
+            + "   AND EXISTS (select 1 from prosess_task b where b.id=a.blokkert_av AND b.status IN ('KJOERT', 'FERDIG'))";
 
         int unvetoed = entityManager.createNativeQuery(sqlUnveto)
-            .setParameter("statuserKjoert", kjørtStatusKoder)
-            .setParameter("statuserIkkeKjoert", ikkeKjørtStatuser)
             .executeUpdate();
         if (unvetoed > 0) {
             log.warn("Fjernet veto fra {} tasks som var blokkert av andre tasks som allerede er ferdig");

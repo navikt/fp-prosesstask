@@ -196,7 +196,8 @@ public class TaskManager implements AppServiceHandler {
         }
         this.pollingServiceScheduledFutures = List.of(
             pollingService.scheduleWithFixedDelay(new PollAvailableTasks(), delayBetweenPollingMillis / 2, delayBetweenPollingMillis, TimeUnit.MILLISECONDS),
-            pollingService.scheduleWithFixedDelay(new MoveToDonePartition(), 30 * 1000L, 5 * 60 * 1000L, TimeUnit.MILLISECONDS));
+            pollingService.scheduleWithFixedDelay(new MoveToDonePartition(), 30 * 1000L, 5 * 60 * 1000L, TimeUnit.MILLISECONDS),
+            pollingService.scheduleWithFixedDelay(new FreeBlockedTasks(), 750L, 7500L, TimeUnit.MILLISECONDS));
     }
 
     synchronized void startTaskThreads() {
@@ -450,6 +451,46 @@ public class TaskManager implements AppServiceHandler {
             } catch (Throwable t) { // NOSONAR
                 // logg, ikke rethrow feil her da det dreper trådene
                 log.error("Kunne ikke flytte KJOERT tasks til FERDIG partisjoner", t);
+            }
+            return 1;
+        }
+
+        @Override
+        public void run() {
+            RequestContextHandler.doWithRequestContext(this::doWithContext);
+        }
+
+    }
+
+    /** Unblokkerer tasks som har blitt konservativt blokkert (der den som kjører ikke ser nye veto påga Read Committed tx isolation level. */
+    class FreeBlockedTasks implements Runnable {
+
+        /** splittet fra for å kjøre i {@link TransactionHandler}. */
+        private final class DoInNewTransaction extends TransactionHandler<Integer> {
+
+            Integer doWork() throws Exception {
+                EntityManager entityManager = getTransactionManagerRepository().getEntityManager();
+                try {
+                    return super.apply(entityManager);
+                } finally {
+                    CDI.current().destroy(entityManager);
+                }
+            }
+
+            @Override
+            protected Integer doWork(EntityManager entityManager) throws Exception {
+                getTransactionManagerRepository().unblockTasks();
+                return 0;
+            }
+        }
+
+        /** splittet fra {@link #run()} for å kjøre med ActivateRequestContext. */
+        public Integer doWithContext() {
+            try {
+                return new DoInNewTransaction().doWork();
+            } catch (Throwable t) { // NOSONAR
+                // logg, ikke rethrow feil her da det dreper trådene
+                log.error("Kunne ikke unblokkerer tasks som kan frigis", t);
             }
             return 1;
         }

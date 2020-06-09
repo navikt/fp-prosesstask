@@ -66,7 +66,7 @@ public class RunTask {
         this.eventPubliserer = eventPubliserer;
         this.taskManagerRepository = taskManagerRepo;
         this.feilhåndteringalgoritmer = feilhåndteringsalgoritmer;
-        this.vetoHåndterer = new RunTaskVetoHåndterer(eventPubliserer, taskManagerRepo, taskManagerRepo.getEntityManager());
+        this.vetoHåndterer = new RunTaskVetoHåndterer(eventPubliserer, taskManagerRepo.getEntityManager());
     }
 
     public void doRun(RunTaskInfo taskInfo) {
