@@ -43,7 +43,8 @@ import no.nav.vedtak.felles.prosesstask.impl.util.DatabaseUtil;
 @Dependent
 public class TaskManagerRepositoryImpl {
 
-    private static final Set<ProsessTaskStatus> IKKE_KJØRT_STATUSER = EnumSet.complementOf(EnumSet.of(ProsessTaskStatus.FERDIG, ProsessTaskStatus.KJOERT))
+    private static final EnumSet<ProsessTaskStatus> KJØRT_STATUSER = EnumSet.of(ProsessTaskStatus.FERDIG, ProsessTaskStatus.KJOERT);
+    private static final Set<ProsessTaskStatus> IKKE_KJØRT_STATUSER = EnumSet.complementOf(KJØRT_STATUSER)
         .stream().collect(Collectors.toUnmodifiableSet());
 
     private static final Logger log = LoggerFactory.getLogger(TaskManagerRepositoryImpl.class);
@@ -331,6 +332,11 @@ public class TaskManagerRepositoryImpl {
     @ActivateRequestContext
     @Transactional
     void verifyStartup() {
+        logDatabaseDetaljer();
+        unblokkerTasks();
+    }
+
+    private void logDatabaseDetaljer() {
         String sql;
         if (DatabaseUtil.isPostgres(entityManager)) {
             sql = "select current_setting('TIMEZONE') as dbtz,"
@@ -359,6 +365,25 @@ public class TaskManagerRepositoryImpl {
         String userTz = System.getProperty("user.timezone");
         log.info("Startup: DB(tz={}, current_timestamp={}), App(user.timezone={}, hibernate.jdbc.time_zone={}, inputtid={}, inputtid2={}). Drift={}",
             result.dbtz, result.dbtid, userTz, hibernateTz, result.inputtid, result.inputtid2, result.drift);
+    }
+
+    private void unblokkerTasks() {
+        var kjørtStatusKoder = KJØRT_STATUSER.stream().map(ProsessTaskStatus::getDbKode).collect(Collectors.toList());
+        var ikkeKjørtStatuser = IKKE_KJØRT_STATUSER.stream().map(ProsessTaskStatus::getDbKode).collect(Collectors.toList());
+
+        // midlertidig fiks dersom noe er veto som ikke bør være lenger
+        String sqlUnveto = "update prosess_task a set blokkert_av=NULL"
+            + " WHERE status IN (:statuserIkkeKjoert)"
+            + "   AND blokkert_av IS NOT NULL"
+            + "   AND EXISTS (select 1 from prosess_task b where b.id=a.blokkert_av AND b.status IN (:statuserKjoert))";
+
+        int unvetoed = entityManager.createNativeQuery(sqlUnveto)
+            .setParameter("statuserKjoert", kjørtStatusKoder)
+            .setParameter("statuserIkkeKjoert", ikkeKjørtStatuser)
+            .executeUpdate();
+        if (unvetoed > 0) {
+            log.warn("Fjernet veto fra {} tasks som var blokkert av andre tasks som allerede er ferdig");
+        }
     }
 
     ProsessTaskType getTaskType(String taskName) {
