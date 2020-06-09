@@ -75,14 +75,14 @@ public class TaskManagerRepositoryImpl {
 
     static String getSqlFraFil(String filNavn) {
         try (InputStream is = TaskManager.class.getResourceAsStream(filNavn);
-                Scanner s = is == null ? null : new Scanner(is, "UTF8")) {//$NON-NLS-1$
+                Scanner s = is == null ? null : new Scanner(is, "UTF8")) {
 
             if (s == null) {
-                throw new IllegalStateException("Finner ikke sql fil: " + filNavn);//$NON-NLS-1$
+                throw new IllegalStateException("Finner ikke sql fil: " + filNavn);
             }
             s.useDelimiter("\\Z");
             if (!s.hasNext()) {
-                throw new IllegalStateException("Finner ikke sql fil: " + filNavn);//$NON-NLS-1$
+                throw new IllegalStateException("Finner ikke sql fil: " + filNavn);
             }
             return s.next();
         } catch (IOException e) {
@@ -268,28 +268,57 @@ public class TaskManagerRepositoryImpl {
         return resultList.stream().map(pte -> pte.tilProsessTask()).collect(Collectors.toList());
     }
 
-    @SuppressWarnings("unchecked")
     Optional<ProsessTaskEntitet> finnOgLås(RunTaskInfo taskInfo) {
+        Long taskId = taskInfo.getId();
+        String status = ProsessTaskStatus.KLAR.getDbKode();
+        LocalDateTime sistKjørtLowWatermark = taskInfo.getTimestampLowWatermark();
+        String taskType = taskInfo.getTaskType();
+
+        return finnOgLås(taskId, status, sistKjørtLowWatermark, taskType);
+
+    }
+
+    @SuppressWarnings("unchecked")
+    private Optional<ProsessTaskEntitet> finnOgLås(Long taskId, String status, LocalDateTime sistKjørtLowWatermark, String taskType) {
         // plukk task kun dersom id og task er samme (ellers er den allerede håndtert av andre).
-        String sql = " select pte.* from PROSESS_TASK pte " //$NON-NLS-1$
-            + " WHERE pte.id=:id"//$NON-NLS-1$
-            + "   AND pte.task_type=:taskType"//$NON-NLS-1$
-            + "   AND pte.status=:status"//$NON-NLS-1$
+        String sql = " select pte.* from PROSESS_TASK pte "
+            + " WHERE pte.id=:id"
+            + "   AND pte.task_type=:taskType"
+            + "   AND pte.status=:status"
             + "   AND ( pte.siste_kjoering_ts IS NULL OR pte.siste_kjoering_ts >=:sisteTs )"
-            + "   FOR UPDATE SKIP LOCKED" //$NON-NLS-1$
-        ;
+            + "   FOR UPDATE SKIP LOCKED";
 
         @SuppressWarnings("resource")
         Query query = getEntityManagerAsSession().createNativeQuery(sql, ProsessTaskEntitet.class)
             .setHint(org.hibernate.annotations.QueryHints.FETCH_SIZE, 1)
-            .setHint("javax.persistence.cache.storeMode", "REFRESH") //$NON-NLS-1$ //$NON-NLS-2$
-            .setParameter("id", taskInfo.getId())// NOSONAR
-            .setParameter("taskType", taskInfo.getTaskType())// NOSONAR
-            .setParameter("status", ProsessTaskStatus.KLAR.getDbKode())// NOSONAR
-            .setParameter("sisteTs", taskInfo.getTimestampLowWatermark(), TemporalType.TIMESTAMP);
+            .setHint("javax.persistence.cache.storeMode", "REFRESH")
+            .setParameter("id", taskId)// NOSONAR
+            .setParameter("taskType", taskType)// NOSONAR
+            .setParameter("status", status)// NOSONAR
+            .setParameter("sisteTs", sistKjørtLowWatermark, TemporalType.TIMESTAMP);
 
         return query.getResultList().stream().findFirst();
+    }
 
+    @SuppressWarnings("unchecked")
+    Optional<ProsessTaskEntitet> finnOgLås(Long taskId, String taskType) {
+        // plukk task kun dersom id og task er samme (ellers er den allerede håndtert av andre).
+        String sql = " select pte.* from PROSESS_TASK pte "
+            + " WHERE pte.id=:id"
+            + "   AND pte.task_type=:taskType"
+            + "   AND pte.status=:status"
+            + "   AND ( pte.siste_kjoering_ts IS NULL OR pte.siste_kjoering_ts >=:sisteTs )"
+            + "   FOR UPDATE SKIP LOCKED";
+
+        @SuppressWarnings("resource")
+        Query query = getEntityManagerAsSession().createNativeQuery(sql, ProsessTaskEntitet.class)
+            .setHint(org.hibernate.annotations.QueryHints.FETCH_SIZE, 1)
+            .setHint("javax.persistence.cache.storeMode", "REFRESH")
+            .setParameter("id", taskId)// NOSONAR
+            .setParameter("taskType", taskType)// NOSONAR
+            ;
+
+        return query.getResultList().stream().findFirst();
     }
 
     @ActivateRequestContext
