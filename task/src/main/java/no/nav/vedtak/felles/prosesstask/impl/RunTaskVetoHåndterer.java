@@ -22,11 +22,8 @@ public class RunTaskVetoHåndterer {
     private ProsessTaskEventPubliserer eventPubliserer;
     private EntityManager em;
 
-    private TaskManagerRepositoryImpl taskManagerRepo;
-
-    public RunTaskVetoHåndterer(ProsessTaskEventPubliserer eventPubliserer, TaskManagerRepositoryImpl taskManagerRepo, EntityManager entityManager) {
+    public RunTaskVetoHåndterer(ProsessTaskEventPubliserer eventPubliserer, EntityManager entityManager) {
         this.eventPubliserer = eventPubliserer;
-        this.taskManagerRepo = taskManagerRepo;
         this.em = entityManager;
     }
 
@@ -75,8 +72,6 @@ public class RunTaskVetoHåndterer {
                 vetoed = true;
                 Long blokkerId = veto.getBlokkertAvProsessTaskId();
 
-                sjekkKanSetteBlokker(blokkerId);
-
                 Feil feil = TaskManagerFeil.FACTORY.kanIkkeKjøreFikkVeto(pte.getId(), pte.getTaskName(), blokkerId, veto.getBegrunnelse());
                 ProsessTaskFeil taskFeil = new ProsessTaskFeil(pte.tilProsessTask(), feil);
                 taskFeil.setBlokkerendeProsessTaskId(blokkerId);
@@ -92,21 +87,5 @@ public class RunTaskVetoHåndterer {
         }
 
         return vetoed;
-    }
-
-    private void sjekkKanSetteBlokker(Long blokkerId) {
-        var blokker = taskManagerRepo.finnOgLåsBlokker(blokkerId);
-        if (blokker.isPresent()) {
-            // Vi er på riktig vei, kan sette som blokker
-            return;
-        } else {
-            // skal fortsatt finne her (uten lås), (hvis ikke kastes NoResultException, eks hvis noen har slettet)
-            var blokkerTask = taskManagerRepo.finn(blokkerId);
-
-            // fikk ikke tak i lås,  eller så er task er ferdigkjørt.
-            // Kan ikke se forskjell herfra, så kaster en midlertidig exception som gjør at må prøve på nytt senere.
-            throw TaskManagerFeil.FACTORY
-                .kunneIkkeProsessereTaskVetoForsøkerIgjen(blokkerId, blokkerTask.getTaskName(), blokkerTask.getStatus(), blokkerTask.getGruppe()).toException();
-        }
     }
 }
