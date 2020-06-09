@@ -39,7 +39,7 @@
 	</modules>
 	
 	<properties>
-		<revision>2.4</revision>
+		<revision>2.4.1</revision>
 		<sha1></sha1>
 		<changelist>-SNAPSHOT</changelist>
 		<java.version>11</java.version>
