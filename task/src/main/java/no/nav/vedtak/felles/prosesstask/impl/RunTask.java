@@ -66,7 +66,7 @@ public class RunTask {
         this.eventPubliserer = eventPubliserer;
         this.taskManagerRepository = taskManagerRepo;
         this.feilhåndteringalgoritmer = feilhåndteringsalgoritmer;
-        this.vetoHåndterer = new RunTaskVetoHåndterer(eventPubliserer, getEntityManager());
+        this.vetoHåndterer = new RunTaskVetoHåndterer(eventPubliserer, taskManagerRepo, getEntityManager());
     }
 
     public void doRun(RunTaskInfo taskInfo) {
@@ -195,11 +195,10 @@ public class RunTask {
 
         ProsessTaskStatus markerTaskFerdig(ProsessTaskEntitet pte) {
             // frigir veto etter at event handlere er fyrt
-            taskManagerRepository.frigiVeto(pte);
+            vetoHåndterer.frigiVeto(pte);
 
             ProsessTaskStatus nyStatus = ProsessTaskStatus.KJOERT;
             taskManagerRepository.oppdaterStatus(pte.getId(), nyStatus);
-            
 
             pte = refreshProsessTask(pte.getId());
             feilOgStatushåndterer.publiserNyStatusEvent(pte.tilProsessTask(), ProsessTaskStatus.KLAR, nyStatus);

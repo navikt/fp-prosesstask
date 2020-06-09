@@ -6,6 +6,9 @@ import java.util.Optional;
 
 import javax.persistence.EntityManager;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import no.nav.vedtak.feil.Feil;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskFeil;
@@ -14,12 +17,29 @@ import no.nav.vedtak.felles.prosesstask.api.ProsessTaskStatus;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskVeto;
 
 public class RunTaskVetoHåndterer {
+    private static final Logger log = LoggerFactory.getLogger(RunTaskVetoHåndterer.class);
+
     private ProsessTaskEventPubliserer eventPubliserer;
     private EntityManager entityManager;
+    private TaskManagerRepositoryImpl taskManagerRepo;
 
-    public RunTaskVetoHåndterer(ProsessTaskEventPubliserer eventPubliserer, EntityManager entityManager) {
+    public RunTaskVetoHåndterer(ProsessTaskEventPubliserer eventPubliserer, TaskManagerRepositoryImpl taskManagerRepo, EntityManager entityManager) {
         this.eventPubliserer = eventPubliserer;
+        this.taskManagerRepo = taskManagerRepo;
         this.entityManager = entityManager;
+    }
+
+    /**
+     * @param blokkerendeTask
+     * @return true dersom har frigitt noen veto, false hvis det ikke var noen.
+     */
+    boolean frigiVeto(ProsessTaskEntitet blokkerendeTask) {
+        int frigitt = taskManagerRepo.frigiVeto(blokkerendeTask);
+        if (frigitt > 0) {
+            log.info("ProsessTask [id={}, taskType={}] FERDIG. Frigitt {} tidligere blokkerte tasks", blokkerendeTask.getId(), blokkerendeTask.getTaskName(), frigitt);
+            return true;
+        }
+        return false; // Har ikke hatt noe veto å frigi
     }
 
     boolean vetoRunTask(ProsessTaskEntitet pte) throws IOException {
@@ -39,7 +59,7 @@ public class RunTaskVetoHåndterer {
             if (veto.isVeto()) {
                 vetoed = true;
                 Long blokkerId = veto.getBlokkertAvProsessTaskId();
-                
+
                 Feil feil = TaskManagerFeil.FACTORY.kanIkkeKjøreFikkVeto(pte.getId(), pte.getTaskName(), blokkerId, veto.getBegrunnelse());
                 ProsessTaskFeil taskFeil = new ProsessTaskFeil(pte.tilProsessTask(), feil);
                 taskFeil.setBlokkerendeProsessTaskId(blokkerId);
@@ -48,7 +68,7 @@ public class RunTaskVetoHåndterer {
                 pte.setBlokkertAvProsessTaskId(blokkerId);
                 pte.setStatus(ProsessTaskStatus.VETO); // setter også status slik at den ikke forsøker på nytt. Blokkerende task må resette denne.
                 pte.setNesteKjøringEtter(null); // kjør umiddelbart når veto opphører
-                
+
                 EntityManager em = entityManager;
                 em.persist(pte);
                 em.flush();
