@@ -21,7 +21,6 @@ import javax.enterprise.inject.Any;
 import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
-import javax.persistence.LockModeType;
 import javax.persistence.LockTimeoutException;
 import javax.persistence.Query;
 import javax.persistence.TemporalType;
@@ -323,8 +322,7 @@ public class TaskManagerRepositoryImpl {
             .setHint(org.hibernate.annotations.QueryHints.FETCH_SIZE, 1)
             .setHint("javax.persistence.cache.storeMode", "REFRESH")
             .setParameter("id", blokkerendeTaskId)// NOSONAR
-            .setParameter("statuser", ikkeKjørtStatuser)
-            .setLockMode(LockModeType.PESSIMISTIC_WRITE);
+            .setParameter("statuser", ikkeKjørtStatuser);
 
         Stream<ProsessTaskEntitet> stream = query.getResultStream();
         return stream.findFirst();
