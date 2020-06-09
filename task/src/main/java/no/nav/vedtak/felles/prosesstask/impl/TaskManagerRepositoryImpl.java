@@ -314,19 +314,20 @@ public class TaskManagerRepositoryImpl {
      */
     @SuppressWarnings("unchecked")
     Optional<ProsessTaskEntitet> finnOgLåsBlokker(Long blokkerendeTaskId) throws LockTimeoutException {
-        String sql = " select pte.* from PROSESS_TASK pte WHERE pte.id=:id FOR UPDATE SKIP LOCKED";
+        var ikkeKjørtStatuser = IKKE_KJØRT_STATUSER.stream().map(ProsessTaskStatus::getDbKode).collect(Collectors.toList());
+
+        String sql = " select pte.* from PROSESS_TASK pte WHERE pte.id=:id AND pte.status IN (:statuser) FOR UPDATE SKIP LOCKED";
 
         @SuppressWarnings("resource")
         Query query = getEntityManagerAsSession().createNativeQuery(sql, ProsessTaskEntitet.class)
             .setHint(org.hibernate.annotations.QueryHints.FETCH_SIZE, 1)
             .setHint("javax.persistence.cache.storeMode", "REFRESH")
             .setParameter("id", blokkerendeTaskId)// NOSONAR
+            .setParameter("statuser", ikkeKjørtStatuser)
             .setLockMode(LockModeType.PESSIMISTIC_WRITE);
 
-        Stream<ProsessTaskEntitet> stream = query.getResultList().stream();
-        return stream
-            .filter(p -> IKKE_KJØRT_STATUSER.contains(p.getStatus()))
-            .findFirst();
+        Stream<ProsessTaskEntitet> stream = query.getResultStream();
+        return stream.findFirst();
     }
 
     @ActivateRequestContext
