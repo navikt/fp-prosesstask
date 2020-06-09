@@ -20,13 +20,14 @@ public class RunTaskVetoHåndterer {
     private static final Logger log = LoggerFactory.getLogger(RunTaskVetoHåndterer.class);
 
     private ProsessTaskEventPubliserer eventPubliserer;
-    private EntityManager entityManager;
+    private EntityManager em;
+
     private TaskManagerRepositoryImpl taskManagerRepo;
 
     public RunTaskVetoHåndterer(ProsessTaskEventPubliserer eventPubliserer, TaskManagerRepositoryImpl taskManagerRepo, EntityManager entityManager) {
         this.eventPubliserer = eventPubliserer;
         this.taskManagerRepo = taskManagerRepo;
-        this.entityManager = entityManager;
+        this.em = entityManager;
     }
 
     /**
@@ -34,9 +35,23 @@ public class RunTaskVetoHåndterer {
      * @return true dersom har frigitt noen veto, false hvis det ikke var noen.
      */
     boolean frigiVeto(ProsessTaskEntitet blokkerendeTask) {
-        int frigitt = taskManagerRepo.frigiVeto(blokkerendeTask);
+
+        String updateSql = "update PROSESS_TASK SET "
+            + " status='KLAR'"
+            + ", blokkert_av=NULL"
+            + ", siste_kjoering_feil_kode=NULL"
+            + ", siste_kjoering_feil_tekst=NULL"
+            + ", neste_kjoering_etter=NULL"
+            + ", versjon = versjon +1"
+            + " WHERE blokkert_av=:id";
+
+        int frigitt = em.createNativeQuery(updateSql)
+            .setParameter("id", blokkerendeTask.getId())
+            .executeUpdate();
+
         if (frigitt > 0) {
-            log.info("ProsessTask [id={}, taskType={}] FERDIG. Frigitt {} tidligere blokkerte tasks", blokkerendeTask.getId(), blokkerendeTask.getTaskName(), frigitt);
+            log.info("ProsessTask [id={}, taskType={}] FERDIG. Frigitt {} tidligere blokkerte tasks", blokkerendeTask.getId(), blokkerendeTask.getTaskName(),
+                frigitt);
             return true;
         }
         return false; // Har ikke hatt noe veto å frigi
@@ -60,6 +75,8 @@ public class RunTaskVetoHåndterer {
                 vetoed = true;
                 Long blokkerId = veto.getBlokkertAvProsessTaskId();
 
+                sjekkBlokker(blokkerId);
+
                 Feil feil = TaskManagerFeil.FACTORY.kanIkkeKjøreFikkVeto(pte.getId(), pte.getTaskName(), blokkerId, veto.getBegrunnelse());
                 ProsessTaskFeil taskFeil = new ProsessTaskFeil(pte.tilProsessTask(), feil);
                 taskFeil.setBlokkerendeProsessTaskId(blokkerId);
@@ -69,12 +86,15 @@ public class RunTaskVetoHåndterer {
                 pte.setStatus(ProsessTaskStatus.VETO); // setter også status slik at den ikke forsøker på nytt. Blokkerende task må resette denne.
                 pte.setNesteKjøringEtter(null); // kjør umiddelbart når veto opphører
 
-                EntityManager em = entityManager;
                 em.persist(pte);
                 em.flush();
             }
         }
 
         return vetoed;
+    }
+
+    private void sjekkBlokker(Long blokkerId) {
+        
     }
 }

@@ -116,24 +116,6 @@ public class TaskManagerRepositoryImpl {
         return em.unwrap(Session.class);
     }
 
-    int frigiVeto(ProsessTaskEntitet blokkerendeTask) {
-        String updateSql = "update PROSESS_TASK SET "
-            + " status='KLAR'"
-            + ", blokkert_av=NULL"
-            + ", siste_kjoering_feil_kode=NULL"
-            + ", siste_kjoering_feil_tekst=NULL"
-            + ", neste_kjoering_etter=NULL"
-            + ", versjon = versjon +1"
-            + " WHERE blokkert_av=:id";
-
-        @SuppressWarnings("resource")
-        int tasksFrigitt = getEntityManagerAsSession()
-            .createNativeQuery(updateSql)
-            .setParameter("id", blokkerendeTask.getId())
-            .executeUpdate();
-        return tasksFrigitt;
-    }
-
     void oppdaterStatusOgNesteKjøring(Long prosessTaskId, ProsessTaskStatus taskStatus, LocalDateTime nesteKjøringEtter, String feilkode, String feiltekst,
                                       int feilforsøk) {
         String updateSql = "update PROSESS_TASK set" +
