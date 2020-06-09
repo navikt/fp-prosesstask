@@ -9,9 +9,9 @@ import no.nav.vedtak.feil.deklarasjon.TekniskFeil;
 public interface ProsessTaskRestTjenesteFeil extends DeklarerteFeil {
     ProsessTaskRestTjenesteFeil FACTORY = FeilFactory.create(ProsessTaskRestTjenesteFeil.class);
 
-    String KAN_IKKE_RESTARTE_FERDIG_TASK_FEIL_ID = "FP-711948";
-    String MAA_ANGI_NAVARENDE_STATUS_FEIL_ID = "FP-306456";
-    String UKJENT_TASK_FEIL_ID = "FP-752429";
+    String KAN_IKKE_RESTARTE_FERDIG_TASK_FEIL_ID = "PT-711948";
+    String MAA_ANGI_NAVARENDE_STATUS_FEIL_ID = "PT-306456";
+    String UKJENT_TASK_FEIL_ID = "PT-752429";
 
     @TekniskFeil(feilkode = KAN_IKKE_RESTARTE_FERDIG_TASK_FEIL_ID,
             feilmelding = "Prosesstasken %s har allerede kjørt ferdig, og kan ikke kjøres på nytt",

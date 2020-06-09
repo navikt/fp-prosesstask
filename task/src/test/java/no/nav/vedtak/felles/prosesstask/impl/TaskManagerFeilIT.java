@@ -35,7 +35,7 @@ public class TaskManagerFeilIT {
 
         taskManager.new PollAvailableTasks().run();
 
-        logSniffer.assertHasWarnMessage("FP-739415");
+        logSniffer.assertHasWarnMessage("PT-739415");
 
     }
 
@@ -50,7 +50,7 @@ public class TaskManagerFeilIT {
 
         taskManager.new PollAvailableTasks().run();
 
-        logSniffer.assertHasWarnMessage("FP-996896");
+        logSniffer.assertHasWarnMessage("PT-996896");
 
     }
 }

@@ -110,7 +110,6 @@ public class ProsessTaskData implements ProsessTaskInfo {
         setProperty(BEHANDLING_ID, id.toString());
     }
 
-    @SuppressWarnings("removal")
     @Override
     public Long getFagsakId() {
         return getPropertyValue(FAGSAK_ID) != null ? Long.valueOf(getPropertyValue(FAGSAK_ID)) : null;
@@ -310,6 +309,7 @@ public class ProsessTaskData implements ProsessTaskInfo {
         }
     }
     
+    @Override
     public LocalDateTime getOpprettetTid() {
         return opprettetTid;
     }
@@ -338,10 +338,6 @@ public class ProsessTaskData implements ProsessTaskInfo {
         return this;
     }
 
-    /**
-     * @deprecated bruk {@link #setBehandling(String, String, String)} i stedet.
-     */
-    @Deprecated(forRemoval = true)
     public void setBehandling(Long fagsakId, Long behandlingId, String aktørId) {
         Objects.requireNonNull(fagsakId, "fagsakId"); // NOSONAR //$NON-NLS-1$
         Objects.requireNonNull(behandlingId, "behandlingId"); // NOSONAR //$NON-NLS-1$

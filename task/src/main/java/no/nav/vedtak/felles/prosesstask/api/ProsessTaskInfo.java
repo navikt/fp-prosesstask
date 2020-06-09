@@ -37,10 +37,6 @@ public interface ProsessTaskInfo {
     
     Long getBlokkertAvProsessTaskId();
 
-    /**
-     * @deprecated foretrekk {@link #getSaksnummer()}
-     */
-    @Deprecated(forRemoval = true)
     Long getFagsakId();
 
     String getSaksnummer();

@@ -26,7 +26,7 @@ public class ProsessTaskFeilTest {
         ProsessTaskFeil prosessTaskFeil = new ProsessTaskFeil(prosessTaskData, feil);
         
         assertThat(prosessTaskFeil.getStackTrace()).isNotNull().contains("IllegalArgumentException").contains("lagEnFeilFraEnMetode");
-        assertThat(prosessTaskFeil.getFeilkode()).isEqualTo("FP-415564");
+        assertThat(prosessTaskFeil.getFeilkode()).isEqualTo("PT-415564");
         assertThat(prosessTaskFeil.getFeilmelding()).contains("Kunne ikke prosessere task, id=1");
         
         String json = prosessTaskFeil.writeValueAsString();

@@ -6,6 +6,9 @@ import java.util.Optional;
 
 import javax.persistence.EntityManager;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import no.nav.vedtak.feil.Feil;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskFeil;
@@ -14,12 +17,44 @@ import no.nav.vedtak.felles.prosesstask.api.ProsessTaskStatus;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskVeto;
 
 public class RunTaskVetoHåndterer {
-    private ProsessTaskEventPubliserer eventPubliserer;
-    private EntityManager entityManager;
+    private static final Logger log = LoggerFactory.getLogger(RunTaskVetoHåndterer.class);
 
-    public RunTaskVetoHåndterer(ProsessTaskEventPubliserer eventPubliserer, EntityManager entityManager) {
+    private ProsessTaskEventPubliserer eventPubliserer;
+    private EntityManager em;
+
+    private TaskManagerRepositoryImpl taskManagerRepo;
+
+    public RunTaskVetoHåndterer(ProsessTaskEventPubliserer eventPubliserer, TaskManagerRepositoryImpl taskManagerRepo, EntityManager entityManager) {
         this.eventPubliserer = eventPubliserer;
-        this.entityManager = entityManager;
+        this.taskManagerRepo = taskManagerRepo;
+        this.em = entityManager;
+    }
+
+    /**
+     * @param blokkerendeTask
+     * @return true dersom har frigitt noen veto, false hvis det ikke var noen.
+     */
+    boolean frigiVeto(ProsessTaskEntitet blokkerendeTask) {
+
+        String updateSql = "update PROSESS_TASK SET "
+            + " status='KLAR'"
+            + ", blokkert_av=NULL"
+            + ", siste_kjoering_feil_kode=NULL"
+            + ", siste_kjoering_feil_tekst=NULL"
+            + ", neste_kjoering_etter=NULL"
+            + ", versjon = versjon +1"
+            + " WHERE blokkert_av=:id";
+
+        int frigitt = em.createNativeQuery(updateSql)
+            .setParameter("id", blokkerendeTask.getId())
+            .executeUpdate();
+
+        if (frigitt > 0) {
+            log.info("ProsessTask [id={}, taskType={}] FERDIG. Frigitt {} tidligere blokkerte tasks", blokkerendeTask.getId(), blokkerendeTask.getTaskName(),
+                frigitt);
+            return true;
+        }
+        return false; // Har ikke hatt noe veto å frigi
     }
 
     boolean vetoRunTask(ProsessTaskEntitet pte) throws IOException {
@@ -39,7 +74,9 @@ public class RunTaskVetoHåndterer {
             if (veto.isVeto()) {
                 vetoed = true;
                 Long blokkerId = veto.getBlokkertAvProsessTaskId();
-                
+
+                sjekkKanSetteBlokker(blokkerId);
+
                 Feil feil = TaskManagerFeil.FACTORY.kanIkkeKjøreFikkVeto(pte.getId(), pte.getTaskName(), blokkerId, veto.getBegrunnelse());
                 ProsessTaskFeil taskFeil = new ProsessTaskFeil(pte.tilProsessTask(), feil);
                 taskFeil.setBlokkerendeProsessTaskId(blokkerId);
@@ -48,13 +85,28 @@ public class RunTaskVetoHåndterer {
                 pte.setBlokkertAvProsessTaskId(blokkerId);
                 pte.setStatus(ProsessTaskStatus.VETO); // setter også status slik at den ikke forsøker på nytt. Blokkerende task må resette denne.
                 pte.setNesteKjøringEtter(null); // kjør umiddelbart når veto opphører
-                
-                EntityManager em = entityManager;
+
                 em.persist(pte);
                 em.flush();
             }
         }
 
         return vetoed;
+    }
+
+    private void sjekkKanSetteBlokker(Long blokkerId) {
+        var blokker = taskManagerRepo.finnOgLåsBlokker(blokkerId);
+        if (blokker.isPresent()) {
+            // Vi er på riktig vei, kan sette som blokker
+            return;
+        } else {
+            // skal fortsatt finne her (uten lås), (hvis ikke kastes NoResultException, eks hvis noen har slettet)
+            var blokkerTask = taskManagerRepo.finn(blokkerId);
+
+            // fikk ikke tak i lås,  eller så er task er ferdigkjørt.
+            // Kan ikke se forskjell herfra, så kaster en midlertidig exception som gjør at må prøve på nytt senere.
+            throw TaskManagerFeil.FACTORY
+                .kunneIkkeProsessereTaskVetoForsøkerIgjen(blokkerId, blokkerTask.getTaskName(), blokkerTask.getStatus(), blokkerTask.getGruppe()).toException();
+        }
     }
 }

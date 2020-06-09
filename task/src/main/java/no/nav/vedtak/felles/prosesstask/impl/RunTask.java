@@ -19,6 +19,7 @@ import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityNotFoundException;
+import javax.persistence.LockTimeoutException;
 import javax.persistence.PersistenceException;
 import javax.transaction.Transactional;
 
@@ -32,6 +33,7 @@ import org.slf4j.LoggerFactory;
 import no.nav.vedtak.feil.Feil;
 import no.nav.vedtak.felles.jpa.savepoint.SavepointRolledbackException;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
+import no.nav.vedtak.felles.prosesstask.api.ProsessTaskMidlertidigException;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskStatus;
 import no.nav.vedtak.felles.prosesstask.impl.cron.CronExpression;
 import no.nav.vedtak.felles.prosesstask.spi.ProsessTaskFeilhåndteringAlgoritme;
@@ -55,18 +57,16 @@ public class RunTask {
     private Instance<ProsessTaskFeilhåndteringAlgoritme> feilhåndteringalgoritmer;
     private RunTaskVetoHåndterer vetoHåndterer;
 
-    public RunTask() {
-    }
-
     @Inject
-    public RunTask(TaskManagerRepositoryImpl taskManagerRepo, ProsessTaskEventPubliserer eventPubliserer,
+    public RunTask(TaskManagerRepositoryImpl taskManagerRepo, 
+                   ProsessTaskEventPubliserer eventPubliserer,
                    @Any Instance<ProsessTaskFeilhåndteringAlgoritme> feilhåndteringsalgoritmer) {
         Objects.requireNonNull(taskManagerRepo, "taskManagerRepo"); //$NON-NLS-1$
 
         this.eventPubliserer = eventPubliserer;
         this.taskManagerRepository = taskManagerRepo;
         this.feilhåndteringalgoritmer = feilhåndteringsalgoritmer;
-        this.vetoHåndterer = new RunTaskVetoHåndterer(eventPubliserer, getEntityManager());
+        this.vetoHåndterer = new RunTaskVetoHåndterer(eventPubliserer, taskManagerRepo, taskManagerRepo.getEntityManager());
     }
 
     public void doRun(RunTaskInfo taskInfo) {
@@ -109,6 +109,8 @@ public class RunTask {
         } catch (JDBCConnectionException
             | SQLTransientException
             | SQLNonTransientConnectionException
+            | LockTimeoutException 
+            | ProsessTaskMidlertidigException
             | SQLRecoverableException e) {
 
             // vil kun logges
@@ -195,11 +197,10 @@ public class RunTask {
 
         ProsessTaskStatus markerTaskFerdig(ProsessTaskEntitet pte) {
             // frigir veto etter at event handlere er fyrt
-            taskManagerRepository.frigiVeto(pte);
+            vetoHåndterer.frigiVeto(pte);
 
             ProsessTaskStatus nyStatus = ProsessTaskStatus.KJOERT;
             taskManagerRepository.oppdaterStatus(pte.getId(), nyStatus);
-            
 
             pte = refreshProsessTask(pte.getId());
             feilOgStatushåndterer.publiserNyStatusEvent(pte.tilProsessTask(), ProsessTaskStatus.KLAR, nyStatus);
@@ -269,6 +270,8 @@ public class RunTask {
                     } catch (JDBCConnectionException
                         | SQLTransientException
                         | SQLNonTransientConnectionException
+                        | LockTimeoutException
+                        | ProsessTaskMidlertidigException
                         | SQLRecoverableException e) {
 
                         // vil kun logges

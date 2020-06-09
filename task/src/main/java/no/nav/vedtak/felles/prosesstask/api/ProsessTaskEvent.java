@@ -70,7 +70,6 @@ public class ProsessTaskEvent implements ProsessTaskInfo {
         return data.getBehandlingId();
     }
 
-    @SuppressWarnings("removal")
     @Override
     public Long getFagsakId() {
         return data.getFagsakId();
