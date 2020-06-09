@@ -9,16 +9,8 @@ public enum ProsessTaskSporingsloggId {
     
     AKTOR_ID("aktorId"),
 
-    /**
-     * @deprecated Bruk saksnummer
-     */
-    @Deprecated
     FAGSAK_ID("fagsakId"),
     
-    /**
-     * @deprecated bruk {@link #BEHANDLING_UUID}
-     */
-    @Deprecated
     BEHANDLING_ID("behandlingId"),
 
     BEHANDLING_UUID("behandlingUuid"),

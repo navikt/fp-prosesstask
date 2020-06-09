@@ -45,7 +45,7 @@ public class TaskManagerGenerateRunnableTasksIT {
                     @Override
                     RunTask newRunTaskInstance() {
                         // TEST override for å kaste exception
-                        return new RunTask() {
+                        return new RunTask(null, null, null) {
                             @Override
                             public void doRun(RunTaskInfo taskInfo) {
                                 throw new PersistenceException("howdy!");

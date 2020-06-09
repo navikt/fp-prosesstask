@@ -55,9 +55,6 @@ public class RunTask {
     private Instance<ProsessTaskFeilhåndteringAlgoritme> feilhåndteringalgoritmer;
     private RunTaskVetoHåndterer vetoHåndterer;
 
-    public RunTask() {
-    }
-
     @Inject
     public RunTask(TaskManagerRepositoryImpl taskManagerRepo, ProsessTaskEventPubliserer eventPubliserer,
                    @Any Instance<ProsessTaskFeilhåndteringAlgoritme> feilhåndteringsalgoritmer) {
