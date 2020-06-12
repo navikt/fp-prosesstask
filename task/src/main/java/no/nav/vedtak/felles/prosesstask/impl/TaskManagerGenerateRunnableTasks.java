@@ -14,12 +14,10 @@ import no.nav.vedtak.felles.prosesstask.api.CallId;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskDispatcher;
 import no.nav.vedtak.felles.prosesstask.impl.TaskManager.ReadTaskFunksjon;
-import no.nav.vedtak.log.mdc.MdcExtendedLogContext;
 
 /** Poller for tilgjengelige tasks og omsetter disse til Runnable som kan kjøres på andre tråder. */
 public class TaskManagerGenerateRunnableTasks {
     static final Logger log = LoggerFactory.getLogger(TaskManagerGenerateRunnableTasks.class);
-    static final MdcExtendedLogContext LOG_CONTEXT = MdcExtendedLogContext.getContext("prosess"); //$NON-NLS-1$
     static final CDI<Object> CURRENT = CDI.current();
 
     private final BiFunction<Integer, ReadTaskFunksjon, List<IdentRunnable>> availableTasksFunc;

@@ -35,6 +35,7 @@ import org.slf4j.LoggerFactory;
 
 import no.nav.vedtak.apptjeneste.AppServiceHandler;
 import no.nav.vedtak.felles.jpa.TransactionHandler;
+import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskDispatcher;
 
 /**
@@ -102,6 +103,12 @@ public class TaskManager implements AppServiceHandler {
     private final AtomicReference<LocalDateTime> pollerRoundNoneFoundSince = new AtomicReference<>(LocalDateTime.now());
     private final AtomicReference<LocalDateTime> pollerRoundNoneLastReported = new AtomicReference<>(LocalDateTime.now());
 
+    /** trenger ikke ha denne som static siden TaskManager er ApplicationScoped. */
+    private final ThreadLocal<ProsessTaskData> currentTask = new ThreadLocal<>();
+    
+    static final String TASK_PROP = "prosess_task";
+    static final String TASK_ID_PROP = "prosess_task_id";
+
     public TaskManager() {
     }
 
@@ -111,7 +118,28 @@ public class TaskManager implements AppServiceHandler {
         this.taskManagerRepository = taskManagerRepository;
 
         if (dispatcher != null) {
-            this.taskDispatcher = selectProsessTaskDispatcher(dispatcher);
+
+            /** Holder styr på kjørende task per tråd slik at vi kan i enkelttilfeller hente ut info om det på en tråd. */
+            class TrackCurrentDispatchedTask implements ProsessTaskDispatcher {
+                ProsessTaskDispatcher delegate = selectProsessTaskDispatcher(dispatcher);
+
+                @Override
+                public boolean feilhåndterException(String taskType, Throwable e) {
+                    return delegate.feilhåndterException(taskType, e);
+                }
+
+                @Override
+                public void dispatch(ProsessTaskData task) throws Exception {
+                    try {
+                        currentTask.set(task);
+                        delegate.dispatch(task);
+                    } finally {
+                        currentTask.remove();
+                    }
+                }
+            }
+
+            this.taskDispatcher = new TrackCurrentDispatchedTask();
         }
     }
 
@@ -184,6 +212,10 @@ public class TaskManager implements AppServiceHandler {
             runTaskService.stop();
             runTaskService = null;
         }
+    }
+
+    public ProsessTaskData getCurrentTask() {
+        return currentTask.get();
     }
 
     synchronized void startPollerThread() {
