@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.enterprise.context.ApplicationScoped;
@@ -27,6 +28,7 @@ import javax.persistence.TypedQuery;
 import org.hibernate.jpa.QueryHints;
 import org.hibernate.query.NativeQuery;
 import org.hibernate.type.StringType;
+import org.slf4j.MDC;
 
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskGruppe;
@@ -154,6 +156,7 @@ public class ProsessTaskRepositoryImpl implements ProsessTaskRepository {
     protected Long doLagreTask(ProsessTaskData task) {
         ProsessTaskEntitet pte;
         if (task.getId() != null) {
+            trackTaskLineage("latest", task);
             ProsessTaskStatus nyStatus = task.getStatus();
             pte = entityManager.find(ProsessTaskEntitet.class, task.getId());
             ProsessTaskStatus status = pte.getStatus();
@@ -167,6 +170,8 @@ public class ProsessTaskRepositoryImpl implements ProsessTaskRepository {
                 eventPubliserer.fireEvent(pte.tilProsessTask(), status, nyStatus);
             }
         } else {
+            trackTaskLineage("parent", task);
+
             pte = new ProsessTaskEntitet();
             pte.kopierFraNy(task);
             pte.setSubjectProvider(subjectProvider);
@@ -377,6 +382,17 @@ public class ProsessTaskRepositoryImpl implements ProsessTaskRepository {
 
     public EntityManager getEntityManager() {
         return entityManager;
+    }
+
+    private static void trackTaskLineage(String keyPrefix, ProsessTaskData task) {
+        Set<String> lineageProps = Set.of(TaskManager.TASK_ID_PROP, TaskManager.TASK_PROP);
+        lineageProps.forEach(v -> {
+            var prop = MDC.get(v);
+            var key = keyPrefix + "." + v;
+            if (prop != null && task.getPropertyValue(key) == null) {
+                task.setProperty(key, prop);
+            }
+        });
     }
 
 }

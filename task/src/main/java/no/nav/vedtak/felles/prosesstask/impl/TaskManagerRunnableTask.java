@@ -77,18 +77,18 @@ class TaskManagerRunnableTask implements Runnable {
         return new IdentRunnableTask(taskInfo.getId(), errorCallback, LocalDateTime.now());
     }
 
-    void clearLogContext() {
+    static void clearLogContext() {
         MDC.clear();
     }
 
-    void initLogContext(final String callId, String taskName, Long taskId) {
+    static void initLogContext(final String callId, String taskName, Long taskId) {
         if (callId != null) {
             MDC.put(CallId.CALL_ID, callId);
         } else {
             MDC.put(CallId.CALL_ID, CallId.generateCallId());
         }
-        TaskManagerGenerateRunnableTasks.LOG_CONTEXT.add("task", taskName);
-        TaskManagerGenerateRunnableTasks.LOG_CONTEXT.add("task_id", taskId);
+        MDC.put(TaskManager.TASK_PROP, taskName);
+        MDC.put(TaskManager.TASK_ID_PROP, taskId.toString());
     }
     
     void handleErrorCallback(IdentRunnable errorCallback) {
