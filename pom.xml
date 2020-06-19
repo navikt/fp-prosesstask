@@ -370,7 +370,6 @@
 		<url>https://github.com/navikt/fp-prosesstask/</url>
 	</scm>
 
-
 	<distributionManagement>
 		<repository>
 			<id>github-2</id>
