@@ -38,13 +38,13 @@ interface TaskManagerFeil extends DeklarerteFeil {
     @TekniskFeil(feilkode = "PT-996897", feilmelding = "Kunne ikke polle grunnet kritisk feil, venter (%ss)", logLevel = LogLevel.ERROR, exceptionClass = ProsessTaskKritiskException.class)
     Feil kritiskKunneIkkePolleDatabase(Long waitSecs,  Throwable t);
 
-    @TekniskFeil(feilkode = "PT-415564", feilmelding = "Kunne ikke prosessere task, id=%s, taskName=%s. Vil automatisk prøve igjen. Forsøk=%s, Neste kjøring=%s", logLevel = LogLevel.WARN, exceptionClass = ProsessTaskMidlertidigException.class)
+    @TekniskFeil(feilkode = "PT-415564", feilmelding = "Kunne ikke prosessere task, id=%s, taskName=%s. Vil automatisk prøve igjen. Forsøk=%s, Neste kjøring=%s", logLevel = LogLevel.INFO, exceptionClass = ProsessTaskMidlertidigException.class)
     Feil kunneIkkeProsessereTaskVilPrøveIgjenEnkelFeilmelding(Long taskId, String taskName, int failureAttempt, LocalDateTime localDateTime, Exception e);
 
     @TekniskFeil(feilkode = "PT-415565", feilmelding = "Kunne ikke registrere feil på task pga uventet feil ved oppdatering av status/feil, id=%s, taskName=%s.", logLevel = LogLevel.ERROR, exceptionClass = ProsessTaskException.class)
     Feil kunneIkkeLoggeUventetFeil(Long taskId, String taskName, Throwable e);
 
-    @TekniskFeil(feilkode = "PT-876625", feilmelding = "Kunne ikke prosessere task, id=%s, taskName=%s. Har feilet %s ganger. Vil ikke prøve igjen", logLevel = LogLevel.WARN, exceptionClass = ProsessTaskException.class)
+    @TekniskFeil(feilkode = "PT-876625", feilmelding = "Kunne ikke prosessere task, id=%s, taskName=%s. Har feilet %s ganger. Vil ikke prøve igjen", logLevel = LogLevel.INHERIT, exceptionClass = ProsessTaskException.class)
     Feil kunneIkkeProsessereTaskVilIkkePrøveIgjenEnkelFeilmelding(Long taskId, String taskName, Integer feiletAntall, Exception e);
 
     @TekniskFeil(feilkode = "PT-876627", feilmelding = "Kunne ikke prosessere task pga fatal feil (forårsaker transaksjon rollback), id=%s, taskName=%s. Har feilet %s ganger. Vil ikke prøve igjen", logLevel = LogLevel.ERROR, exceptionClass = ProsessTaskException.class)
