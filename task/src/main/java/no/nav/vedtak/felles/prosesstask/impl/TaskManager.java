@@ -14,6 +14,7 @@ import java.util.concurrent.FutureTask;
 import java.util.concurrent.RunnableFuture;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -105,7 +106,7 @@ public class TaskManager implements AppServiceHandler {
 
     /** trenger ikke ha denne som static siden TaskManager er ApplicationScoped. */
     private final ThreadLocal<ProsessTaskData> currentTask = new ThreadLocal<>();
-    
+
     static final String TASK_PROP = "prosess_task";
     static final String TASK_ID_PROP = "prosess_task_id";
 
@@ -228,8 +229,10 @@ public class TaskManager implements AppServiceHandler {
         }
         this.pollingServiceScheduledFutures = List.of(
             pollingService.scheduleWithFixedDelay(new PollAvailableTasks(), delayBetweenPollingMillis / 2, delayBetweenPollingMillis, TimeUnit.MILLISECONDS),
-            pollingService.scheduleWithFixedDelay(new MoveToDonePartition(), 30 * 1000L, 5 * 60 * 1000L, TimeUnit.MILLISECONDS),
             pollingService.scheduleWithFixedDelay(new FreeBlockedTasks(), 750L, 7500L, TimeUnit.MILLISECONDS));
+
+        // schedulerer første runde, reschedulerer seg selv senere.
+        pollingService.schedule(new MoveToDonePartition(), 30, TimeUnit.SECONDS);
     }
 
     synchronized void startTaskThreads() {
@@ -490,6 +493,10 @@ public class TaskManager implements AppServiceHandler {
         @Override
         public void run() {
             RequestContextHandler.doWithRequestContext(this::doWithContext);
+            // neste kjører mellom 1-10 min fra nå.
+            int min = 60 * 1000;
+            int max = min * 10;
+            pollingService.schedule(this, ThreadLocalRandom.current().nextInt(min, max), TimeUnit.MILLISECONDS);
         }
 
     }
