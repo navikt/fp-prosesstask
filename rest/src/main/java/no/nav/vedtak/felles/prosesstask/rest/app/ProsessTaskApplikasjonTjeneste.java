@@ -71,6 +71,20 @@ public class ProsessTaskApplikasjonTjeneste {
         return taskData == null ? Optional.empty() : Optional.of(ProsessTaskDataKonverter.tilProsessTaskDataPayloadDto(taskData));
     }
 
+    public void setFeiletProsessTaskFerdig(Long prosessTaskId) {
+        ProsessTaskData taskData = prosessTaskRepository.finn(prosessTaskId);
+        if (taskData == null) {
+            throw ProsessTaskRestTjenesteFeil.FACTORY.ukjentProsessTaskIdAngitt(prosessTaskId).toException();
+        }
+        if (!ProsessTaskStatus.FEILET.equals(taskData.getStatus())) {
+            throw ProsessTaskRestTjenesteFeil.FACTORY.taskIkkeFeilet(prosessTaskId).toException();
+        }
+        taskData.setStatus(ProsessTaskStatus.KJOERT);
+        taskData.setSisteFeil(null);
+        taskData.setSisteFeilKode(null);
+        prosessTaskRepository.lagre(taskData);
+    }
+
     public ProsessTaskRestartResultatDto flaggProsessTaskForRestart(ProsessTaskRestartInputDto prosessTaskRestartInputDto) {
         ProsessTaskData ptd = prosessTaskRepository.finn(prosessTaskRestartInputDto.getProsessTaskId());
 

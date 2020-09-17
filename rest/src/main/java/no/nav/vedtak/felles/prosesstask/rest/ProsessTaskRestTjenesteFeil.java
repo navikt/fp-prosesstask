@@ -11,12 +11,18 @@ public interface ProsessTaskRestTjenesteFeil extends DeklarerteFeil {
 
     String KAN_IKKE_RESTARTE_FERDIG_TASK_FEIL_ID = "PT-711948";
     String MAA_ANGI_NAVARENDE_STATUS_FEIL_ID = "PT-306456";
+    String STATUS_IKKE_FEILET = "PT-507456";
     String UKJENT_TASK_FEIL_ID = "PT-752429";
 
     @TekniskFeil(feilkode = KAN_IKKE_RESTARTE_FERDIG_TASK_FEIL_ID,
             feilmelding = "Prosesstasken %s har allerede kjørt ferdig, og kan ikke kjøres på nytt",
             logLevel = LogLevel.WARN)
     Feil kanIkkeRestarteEnFerdigKjørtProsesstask(long prosessTaskId);
+
+    @TekniskFeil(feilkode = STATUS_IKKE_FEILET,
+            feilmelding = "Prosesstasken %s har ikke status FEILET og kan ikke settes FERDIG",
+            logLevel = LogLevel.WARN)
+    Feil taskIkkeFeilet(long prosessTaskId);
 
     @TekniskFeil(feilkode = MAA_ANGI_NAVARENDE_STATUS_FEIL_ID,
             feilmelding = "Prosesstasken %s har ikke status KLAR. For restart må nåværende status angis.",

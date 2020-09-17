@@ -173,6 +173,19 @@ public class ProsessTaskRestTjeneste {
         return Response.status(HttpStatus.SC_NOT_FOUND).build();
     }
 
+    @POST
+    @Path("/setferdig")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Operation(description = "Setter feilet prosesstask med angitt prosesstask-id til FERDIG (kjøres ikke)", tags = "prosesstask", responses = {
+            @ApiResponse(responseCode = "200", description = "Angitt prosesstask-id satt til status FERDIG"),
+            @ApiResponse(responseCode = "500", description = "Feilet pga ukjent feil eller tekniske/funksjonelle feil")
+    })
+    @BeskyttetRessurs(action = CREATE, property = ABAC_DRIFT_ATTRIBUTT)
+    public Response setFeiletProsessTaskFerdig(@NotNull @Parameter(description = "Prosesstask-id for feilet prosesstask") @TilpassetAbacAttributt(supplierClass = AbacEmptySupplier.class) @Valid ProsessTaskIdDto prosessTaskIdDto) {
+        prosessTaskApplikasjonTjeneste.setFeiletProsessTaskFerdig(prosessTaskIdDto.getProsessTaskId());
+        return Response.ok().build();
+    }
+
     private void loggLesingAvPersondataFraProsessTask(ProsessTaskDataInfo prosessTaskInfo, String metode) {
         String actionType = "read";
         String endepunkt = ProsessTaskRestTjeneste.class.getAnnotation(Path.class).value() + metode;
