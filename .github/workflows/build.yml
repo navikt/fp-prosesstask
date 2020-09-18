@@ -29,8 +29,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-        with: 
-          fetch-depth: 0
       - name: Set cache key 
         run: |
           echo "::set-env name=CACHE_KEY::$(date +%U)"
