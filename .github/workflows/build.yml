@@ -29,6 +29,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
+        run: |
+          git fetch --prune --unshallow
       - name: Set cache key 
         run: |
           echo "::set-env name=CACHE_KEY::$(date +%U)"
