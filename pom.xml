@@ -375,7 +375,6 @@
 		</plugins>
 	</build>
 
-
 	<scm>
 		<connection>scm:git:https://github.com/navikt/fp-prosesstask.git</connection>
 		<developerConnection>scm:git:https://github.com/navikt/fp-prosesstask.git</developerConnection>
