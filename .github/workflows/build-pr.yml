@@ -16,7 +16,7 @@ jobs:
 
     services:
       postgres:
-        image: postgres:11.5
+        image: postgres:12
         env:
           POSTGRES_USER: unittest
           POSTGRES_PASSWORD: unittest 
@@ -27,7 +27,7 @@ jobs:
         options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
 
     steps:
-      - uses: actions/checkout@v2.3.3
+      - uses: actions/checkout@v2
       - name: Set cache key    
         run: |
           echo "::set-env name=CACHE_KEY::$(date +%U)"
