@@ -45,7 +45,7 @@ jobs:
         shell: bash
         run: |
           mvn jacoco:prepare-agent deploy jacoco:report -e --batch-mode --settings ./.github/.m2/settings.xml --file pom.xml -DtrimStackTrace=false -Dchangelist= -Dsha1=-$(git log -1 --pretty='%ad' --date=format:'%Y%m%d%H%M%S')-$(echo $GITHUB_SHA | cut -c1-7) -Djacoco.destFile=$(pwd)/target/jacoco.exec -Djacoco.dataFile=$(pwd)/target/jacoco.exec
-          mvn sonar:sonar -e --batch-mode --settings ./.github/.m2/settings.xml --file pom.xml -DtrimStackTrace=false -Dfile.encoding=UTF-8 -Dsonar.projectKey="navikt_fp-prosesstask" -Dsonar.host.url='https://sonarcloud.io' -Dsonar.organization=navit -Dsonar.login=${SONAR_TOKEN} -Dsonar.exclusions="**/testutilities/**/*,**/pom.xml,**/src/test/**/*"
+          mvn sonar:sonar -e --batch-mode --settings ./.github/.m2/settings.xml --file pom.xml -Dchangelist= -Dsha1=-$(git log -1 --pretty='%ad' --date=format:'%Y%m%d%H%M%S')-$(echo $GITHUB_SHA | cut -c1-7) -DtrimStackTrace=false -Dfile.encoding=UTF-8 -Dsonar.projectKey="navikt_fp-prosesstask" -Dsonar.host.url='https://sonarcloud.io' -Dsonar.organization=navit -Dsonar.login=${SONAR_TOKEN} -Dsonar.exclusions="**/testutilities/**/*,**/pom.xml,**/src/test/**/*"
           echo "::set-env name=MVN_VERSION::$(mvn help:evaluate --batch-mode --settings .github/.m2/settings.xml --file .flattened -Dexpression=project.version -q -DforceStdout)"
         env:
           GITHUB_USERNAME: x-access-token
