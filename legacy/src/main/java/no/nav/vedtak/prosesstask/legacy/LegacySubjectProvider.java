@@ -14,3 +14,4 @@ public class LegacySubjectProvider implements SubjectProvider {
     }
 
 }
+
