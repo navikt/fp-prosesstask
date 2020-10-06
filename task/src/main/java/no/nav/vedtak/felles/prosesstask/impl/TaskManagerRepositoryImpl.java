@@ -387,7 +387,7 @@ public class TaskManagerRepositoryImpl {
         int unvetoed = entityManager.createNativeQuery(sqlUnveto)
             .executeUpdate();
         if (unvetoed > 0) {
-            log.warn("Fjernet veto fra {} tasks som var blokkert av andre tasks som allerede er ferdig", unvetoed);
+            log.info("Fjernet veto fra {} tasks som var blokkert av andre tasks som allerede er ferdig", unvetoed);
         }
     }
 
