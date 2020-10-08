@@ -51,6 +51,11 @@
 
 		<argLine>-Dfile.encoding=UTF-8</argLine>
 		<additionalparam>-Xdoclint:none</additionalparam>
+		
+		<!-- SonarCloud options -->
+		<sonar.host.url>https://sonarcloud.io</sonar.host.url>
+		<sonar.projectKey>navikt_fp-prosesstask</sonar.projectKey>
+		<sonar.organization>navit</sonar.organization>
 	
 	</properties>
 	
@@ -157,7 +162,7 @@
 				<plugin>
 					<groupId>org.jacoco</groupId>
 					<artifactId>jacoco-maven-plugin</artifactId>
-					<version>0.8.5</version>
+					<version>0.8.6</version>
 					<executions>
 						<execution>
 						    <goals>
@@ -267,59 +272,69 @@
 				    </execution>
 				</executions>
 			</plugin>
-			
-		
-		    <plugin>
-			<groupId>org.apache.maven.plugins</groupId>
-			<artifactId>maven-source-plugin</artifactId>
-			<executions>
-			    <execution>
-				<id>attach-sources</id>
-				<goals>
-				    <goal>jar</goal>
-				</goals>
-			    </execution>
-			</executions>
-		    </plugin>
 
-		    <plugin>
-			<groupId>org.apache.maven.plugins</groupId>
-			<artifactId>maven-failsafe-plugin</artifactId>
-			<executions>
-			    <execution>
-				<id>failsafe-integration-test</id>
-				<goals>
-				    <goal>integration-test</goal>
-				</goals>
-			    </execution>
-			    <execution>
-				<id>failsafe-verify</id>
-				<goals>
-				    <goal>verify</goal>
-				</goals>
-			    </execution>
-			</executions>
-			<configuration>
-			    <reuseForks>true</reuseForks>
-			    <useFile>true</useFile>
-			</configuration>
-		    </plugin>
-		    <plugin>
-			<groupId>org.jboss.jandex</groupId>
-			<artifactId>jandex-maven-plugin</artifactId>
-			<version>1.0.8</version>
-			<executions>
-			    <execution>
-				<id>make-index</id>
-				<goals>
-				    <goal>jandex</goal>
-				</goals>
-				<configuration>
-				    <!-- Nothing needed here for simple cases -->
-				</configuration>
-			    </execution>
-			</executions>
-		    </plugin>
+			<plugin>
+			      <groupId>org.jacoco</groupId>
+			      <artifactId>jacoco-maven-plugin</artifactId>
+			      <executions>
+				<execution>
+				  <id>report</id>
+				  <goals>
+				    <goal>report-aggregate</goal>
+				  </goals>
+				  <phase>verify</phase>
+				</execution>
+			      </executions>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-source-plugin</artifactId>
+				<executions>
+				    <execution>
+					<id>attach-sources</id>
+					<goals>
+					    <goal>jar</goal>
+					</goals>
+				    </execution>
+				</executions>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-failsafe-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>failsafe-integration-test</id>
+						<goals>
+							<goal>integration-test</goal>
+						</goals>
+					</execution>
+					<execution>
+						<id>failsafe-verify</id>
+						<goals>
+							<goal>verify</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+
+			<plugin>
+				<groupId>org.jboss.jandex</groupId>
+				<artifactId>jandex-maven-plugin</artifactId>
+				<version>1.0.8</version>
+				<executions>
+				    <execution>
+					<id>make-index</id>
+					<goals>
+					    <goal>jandex</goal>
+					</goals>
+					<configuration>
+					    <!-- Nothing needed here for simple cases -->
+					</configuration>
+				    </execution>
+				</executions>
+			</plugin>
 
 
 		</plugins>
