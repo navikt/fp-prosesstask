@@ -812,21 +812,21 @@ public class CronExpressionTest {
     
      @Test
     public void testTriggerProblemSameMonth() {
-        assertThat(ZonedDateTime.parse("2020-01-02T00:50:00Z"),
+        assertThat(ZonedDateTime.parse("2020-01-02T00:50:00Z")).isEqualTo(
             new CronExpression("00 50 * 1-8 1 *")
                 .nextTimeAfter(ZonedDateTime.parse("2020-01-01T23:50:00Z")));
     }
 
     @Test
     public void testTriggerProblemNextMonth() {
-        assertThat(ZonedDateTime.parse("2020-02-01T00:50:00Z"),
+        assertThat(ZonedDateTime.parse("2020-02-01T00:50:00Z")).isEqualTo(
             new CronExpression("00 50 * 1-8 2 *")
                 .nextTimeAfter(ZonedDateTime.parse("2020-01-31T23:50:00Z")));
     }
 
     @Test
     public void testTriggerProblemNextYear() {
-        assertThat(ZonedDateTime.parse("2020-01-01T00:50:00Z"),
+        assertThat(ZonedDateTime.parse("2020-01-01T00:50:00Z")).isEqualTo(
             new CronExpression("00 50 * 1-8 1 *")
                 .nextTimeAfter(ZonedDateTime.parse("2019-12-31T23:50:00Z")));
     }
