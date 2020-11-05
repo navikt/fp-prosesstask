@@ -34,7 +34,7 @@ public class ProsessTaskDataDto implements ProsessTaskDataInfo {
 
     @JsonProperty(value = "taskType", required = true)
     @Size(max = 200)
-    @Pattern(regexp = "^[\\p{Alnum}_.\\-]*$")
+    @Pattern(regexp = "^[\\p{Alnum}æøåÆØÅ_.\\-]*$")
     private String taskType;
 
     @JsonProperty(value = "nesteKjøringEtter")

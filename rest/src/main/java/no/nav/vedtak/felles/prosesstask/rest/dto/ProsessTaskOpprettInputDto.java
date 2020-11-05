@@ -21,7 +21,7 @@ public class ProsessTaskOpprettInputDto {
     @JsonProperty(value="taskType", required=true)
     @NotNull
     @Size(min = 1, max = 100)
-    @Pattern(regexp = "^[\\p{Alnum}_.\\-]*$")
+    @Pattern(regexp = "^[\\p{Alnum}æøåÆØÅ_.\\-]*$")
     private String taskType;
 
     @JsonProperty(value="taskParametre", required = true)
