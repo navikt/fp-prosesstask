@@ -175,12 +175,12 @@ public class CronExpression {
 
             @Override
             ZonedDateTime setValue(ZonedDateTime dateTime, int value) {
-                return dateTime.withDayOfMonth(value).withMinute(0).withSecond(0).withNano(0);
+                return dateTime.withDayOfMonth(value).withHour(0).withMinute(0).withSecond(0).withNano(0);
             }
 
             @Override
             ZonedDateTime overflow(ZonedDateTime dateTime) {
-                return dateTime.plusMonths(1).withDayOfMonth(0).withMinute(0).withSecond(0).withNano(0);
+                return dateTime.plusMonths(1).withDayOfMonth(0).withHour(0).withMinute(0).withSecond(0).withNano(0);
             }
         },
         MONTH(1, 12,
@@ -192,12 +192,12 @@ public class CronExpression {
 
             @Override
             ZonedDateTime setValue(ZonedDateTime dateTime, int value) {
-                return dateTime.withMonth(value).withDayOfMonth(1).withMinute(0).withSecond(0).withNano(0);
+                return dateTime.withMonth(value).withDayOfMonth(1).withHour(0).withMinute(0).withSecond(0).withNano(0);
             }
 
             @Override
             ZonedDateTime overflow(ZonedDateTime dateTime) {
-                return dateTime.plusYears(1).withMonth(1).withDayOfMonth(1).withMinute(0).withSecond(0).withNano(0);
+                return dateTime.plusYears(1).withMonth(1).withHour(0).withDayOfMonth(1).withMinute(0).withSecond(0).withNano(0);
             }
         },
         DAY_OF_WEEK(1, 7, Arrays.asList("MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN")) {
@@ -289,10 +289,6 @@ public class CronExpression {
     public static CronExpression createWithoutSeconds(final String expr) {
         return new CronExpression(expr, false);
     }
-    
-    public LocalDateTime neste(LocalDateTime forrige) {
-        return nextTimeAfter(ZonedDateTime.of(forrige, ZoneId.systemDefault())).toLocalDateTime();
-    }
 
     public ZonedDateTime nextTimeAfter(ZonedDateTime afterTime) {
         // will search for the next time within the next 4 years. If there is no
@@ -301,6 +297,10 @@ public class CronExpression {
         return nextTimeAfter(afterTime, afterTime.plusYears(4));
     }
 
+    public LocalDateTime nextLocalDateTimeAfter(LocalDateTime dateTime) {
+        return nextTimeAfter(ZonedDateTime.of(dateTime, ZoneId.systemDefault())).toLocalDateTime();
+    }
+    
     public ZonedDateTime nextTimeAfter(ZonedDateTime afterTime, long durationInMillis) {
         // will search for the next time within the next durationInMillis
         // millisecond. Be aware that the duration is specified in millis,
