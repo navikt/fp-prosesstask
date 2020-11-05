@@ -225,7 +225,7 @@ public class RunTask {
                 ProsessTaskData data = new ProsessTaskData(pte.getTaskName());
                 data.setStatus(ProsessTaskStatus.KLAR);
                 LocalDateTime now = LocalDateTime.now();
-                LocalDateTime nesteKjøring = new CronExpression(taskType.getCronExpression()).neste(now);
+                LocalDateTime nesteKjøring = new CronExpression(taskType.getCronExpression()).nextLocalDateTimeAfter(now);
                 data.setNesteKjøringEtter(nesteKjøring);
                 data.setGruppe(gruppe); // <- ny gruppe
                 data.setSekvens(pte.getSekvens());
