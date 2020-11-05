@@ -79,7 +79,7 @@ public class BatchTaskScheduler implements AppServiceHandler {
         ProsessTaskType type = entry.getKey();
         ProsessTaskData data = new ProsessTaskData(type.getKode());
         final String cron = type.getCronExpression();
-        LocalDateTime neste = new CronExpression(cron).neste(LocalDateTime.now());
+        LocalDateTime neste = new CronExpression(cron).nextLocalDateTimeAfter(LocalDateTime.now());
         data.setNesteKjøringEtter(neste);
         if (entry.getValue() != null) {
             log.info("Oppretter ny='{}' batch-task da siste='{}' har ikke er klar for kjøring.", data, entry.getValue().tilProsessTask());
