@@ -8,27 +8,29 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.assertj.core.api.Assertions;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.mockito.Mockito;
 
-import no.nav.vedtak.felles.prosesstask.UnittestRepositoryRule;
+import no.nav.vedtak.felles.prosesstask.JpaExtension;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskRepository;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskStatus;
 
 public class ProsessTaskRepositoryImplIT {
 
+    @RegisterExtension
+    public static final JpaExtension repoRule = new JpaExtension();
+
     private static final LocalDateTime NÅ = LocalDateTime.now().truncatedTo(ChronoUnit.MILLIS);
     private final LocalDateTime nesteKjøringEtter = NÅ.plusHours(1);
     
     private final AtomicLong ids= new AtomicLong(1);
-    @Rule
-    public UnittestRepositoryRule repoRule = new UnittestRepositoryRule();
+    
     private ProsessTaskRepository prosessTaskRepository;
 
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {
         ProsessTaskEventPubliserer prosessTaskEventPubliserer = Mockito.mock(ProsessTaskEventPubliserer.class);
         Mockito.doNothing().when(prosessTaskEventPubliserer).fireEvent(Mockito.any(ProsessTaskData.class), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any());

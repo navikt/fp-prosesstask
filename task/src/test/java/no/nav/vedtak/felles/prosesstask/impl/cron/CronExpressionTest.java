@@ -1,9 +1,9 @@
 package no.nav.vedtak.felles.prosesstask.impl.cron;
 
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.time.LocalDate;
 import java.time.YearMonth;
@@ -14,9 +14,9 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.TimeZone;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import no.nav.vedtak.felles.prosesstask.impl.cron.CronExpression.CronFieldType;
 import no.nav.vedtak.felles.prosesstask.impl.cron.CronExpression.DayOfMonthField;
@@ -27,14 +27,14 @@ public class CronExpressionTest {
     private TimeZone original;
     private ZoneId zoneId;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         original = TimeZone.getDefault();
         TimeZone.setDefault(TimeZone.getTimeZone("Europe/Oslo"));
         zoneId = TimeZone.getDefault().toZoneId();
     }
 
-    @After
+    @AfterEach
     public void tearDown() {
         TimeZone.setDefault(original);
     }
@@ -99,27 +99,31 @@ public class CronExpressionTest {
         assertThat(field.matches(ZonedDateTime.now().toLocalDate())).isTrue();
     }
 
-    @Test(expected = IllegalArgumentException.class)
     public void shall_give_error_if_invalid_count_field() throws Exception {
-        new CronExpression("* 3 *");
+        assertThrows(IllegalArgumentException.class, () -> {
+            new CronExpression("* 3 *");
+        });
     }
 
-    @Test(expected = IllegalArgumentException.class)
     public void shall_give_error_if_minute_field_ignored() throws Exception {
-        SimpleField field = new SimpleField(CronFieldType.MINUTE, "?");
-        field.matches(1);
+        assertThrows(IllegalArgumentException.class, () -> {
+            SimpleField field = new SimpleField(CronFieldType.MINUTE, "?");
+            field.matches(1);
+        });
     }
 
-    @Test(expected = IllegalArgumentException.class)
     public void shall_give_error_if_hour_field_ignored() throws Exception {
-        SimpleField field = new SimpleField(CronFieldType.HOUR, "?");
-        field.matches(1);
+        assertThrows(IllegalArgumentException.class, () -> {
+            SimpleField field = new SimpleField(CronFieldType.HOUR, "?");
+            field.matches(1);
+        });
     }
 
-    @Test(expected = IllegalArgumentException.class)
     public void shall_give_error_if_month_field_ignored() throws Exception {
-        SimpleField field = new SimpleField(CronFieldType.MONTH, "?");
-        field.matches(1);
+        assertThrows(IllegalArgumentException.class, () -> {
+            SimpleField field = new SimpleField(CronFieldType.MONTH, "?");
+            field.matches(1);
+        });
     }
 
     @Test
@@ -152,9 +156,10 @@ public class CronExpressionTest {
         assertThat(cronExpr.nextTimeAfter(after)).isEqualTo(expected);
     }
 
-    @Test(expected = IllegalArgumentException.class)
     public void check_invalid_input() throws Exception {
-        new CronExpression(null);
+        assertThrows(IllegalArgumentException.class, () -> {
+            new CronExpression(null);
+        });
     }
 
     @Test
@@ -258,14 +263,16 @@ public class CronExpressionTest {
         assertThat(cronExpr.nextTimeAfter(after)).isEqualTo(expected);
     }
 
-    @Test(expected = IllegalArgumentException.class)
     public void check_second_invalid_range() throws Exception {
-        new CronExpression("42-63 * * * * *");
+        assertThrows(IllegalArgumentException.class, () -> {
+            new CronExpression("42-63 * * * * *");
+        });
     }
 
-    @Test(expected = IllegalArgumentException.class)
     public void check_second_invalid_increment_modifier() throws Exception {
-        new CronExpression("42#3 * * * * *");
+        assertThrows(IllegalArgumentException.class, () -> {
+            new CronExpression("42#3 * * * * *");
+        });
     }
 
     @Test
@@ -530,14 +537,16 @@ public class CronExpressionTest {
         assertThat(cronExpr.nextTimeAfter(after)).isEqualTo(expected);
     }
 
-    @Test(expected = IllegalArgumentException.class)
-    public void check_dayOfMonth_invalid_modifier() throws Exception {
-        new CronExpression("0 0 0 9X * *");
+    public void check_dayOfMonth_invalid_modifier() {
+        assertThrows(IllegalArgumentException.class, () -> {
+            new CronExpression("0 0 0 9X * *");
+        });
     }
 
-    @Test(expected = IllegalArgumentException.class)
     public void check_dayOfMonth_invalid_increment_modifier() throws Exception {
-        new CronExpression("0 0 0 9#2 * *");
+        assertThrows(IllegalArgumentException.class, () -> {
+            new CronExpression("0 0 0 9#2 * *");
+        });
     }
 
     @Test
@@ -597,9 +606,10 @@ public class CronExpressionTest {
         assertThat(cronExpr.nextTimeAfter(after)).isEqualTo(expected);
     }
 
-    @Test(expected = IllegalArgumentException.class)
     public void check_month_invalid_modifier() throws Exception {
-        new CronExpression("0 0 0 1 ? *");
+        assertThrows(IllegalArgumentException.class, () -> {
+            new CronExpression("0 0 0 1 ? *");
+        });
     }
 
     @Test
@@ -699,14 +709,16 @@ public class CronExpressionTest {
         assertThat(new CronExpression("0 0 0 * * FRIL").nextTimeAfter(after)).isEqualTo(expected);
     }
 
-    @Test(expected = IllegalArgumentException.class)
     public void check_dayOfWeek_invalid_modifier() throws Exception {
-        new CronExpression("0 0 0 * * 5W");
+        assertThrows(IllegalArgumentException.class, () -> {
+            new CronExpression("0 0 0 * * 5W");
+        });
     }
 
-    @Test(expected = IllegalArgumentException.class)
     public void check_dayOfWeek_invalid_increment_modifier() throws Exception {
-        new CronExpression("0 0 0 * * 5?3");
+        assertThrows(IllegalArgumentException.class, () -> {
+            new CronExpression("0 0 0 * * 5?3");
+        });
     }
 
     @Test
@@ -762,15 +774,17 @@ public class CronExpressionTest {
         assertThat(new CronExpression("0 0 0 * * WED#5").nextTimeAfter(after)).isEqualTo(expected); // leapday
     }
 
-    @Test(expected = IllegalArgumentException.class)
     public void shall_not_not_support_rolling_period() throws Exception {
-        new CronExpression("* * 5-1 * * *");
+        assertThrows(IllegalArgumentException.class, () -> {
+            new CronExpression("* * 5-1 * * *");
+        });
     }
 
-    @Test(expected = IllegalArgumentException.class)
     public void non_existing_date_throws_exception() throws Exception {
-        // Will check for the next 4 years - no 30th of February is found so a IAE is thrown.
-        new CronExpression("* * * 30 2 *").nextTimeAfter(ZonedDateTime.now());
+        assertThrows(IllegalArgumentException.class, () -> {
+            // Will check for the next 4 years - no 30th of February is found so a IAE is thrown.
+            new CronExpression("* * * 30 2 *").nextTimeAfter(ZonedDateTime.now());
+        });
     }
 
     @Test
@@ -783,24 +797,27 @@ public class CronExpressionTest {
         assertThat(cronExpr.nextTimeAfter(after)).isEqualTo(expected);
     }
 
-    @Test(expected = IllegalArgumentException.class)
     public void test_one_year_barrier() throws Exception {
-        ZonedDateTime after = ZonedDateTime.of(2012, 3, 1, 0, 0, 0, 0, zoneId);
-        ZonedDateTime barrier = ZonedDateTime.of(2013, 3, 1, 0, 0, 0, 0, zoneId);
-        // The next leap year is 2016, so an IllegalArgumentException is expected.
-        new CronExpression("* * * 29 2 *").nextTimeAfter(after, barrier);
+        assertThrows(IllegalArgumentException.class, () -> {
+            ZonedDateTime after = ZonedDateTime.of(2012, 3, 1, 0, 0, 0, 0, zoneId);
+            ZonedDateTime barrier = ZonedDateTime.of(2013, 3, 1, 0, 0, 0, 0, zoneId);
+            // The next leap year is 2016, so an IllegalArgumentException is expected.
+            new CronExpression("* * * 29 2 *").nextTimeAfter(after, barrier);
+        });
     }
 
-    @Test(expected = IllegalArgumentException.class)
-    public void test_two_year_barrier() throws Exception {
-        ZonedDateTime after = ZonedDateTime.of(2012, 3, 1, 0, 0, 0, 0, zoneId);
-        // The next leap year is 2016, so an IllegalArgumentException is expected.
-        new CronExpression("* * * 29 2 *").nextTimeAfter(after, 1000L * 60 * 60 * 24 * 356 * 2);
+    public void test_two_year_barrier() {
+        assertThrows(IllegalArgumentException.class, () -> {
+            ZonedDateTime after = ZonedDateTime.of(2012, 3, 1, 0, 0, 0, 0, zoneId);
+            // The next leap year is 2016, so an IllegalArgumentException is expected.
+            new CronExpression("* * * 29 2 *").nextTimeAfter(after, 1000L * 60 * 60 * 24 * 356 * 2);
+        });
     }
 
-    @Test(expected = IllegalArgumentException.class)
     public void test_seconds_specified_but_should_be_omitted() throws Exception {
-        CronExpression.createWithoutSeconds("* * * 29 2 *");
+        assertThrows(IllegalArgumentException.class, () -> {
+            CronExpression.createWithoutSeconds("* * * 29 2 *");
+        });
     }
 
     @Test
@@ -809,8 +826,8 @@ public class CronExpressionTest {
         ZonedDateTime expected = ZonedDateTime.of(2016, 2, 29, 0, 0, 0, 0, zoneId);
         assertThat(CronExpression.createWithoutSeconds("* * 29 2 *").nextTimeAfter(after)).isEqualTo(expected);
     }
-    
-     @Test
+
+    @Test
     public void testTriggerProblemSameMonth() {
         assertThat(ZonedDateTime.parse("2020-01-02T00:50:00Z")).isEqualTo(
             new CronExpression("00 50 * 1-8 1 *")

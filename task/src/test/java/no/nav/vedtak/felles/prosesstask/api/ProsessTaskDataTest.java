@@ -4,22 +4,22 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Optional;
 
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class ProsessTaskDataTest {
 
     private static final String ORIGINALTYPE = "ORIGINALTYPE";
 
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
-
     private ProsessTaskData original;
 
-    @Before
+    @BeforeEach
     public void oppsett() {
         original = new ProsessTaskData(ORIGINALTYPE);
     }

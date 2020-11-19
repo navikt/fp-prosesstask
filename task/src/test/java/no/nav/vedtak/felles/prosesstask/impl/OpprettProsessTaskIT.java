@@ -4,11 +4,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
 
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
-import no.nav.vedtak.felles.prosesstask.UnittestRepositoryRule;
+import no.nav.vedtak.felles.prosesstask.JpaExtension;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskGruppe;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskRepository;
@@ -16,12 +16,12 @@ import no.nav.vedtak.felles.prosesstask.api.ProsessTaskStatus;
 
 public class OpprettProsessTaskIT {
 
-    @Rule
-    public final UnittestRepositoryRule repoRule = new UnittestRepositoryRule();
-
+    @RegisterExtension
+    public static final JpaExtension repoRule = new JpaExtension();
+    
     private ProsessTaskRepository repo = new ProsessTaskRepositoryImpl(repoRule.getEntityManager(), null, null);
 
-    @Before
+    @BeforeEach
     public void setupTestData() throws Exception {
         new TestProsessTaskTestData(repoRule.getEntityManager())
             .opprettTaskType("mytask1")
