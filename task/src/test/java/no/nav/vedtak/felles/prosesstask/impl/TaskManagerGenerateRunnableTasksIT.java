@@ -7,10 +7,11 @@ import java.util.concurrent.atomic.AtomicReference;
 import javax.persistence.PersistenceException;
 
 import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.mockito.Mockito;
 
-import no.nav.vedtak.felles.prosesstask.UnittestRepositoryRule;
+import no.nav.vedtak.felles.prosesstask.JpaExtension;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
 
 public class TaskManagerGenerateRunnableTasksIT {
@@ -18,9 +19,9 @@ public class TaskManagerGenerateRunnableTasksIT {
     @Rule
     public final LogSniffer logSniffer = new LogSniffer();
 
-    @Rule
-    public final UnittestRepositoryRule repoRule = new UnittestRepositoryRule();
-
+    @RegisterExtension
+    public static final JpaExtension repoRule = new JpaExtension();
+    
     @Test
     public void skal_fange_PersistenceException_og_legge_til_errorCallback() throws Exception {
         ProsessTaskData data = new ProsessTaskData("hello.world");

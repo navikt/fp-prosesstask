@@ -14,21 +14,24 @@ import javax.enterprise.inject.spi.CDI;
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
-import no.nav.vedtak.felles.prosesstask.CdiRunner;
-import no.nav.vedtak.felles.prosesstask.UnittestRepositoryRule;
+import no.nav.vedtak.felles.prosesstask.JpaExtension;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTask;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskDispatcher;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskHandler;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskRepository;
+import no.nav.vedtak.felles.testutilities.cdi.CdiAwareExtension;
+import no.nav.vedtak.felles.testutilities.db.NonTransactional;
 
-@RunWith(CdiRunner.class)
+/** håndterer tx eksplisitt på egen hånd vha JpaExtensin. */
+@NonTransactional
+@ExtendWith(CdiAwareExtension.class)
 public class RunProsessTaskTestIT {
 
     private static final LocalDateTime NÅ = LocalDateTime.now();
@@ -36,33 +39,29 @@ public class RunProsessTaskTestIT {
     private static final String TASK2 = "mytask2";
     private static final String TASK3 = "mytask3";
 
-    @Rule
-    public final UnittestRepositoryRule repoRule = new UnittestRepositoryRule(false);
+    @RegisterExtension
+    public static final JpaExtension repoRule = new JpaExtension();
 
-    @Before
+    @Inject
+    private TaskManager taskManager;
+
+    @BeforeEach
     public void setupTestData() throws Exception {
         repoRule.doInTransaction(this::testData);
     }
 
-    @After
+    @AfterEach
     public void tearDown() throws Exception {
-        getTaskManager().stop();
+        taskManager.stop();
         repoRule.doInTransaction(this::slettTestData);
-    }
-
-    private TaskManager getTaskManager() {
-        return CDI.current().select(TaskManager.class).get();
     }
 
     @Test
     public void skal_starte_TaskManager_polle_og_finne_tasks() throws Exception {
-        TaskManager taskManager = getTaskManager();
-
         taskManager.configureTaskThreads(1, 1);
         taskManager.startTaskThreads();
 
-        EntityManager entityManager = taskManager.getTransactionManagerRepository().getEntityManager();
-        List<IdentRunnable> tasksPolled = repoRule.doInTransaction(entityManager, (em) -> taskManager.pollForAvailableTasks());
+        List<IdentRunnable> tasksPolled = repoRule.doInTransaction((em) -> taskManager.pollForAvailableTasks());
         assertThat(tasksPolled).hasSize(1);
     }
 
@@ -114,16 +113,15 @@ public class RunProsessTaskTestIT {
         testData.slettAlleProssessTask();
         LocalDateTime kjørEtter = LocalDateTime.now().minusSeconds(50);
         testData.opprettTaskType(TASK1)
-                .opprettTaskType(TASK2)
-                .opprettTaskType(TASK3)
-                .opprettTask(new ProsessTaskData(TASK1).medNesteKjøringEtter(kjørEtter).medSekvens("a"))
-                .opprettTask(new ProsessTaskData(TASK2).medNesteKjøringEtter(kjørEtter).medSekvens("a"));
+            .opprettTaskType(TASK2)
+            .opprettTaskType(TASK3)
+            .opprettTask(new ProsessTaskData(TASK1).medNesteKjøringEtter(kjørEtter).medSekvens("a"))
+            .opprettTask(new ProsessTaskData(TASK2).medNesteKjøringEtter(kjørEtter).medSekvens("a"));
 
         return null;
     }
 
     private void testEnTask(ProsessTaskDispatcher taskDispatcher) throws InterruptedException {
-        TaskManager taskManager = getTaskManager();
         taskManager.setProsessTaskDispatcher(taskDispatcher);
 
         taskManager.configureTaskThreads(1, 1);

@@ -5,19 +5,19 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
-import no.nav.vedtak.felles.prosesstask.UnittestRepositoryRule;
+import no.nav.vedtak.felles.prosesstask.JpaExtension;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskGruppe;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskStatus;
 
 public class TaskManagerRekkefølgeIT {
 
-    @Rule
-    public final UnittestRepositoryRule repoRule = new UnittestRepositoryRule();
+    @RegisterExtension
+    public static final JpaExtension repoRule = new JpaExtension();
 
     private ProsessTaskRepositoryImpl repo = new ProsessTaskRepositoryImpl(repoRule.getEntityManager(), null, null);
 
@@ -25,7 +25,7 @@ public class TaskManagerRekkefølgeIT {
 
     private LocalDateTime now = LocalDateTime.now();
 
-    @Before
+    @BeforeEach
     public void setupTestData() throws Exception {
         TestProsessTaskTestData testData = new TestProsessTaskTestData(repoRule.getEntityManager());
         for (int i = 1; i <= 10; i++) {
@@ -45,9 +45,9 @@ public class TaskManagerRekkefølgeIT {
         ProsessTaskData pt3 = nyTask("mytask3", -10);
         ProsessTaskGruppe sammensatt = new ProsessTaskGruppe();
         sammensatt
-                .addNesteSekvensiell(pt1)
-                .addNesteSekvensiell(pt2)
-                .addNesteSekvensiell(pt3);
+            .addNesteSekvensiell(pt1)
+            .addNesteSekvensiell(pt2)
+            .addNesteSekvensiell(pt3);
 
         // Act
         repo.lagre(sammensatt);
@@ -69,8 +69,8 @@ public class TaskManagerRekkefølgeIT {
         ProsessTaskData pt2 = nyTask("mytask2", -10);
         ProsessTaskGruppe sammensatt = new ProsessTaskGruppe();
         sammensatt
-                .addNesteSekvensiell(pt1)
-                .addNesteSekvensiell(pt2);
+            .addNesteSekvensiell(pt1)
+            .addNesteSekvensiell(pt2);
 
         // Act
         repo.lagre(sammensatt);
@@ -88,9 +88,9 @@ public class TaskManagerRekkefølgeIT {
         ProsessTaskData pt3 = nyTask("mytask3", -10);
         ProsessTaskGruppe sammensatt = new ProsessTaskGruppe();
         sammensatt
-                .addNesteSekvensiell(pt1)
-                .addNesteSekvensiell(pt2)
-                .addNesteSekvensiell(pt3);
+            .addNesteSekvensiell(pt1)
+            .addNesteSekvensiell(pt2)
+            .addNesteSekvensiell(pt3);
 
         // Act
         repo.lagre(sammensatt);
@@ -140,8 +140,8 @@ public class TaskManagerRekkefølgeIT {
 
         ProsessTaskGruppe sammensatt = new ProsessTaskGruppe();
         sammensatt
-                .addNesteParallell(pt1, pt2, pt3)
-                .addNesteSekvensiell(pt4);
+            .addNesteParallell(pt1, pt2, pt3)
+            .addNesteSekvensiell(pt4);
 
         repo.lagre(sammensatt);
         repo.flushAndClear();
@@ -161,8 +161,8 @@ public class TaskManagerRekkefølgeIT {
         ProsessTaskData pt3 = nyTask("mytask3", -10);
         ProsessTaskGruppe sammensatt = new ProsessTaskGruppe();
         sammensatt
-                .addNesteSekvensiell(pt1)
-                .addNesteParallell(pt2, pt3);
+            .addNesteSekvensiell(pt1)
+            .addNesteParallell(pt2, pt3);
 
         // Act
         repo.lagre(sammensatt);

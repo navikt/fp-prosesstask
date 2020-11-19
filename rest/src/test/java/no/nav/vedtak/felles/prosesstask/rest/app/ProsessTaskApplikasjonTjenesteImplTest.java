@@ -17,10 +17,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
 import no.nav.vedtak.exception.TekniskException;
@@ -40,19 +39,15 @@ import no.nav.vedtak.felles.prosesstask.rest.dto.SokeFilterDto;
 
 public class ProsessTaskApplikasjonTjenesteImplTest {
 
-    @Rule
-    public ExpectedException exception = ExpectedException.none();
-
     private static final String PAYLOAD_STRING = "payload-string";
     private static final String TASK_TYPE = "random-string-uten-mening";
     private static final int DEFAULT_MAKS_ANTALL_FEIL_FORSØK = 3;
 
     private ProsessTaskRepository prosessTaskRepositoryMock;
 
-
     private ProsessTaskApplikasjonTjeneste prosessTaskApplikasjonTjeneste;
 
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {
         prosessTaskRepositoryMock = mock(ProsessTaskRepository.class);
         prosessTaskApplikasjonTjeneste = new ProsessTaskApplikasjonTjeneste(prosessTaskRepositoryMock);
@@ -66,11 +61,12 @@ public class ProsessTaskApplikasjonTjenesteImplTest {
 
     @Test
     public void skal_tvinge_restart_naar_prosesstask_har_feilet_maks() throws Exception {
-        when(prosessTaskRepositoryMock.finn(anyLong())).thenReturn(lagMedStatusOgFeiledeForsøk(TASK_TYPE, ProsessTaskStatus.SUSPENDERT, DEFAULT_MAKS_ANTALL_FEIL_FORSØK, 10L));
+        when(prosessTaskRepositoryMock.finn(anyLong()))
+            .thenReturn(lagMedStatusOgFeiledeForsøk(TASK_TYPE, ProsessTaskStatus.SUSPENDERT, DEFAULT_MAKS_ANTALL_FEIL_FORSØK, 10L));
         when(prosessTaskRepositoryMock.lagre(any(ProsessTaskData.class))).thenReturn("gruppe-id");
 
-        ProsessTaskRestartResultatDto restartResultatDto =
-                prosessTaskApplikasjonTjeneste.flaggProsessTaskForRestart(lagProsessTaskRestartInputDto(10L, ProsessTaskStatus.SUSPENDERT.getDbKode()));
+        ProsessTaskRestartResultatDto restartResultatDto = prosessTaskApplikasjonTjeneste
+            .flaggProsessTaskForRestart(lagProsessTaskRestartInputDto(10L, ProsessTaskStatus.SUSPENDERT.getDbKode()));
 
         ArgumentCaptor<ProsessTaskData> argumentCaptor = ArgumentCaptor.forClass(ProsessTaskData.class);
         verify(prosessTaskRepositoryMock).lagre(argumentCaptor.capture());
@@ -102,8 +98,8 @@ public class ProsessTaskApplikasjonTjenesteImplTest {
         when(prosessTaskRepositoryMock.finn(anyLong())).thenReturn(lagMedStatus(ProsessTaskStatus.SUSPENDERT));
         when(prosessTaskRepositoryMock.lagre(any(ProsessTaskData.class))).thenReturn("gruppe-id");
 
-        ProsessTaskRestartResultatDto restartResultatDto =
-                prosessTaskApplikasjonTjeneste.flaggProsessTaskForRestart(lagProsessTaskRestartInputDto(10L, ProsessTaskStatus.SUSPENDERT.getDbKode()));
+        ProsessTaskRestartResultatDto restartResultatDto = prosessTaskApplikasjonTjeneste
+            .flaggProsessTaskForRestart(lagProsessTaskRestartInputDto(10L, ProsessTaskStatus.SUSPENDERT.getDbKode()));
 
         ArgumentCaptor<ProsessTaskData> argumentCaptor = ArgumentCaptor.forClass(ProsessTaskData.class);
         verify(prosessTaskRepositoryMock).lagre(argumentCaptor.capture());
@@ -122,45 +118,45 @@ public class ProsessTaskApplikasjonTjenesteImplTest {
 
     @Test
     public void feil_hvis_angitt_status_ikke_matcher_naavaerende_status_naar_stauts_er_ulik_klar() throws Exception {
-        exception.expect(TekniskException.class);
-        exception.expectMessage(ProsessTaskRestTjenesteFeil.MAA_ANGI_NAVARENDE_STATUS_FEIL_ID);
+        var message = Assertions.assertThrows(TekniskException.class, () -> {
+            when(prosessTaskRepositoryMock.finn(anyLong())).thenReturn(lagMedStatus(ProsessTaskStatus.SUSPENDERT));
 
-        when(prosessTaskRepositoryMock.finn(anyLong())).thenReturn(lagMedStatus(ProsessTaskStatus.SUSPENDERT));
-
-        prosessTaskApplikasjonTjeneste.flaggProsessTaskForRestart(lagProsessTaskRestartInputDto(10L, "VENTER_SVAR"));
-        verify(prosessTaskRepositoryMock, never()).lagre(any(ProsessTaskData.class));
+            prosessTaskApplikasjonTjeneste.flaggProsessTaskForRestart(lagProsessTaskRestartInputDto(10L, "VENTER_SVAR"));
+            verify(prosessTaskRepositoryMock, never()).lagre(any(ProsessTaskData.class));
+        });
+        assertThat(message).hasMessageContaining(ProsessTaskRestTjenesteFeil.MAA_ANGI_NAVARENDE_STATUS_FEIL_ID);
     }
 
     @Test
     public void feil_hvis_navaarende_status_er_ulik_klar_og_angis_null_i_input() throws Exception {
-        exception.expect(TekniskException.class);
-        exception.expectMessage(ProsessTaskRestTjenesteFeil.MAA_ANGI_NAVARENDE_STATUS_FEIL_ID);
+        var message = Assertions.assertThrows(TekniskException.class, () -> {
+            when(prosessTaskRepositoryMock.finn(anyLong())).thenReturn(lagMedStatus(ProsessTaskStatus.SUSPENDERT));
 
-        when(prosessTaskRepositoryMock.finn(anyLong())).thenReturn(lagMedStatus(ProsessTaskStatus.SUSPENDERT));
-
-        prosessTaskApplikasjonTjeneste.flaggProsessTaskForRestart(lagProsessTaskRestartInputDto(10L, null));
-        verify(prosessTaskRepositoryMock, never()).lagre(any(ProsessTaskData.class));
+            prosessTaskApplikasjonTjeneste.flaggProsessTaskForRestart(lagProsessTaskRestartInputDto(10L, null));
+            verify(prosessTaskRepositoryMock, never()).lagre(any(ProsessTaskData.class));
+        });
+        assertThat(message).hasMessageContaining(ProsessTaskRestTjenesteFeil.MAA_ANGI_NAVARENDE_STATUS_FEIL_ID);
     }
 
     @Test
     public void skal_feile_hvis_ferdig_prosesstask_flagges_for_restart() throws Exception {
-        exception.expect(TekniskException.class);
-        exception.expectMessage(ProsessTaskRestTjenesteFeil.KAN_IKKE_RESTARTE_FERDIG_TASK_FEIL_ID);
+        var message = Assertions.assertThrows(TekniskException.class, () -> {
+            when(prosessTaskRepositoryMock.finn(anyLong())).thenReturn(lagMedStatus(ProsessTaskStatus.FERDIG));
 
-        when(prosessTaskRepositoryMock.finn(anyLong())).thenReturn(lagMedStatus(ProsessTaskStatus.FERDIG));
-
-        prosessTaskApplikasjonTjeneste.flaggProsessTaskForRestart(lagProsessTaskRestartInputDto(10L, "FERDIG"));
+            prosessTaskApplikasjonTjeneste.flaggProsessTaskForRestart(lagProsessTaskRestartInputDto(10L, "FERDIG"));
+        });
+        assertThat(message).hasMessageContaining(ProsessTaskRestTjenesteFeil.KAN_IKKE_RESTARTE_FERDIG_TASK_FEIL_ID);
     }
 
     @Test
     public void skal_feile_med_teknisk_feil_hvis_ukjent_prosesstask_id() throws Exception {
-        exception.expect(TekniskException.class);
-        exception.expectMessage(ProsessTaskRestTjenesteFeil.UKJENT_TASK_FEIL_ID);
+        var message = Assertions.assertThrows(TekniskException.class, () -> {
+            when(prosessTaskRepositoryMock.finn(anyLong())).thenReturn(null);
 
-        when(prosessTaskRepositoryMock.finn(anyLong())).thenReturn(null);
-
-        ProsessTaskRestartInputDto inputDto = lagProsessTaskRestartInputDto(10L, "VENTER_SVAR");
-        prosessTaskApplikasjonTjeneste.flaggProsessTaskForRestart(inputDto);
+            ProsessTaskRestartInputDto inputDto = lagProsessTaskRestartInputDto(10L, "VENTER_SVAR");
+            prosessTaskApplikasjonTjeneste.flaggProsessTaskForRestart(inputDto);
+        });
+        assertThat(message).hasMessageContaining(ProsessTaskRestTjenesteFeil.UKJENT_TASK_FEIL_ID);
     }
 
     private ProsessTaskRestartInputDto lagProsessTaskRestartInputDto(Long id, String status) {
@@ -198,10 +194,9 @@ public class ProsessTaskApplikasjonTjenesteImplTest {
     public void skal_returnere_tre_restartet_prosesstask() {
 
         when(prosessTaskRepositoryMock.finnAlle(ProsessTaskStatus.FEILET)).thenReturn(Arrays.asList(
-                lagMedStatusOgFeiledeForsøk(TASK_TYPE, ProsessTaskStatus.FEILET, DEFAULT_MAKS_ANTALL_FEIL_FORSØK, 10L),
-                lagMedStatusOgFeiledeForsøk(TASK_TYPE, ProsessTaskStatus.FEILET, DEFAULT_MAKS_ANTALL_FEIL_FORSØK, 11L),
-                lagMedStatusOgFeiledeForsøk(TASK_TYPE + "aa", ProsessTaskStatus.FEILET, DEFAULT_MAKS_ANTALL_FEIL_FORSØK, 12L)
-        ));
+            lagMedStatusOgFeiledeForsøk(TASK_TYPE, ProsessTaskStatus.FEILET, DEFAULT_MAKS_ANTALL_FEIL_FORSØK, 10L),
+            lagMedStatusOgFeiledeForsøk(TASK_TYPE, ProsessTaskStatus.FEILET, DEFAULT_MAKS_ANTALL_FEIL_FORSØK, 11L),
+            lagMedStatusOgFeiledeForsøk(TASK_TYPE + "aa", ProsessTaskStatus.FEILET, DEFAULT_MAKS_ANTALL_FEIL_FORSØK, 12L)));
         when(prosessTaskRepositoryMock.lagre(any(ProsessTaskData.class))).thenReturn("gruppe-id");
 
         ProsessTaskRetryAllResultatDto result = prosessTaskApplikasjonTjeneste.flaggAlleFeileteProsessTasksForRestart();

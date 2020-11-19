@@ -9,7 +9,7 @@
 		<artifactId>prosesstask-root</artifactId>
 		<version>${revision}${sha1}${changelist}</version>
 	</parent>
-	
+
 	<artifactId>prosesstask-legacy</artifactId>
 	<name>Prosesstask :: Legacy Bridge</name>
 	<packaging>jar</packaging>

@@ -12,24 +12,24 @@ import javax.enterprise.inject.Any;
 import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
 
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 import no.nav.vedtak.felles.jpa.savepoint.SavepointRolledbackException;
-import no.nav.vedtak.felles.prosesstask.CdiRunner;
-import no.nav.vedtak.felles.prosesstask.UnittestRepositoryRule;
+import no.nav.vedtak.felles.prosesstask.JpaExtension;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskDispatcher;
 import no.nav.vedtak.felles.prosesstask.spi.ProsessTaskFeilhåndteringAlgoritme;
+import no.nav.vedtak.felles.testutilities.cdi.CdiAwareExtension;
 
-@RunWith(CdiRunner.class)
+@ExtendWith(CdiAwareExtension.class)
 public class RunProsessTaskIT {
 
-    @Rule
-    public final UnittestRepositoryRule repoRule = new UnittestRepositoryRule();
-
+    @RegisterExtension
+    public static final JpaExtension repoRule = new JpaExtension();
+    
     private ProsessTaskRepositoryImpl repo = new ProsessTaskRepositoryImpl(repoRule.getEntityManager(), null, null);
 
     private TaskManagerRepositoryImpl taskManagerRepo = new TaskManagerRepositoryImpl(repoRule.getEntityManager());
@@ -40,7 +40,7 @@ public class RunProsessTaskIT {
 
     LocalDateTime now = LocalDateTime.now();
 
-    @Before
+    @BeforeEach
     public void setupTestData() throws Exception {
         TestProsessTaskTestData testData = new TestProsessTaskTestData(repoRule.getEntityManager());
         for (int i = 1; i <= 10; i++) {
