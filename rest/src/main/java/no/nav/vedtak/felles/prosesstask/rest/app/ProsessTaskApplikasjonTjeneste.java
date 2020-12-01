@@ -71,13 +71,13 @@ public class ProsessTaskApplikasjonTjeneste {
         return taskData == null ? Optional.empty() : Optional.of(ProsessTaskDataKonverter.tilProsessTaskDataPayloadDto(taskData));
     }
 
-    public void setFeiletProsessTaskFerdig(Long prosessTaskId) {
+    public void setProsessTaskFerdig(Long prosessTaskId, ProsessTaskStatus status) {
         ProsessTaskData taskData = prosessTaskRepository.finn(prosessTaskId);
         if (taskData == null) {
             throw ProsessTaskRestTjenesteFeil.FACTORY.ukjentProsessTaskIdAngitt(prosessTaskId).toException();
         }
-        if (!ProsessTaskStatus.FEILET.equals(taskData.getStatus())) {
-            throw ProsessTaskRestTjenesteFeil.FACTORY.taskIkkeFeilet(prosessTaskId).toException();
+        if (!status.equals(taskData.getStatus())) {
+            throw ProsessTaskRestTjenesteFeil.FACTORY.taskIkkeIRettStatus(prosessTaskId, status).toException();
         }
         taskData.setStatus(ProsessTaskStatus.KJOERT);
         taskData.setSisteFeil(null);

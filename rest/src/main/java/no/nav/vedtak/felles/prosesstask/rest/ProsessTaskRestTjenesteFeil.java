@@ -5,6 +5,7 @@ import no.nav.vedtak.feil.FeilFactory;
 import no.nav.vedtak.feil.LogLevel;
 import no.nav.vedtak.feil.deklarasjon.DeklarerteFeil;
 import no.nav.vedtak.feil.deklarasjon.TekniskFeil;
+import no.nav.vedtak.felles.prosesstask.api.ProsessTaskStatus;
 
 public interface ProsessTaskRestTjenesteFeil extends DeklarerteFeil {
     ProsessTaskRestTjenesteFeil FACTORY = FeilFactory.create(ProsessTaskRestTjenesteFeil.class);
@@ -20,9 +21,9 @@ public interface ProsessTaskRestTjenesteFeil extends DeklarerteFeil {
     Feil kanIkkeRestarteEnFerdigKjørtProsesstask(long prosessTaskId);
 
     @TekniskFeil(feilkode = STATUS_IKKE_FEILET,
-            feilmelding = "Prosesstasken %s har ikke status FEILET og kan ikke settes FERDIG",
+            feilmelding = "Prosesstasken %s har ikke status %s og kan ikke settes FERDIG",
             logLevel = LogLevel.WARN)
-    Feil taskIkkeFeilet(long prosessTaskId);
+    Feil taskIkkeIRettStatus(long prosessTaskId, ProsessTaskStatus status);
 
     @TekniskFeil(feilkode = MAA_ANGI_NAVARENDE_STATUS_FEIL_ID,
             feilmelding = "Prosesstasken %s har ikke status KLAR. For restart må nåværende status angis.",
