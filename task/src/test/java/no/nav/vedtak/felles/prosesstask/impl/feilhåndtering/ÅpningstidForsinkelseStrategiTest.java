@@ -3,7 +3,8 @@ package no.nav.vedtak.felles.prosesstask.impl.feilhåndtering;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 
-import org.junit.Assert;
+import org.assertj.core.api.Assert;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 public class ÅpningstidForsinkelseStrategiTest {
@@ -19,14 +20,14 @@ public class ÅpningstidForsinkelseStrategiTest {
         LocalDateTime expected = LocalDateTime.of(2017, 6, 14, klokkeslettÅpning, 5, 5);
         int i = strategi.sekunderTilNesteForsøk(localDateTime, klokkeslettÅpning, klokkeslettStenging);
         long diff = expected.toEpochSecond(ZoneOffset.UTC) - localDateTime.toEpochSecond(ZoneOffset.UTC) + 120;
-        Assert.assertEquals(i, diff);
+        Assertions.assertEquals(i, diff);
     }
 
     @Test
     public void innenforÅpningsTidTest() {
         LocalDateTime localDateTime = LocalDateTime.of(2017, 6, 14, 10, 5, 5);
         int i = strategi.sekunderTilNesteForsøk(localDateTime, klokkeslettÅpning, klokkeslettStenging);
-        Assert.assertTrue(i == 120);
+        Assertions.assertTrue(i == 120);
     }
 
     @Test
@@ -35,6 +36,6 @@ public class ÅpningstidForsinkelseStrategiTest {
         LocalDateTime expected = LocalDateTime.of(2017, 6, 19, klokkeslettÅpning, 5, 5);
         int i = strategi.sekunderTilNesteForsøk(localDateTime, klokkeslettÅpning, klokkeslettStenging);
         long diff = expected.toEpochSecond(ZoneOffset.UTC) - localDateTime.toEpochSecond(ZoneOffset.UTC) + 120;
-        Assert.assertEquals(i, diff);
+        Assertions.assertEquals(i, diff);
     }
 }

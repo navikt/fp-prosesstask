@@ -6,22 +6,28 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import javax.persistence.PersistenceException;
 
-import org.junit.Rule;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.mockito.Mockito;
 
+import ch.qos.logback.classic.Level;
 import no.nav.vedtak.felles.prosesstask.JpaExtension;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
 
 public class TaskManagerGenerateRunnableTasksIT {
 
-    @Rule
-    public final LogSniffer logSniffer = new LogSniffer();
 
     @RegisterExtension
     public static final JpaExtension repoRule = new JpaExtension();
+
+    private static MemoryAppender logSniffer = MemoryAppender.sniff(TaskManagerGenerateRunnableTasks.class);
     
+    @AfterEach
+    public void afterEach() {
+        logSniffer.reset();
+    }
+
     @Test
     public void skal_fange_PersistenceException_og_legge_til_errorCallback() throws Exception {
         ProsessTaskData data = new ProsessTaskData("hello.world");
@@ -69,10 +75,8 @@ public class TaskManagerGenerateRunnableTasksIT {
 
         // Act
         sut.run();
-
-        logSniffer.assertHasWarnMessage("PT-876628");
-        logSniffer.assertNoErrors();
-        logSniffer.clearLog();
+        
+        assertThat(logSniffer.search("PT-876628", Level.WARN)).isNotEmpty();
 
         assertThat(errorFuncException.get()).isInstanceOf(PersistenceException.class);
 

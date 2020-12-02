@@ -1,9 +1,9 @@
 package no.nav.vedtak.felles.prosesstask.impl.cron;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.time.LocalDate;
 import java.time.YearMonth;
@@ -50,9 +50,9 @@ public class CronExpressionTest {
         for (int i = field.fieldType.from; i <= field.fieldType.to; i++) {
             String errorText = i + ":" + valid;
             if (valid.contains(i)) {
-                assertTrue(errorText, field.matches(i));
+                assertTrue(field.matches(i), errorText);
             } else {
-                assertFalse(errorText, field.matches(i));
+                assertFalse(field.matches(i), errorText);
             }
         }
     }
