@@ -7,7 +7,7 @@
 	<groupId>no.nav.vedtak.prosesstask</groupId>
 	<artifactId>prosesstask-root</artifactId>
 	<name>Prosesstask :: Root</name>
-    <version>${myversion}</version>
+        <version>555</version>
 	<packaging>pom</packaging>
 
 	<description>Library to process asynchronous, persistent tasks.</description>
@@ -39,7 +39,6 @@
 	</modules>
 
 	<properties>
-        <myversion>0.0.0-SNAPSHOT</myversion>
 		<java.version>11</java.version>
 		<maven.compiler.source>${java.version}</maven.compiler.source>
 		<maven.compiler.target>${java.version}</maven.compiler.target>
