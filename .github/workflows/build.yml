@@ -46,7 +46,7 @@ jobs:
         run: |
           set -x
           echo "Building $(echo $GITHUB_SHA | cut -c1-7)"
-          mvn jacoco:prepare-agent deploy -e --batch-mode --settings ./.github/.m2/settings.xml --file pom.xml -Dchangelist= -Dsha1=-$(git log -1 --pretty='%ad' --date=format:'%Y%m%d%H%M%S')-$(echo $GITHUB_SHA | cut -c1-7) -Djacoco.destFile=$(pwd)/target/jacoco.exec 
+          mvn jacoco:prepare-agent deploy -e --batch-mode --settings ./.github/.m2/settings.xml --file pom.xml  -Djacoco.destFile=$(pwd)/target/jacoco.exec 
           mvn jacoco:report sonar:sonar -e --batch-mode --settings ./.github/.m2/settings.xml --file pom.xml -Djacoco.dataFile=$(pwd)/target/jacoco.exec -Dsonar.login=${SONAR_TOKEN} -Dsonar.projectKey=navikt_fp-prosesstask -Dsonar.exclusions="pom.xml,**/src/test/**/*"
           echo "MVN_VERSION=$(mvn help:evaluate --batch-mode --settings ./.github/.m2/settings.xml --file .flattened -Dexpression=project.version -q -DforceStdout)"  >> $GITHUB_ENV
           echo "Deployed artifacts"
