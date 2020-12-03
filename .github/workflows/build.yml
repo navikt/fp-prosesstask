@@ -58,3 +58,10 @@ jobs:
           DATASOURCE_HOST: localhost
           DATASOURCE_PORT: ${{ job.services.postgres.ports[5432] }} # get randomly assigned published 
 
+  release-notes:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Release Drafter
+        uses: release-drafter/release-drafter@v5
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
