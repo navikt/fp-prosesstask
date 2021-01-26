@@ -42,9 +42,9 @@ public class ProsessTaskEntitet {
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "SEQ_PROSESS_TASK")
     private Long id;
 
-    @Column(name="blokkert_av")
+    @Column(name = "blokkert_av")
     private Long blokkertAvProsessTaskId;
-    
+
     @Column(name = "neste_kjoering_etter")
     private LocalDateTime nesteKjøringEtter;
 
@@ -89,8 +89,8 @@ public class ProsessTaskEntitet {
     @Version
     @Column(name = "versjon", nullable = false)
     private Long versjon;
-    
-    @Column(name = "opprettet_tid", insertable=false, updatable = false)
+
+    @Column(name = "opprettet_tid", insertable = false, updatable = false)
     private LocalDateTime opprettetTid;
 
     ProsessTaskEntitet() {
@@ -131,11 +131,11 @@ public class ProsessTaskEntitet {
     public void setNesteKjøringEtter(LocalDateTime nesteKjøringEtter) {
         this.nesteKjøringEtter = nesteKjøringEtter;
     }
-    
+
     public void setBlokkertAvProsessTaskId(Long blokkertAvProsessTaskId) {
         this.blokkertAvProsessTaskId = blokkertAvProsessTaskId;
     }
-    
+
     public Long getBlokkertAvProsessTaskId() {
         return blokkertAvProsessTaskId;
     }
@@ -191,9 +191,20 @@ public class ProsessTaskEntitet {
     public String getTaskName() {
         return taskType;
     }
-    
+
     public LocalDateTime getOpprettetTid() {
         return opprettetTid;
+    }
+
+    @Override
+    public String toString() {
+        return getClass().getSimpleName()
+            + "<id=" + getId()
+            + ", taskType=" + getTaskName()
+            + ", props=" + getProperties()
+            + ", status=" + getStatus()
+            + ", sisteKjoeringTid=" + getSisteKjøring()
+            + ">";
     }
 
     public ProsessTaskData tilProsessTask() {
@@ -261,7 +272,7 @@ public class ProsessTaskEntitet {
         this.sekvens = prosessTask.getSekvens();
         this.payload = prosessTask.getPayloadAsString();
         this.blokkertAvProsessTaskId = prosessTask.getBlokkertAvProsessTaskId();
-        this.opprettetTid= prosessTask.getOpprettetTid();
+        this.opprettetTid = prosessTask.getOpprettetTid();
         return this;
     }
 
@@ -298,7 +309,7 @@ public class ProsessTaskEntitet {
                 try {
                     props.load(new StringReader(dbData));
                 } catch (IOException e) {
-                    throw new IllegalArgumentException("Kan ikke lese properties til string:" + props, e); //$NON-NLS-1$
+                    throw new IllegalArgumentException("Kan ikke lese properties til string:" + props, e);
                 }
             }
             return props;
