@@ -1,4 +1,4 @@
-package no.nav.vedtak.prosesstask.legacy;
+package no.nav.vedtak.felles.prosesstask.log;
 
 import java.util.HashSet;
 import java.util.Set;
