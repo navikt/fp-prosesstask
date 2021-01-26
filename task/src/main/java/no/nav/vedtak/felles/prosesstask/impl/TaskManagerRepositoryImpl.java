@@ -339,7 +339,7 @@ public class TaskManagerRepositoryImpl {
         @SuppressWarnings("unchecked")
         NativeQuery<ProsessTaskEntitet> query = (NativeQuery<ProsessTaskEntitet>) entityManager
             .createNativeQuery(
-                "SELECT pt.* from PROSESS_TASK inner join PROSESS_TASK_TYPE t on t.kode=pt.task_type " +
+                "SELECT pt.* from PROSESS_TASK pt inner join PROSESS_TASK_TYPE t on t.kode=pt.task_type " +
                     "where t.cron_expression is not null and pt.status IN ('KLAR', 'FEILET', 'SUSPENDERT')",
                 ProsessTaskEntitet.class);
         return query.getResultList();
