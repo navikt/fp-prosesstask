@@ -23,9 +23,6 @@ interface TaskManagerFeil extends DeklarerteFeil {
 
     TaskManagerFeil FACTORY = FeilFactory.create(TaskManagerFeil.class);
 
-    @TekniskFeil(feilkode = "PT-119673", feilmelding = "numberOfTaskRunnerThreads<=0: ugyldig", logLevel = LogLevel.ERROR, exceptionClass = ProsessTaskKonfigException.class)
-    Feil ugyldigAntallTråder();
-
     @TekniskFeil(feilkode = "PT-955392", feilmelding = "maxNumberOfTasksToPoll<=0: ugyldig", logLevel = LogLevel.ERROR, exceptionClass = ProsessTaskKonfigException.class)
     Feil ugyldigAntallTasks();
 
@@ -52,9 +49,6 @@ interface TaskManagerFeil extends DeklarerteFeil {
     
     @TekniskFeil(feilkode = "PT-876628", feilmelding = "Kritisk database feil som gir rollback. Kan ikke prosessere task, vil logge til db i ny transaksjon, id=%s, taskName=%s pga uventet feil.", logLevel = LogLevel.WARN, exceptionClass = ProsessTaskException.class)
     Feil kritiskFeilKunneIkkeProsessereTaskPgaFatalFeil(Long taskId, String taskName, Throwable t);
-    
-    @TekniskFeil(feilkode = "PT-876631", feilmelding = "Fikk ikke lås på prosess task id [%s], type [%s]. Allerede låst eller ryddet. Kan ikke oppdatere status i databasen nå.", logLevel = LogLevel.WARN, exceptionClass = ProsessTaskException.class)
-    Feil kritiskFeilKanIkkeSkriveFeilTilbakeTilDatabaseFikkIkkeLås(Long taskId, String taskName);
     
     @TekniskFeil(feilkode = "PT-853562", feilmelding = "Kunne ikke prosessere task, id=%s, taskName=%s. Feil konfigurasjon", logLevel = LogLevel.ERROR, exceptionClass = ProsessTaskKonfigException.class)
     Feil kunneIkkeProsessereTaskFeilKonfigurasjon(Long id, String name, Exception e);
