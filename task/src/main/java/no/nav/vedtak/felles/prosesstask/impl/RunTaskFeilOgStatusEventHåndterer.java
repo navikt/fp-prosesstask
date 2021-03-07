@@ -96,7 +96,8 @@ public class RunTaskFeilOgStatusEventHåndterer {
         /*
          * assume won't help to try and write to database just now, log only instead
          */
-        TaskManagerFeil.FACTORY.kunneIkkeProsessereTaskTransientFeilVilPrøveIgjen(taskInfo.getId(), taskInfo.getTaskType(), e).log(log);
+        log.warn("PT-530440 Kunne ikke prosessere task pga transient database feil: id={}, taskName={}. Vil automatisk prøve igjen",
+                taskInfo.getId(), taskInfo.getTaskType(), e);
     }
 
     private LocalDateTime getNesteKjøringForNyKjøring(ProsessTaskFeilhand feilhåndteringsData, ProsessTaskFeilhåndteringAlgoritme feilhåndteringsalgoritme,

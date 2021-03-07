@@ -18,9 +18,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import no.nav.vedtak.feil.Feil;
-import no.nav.vedtak.feil.LogLevel;
-import no.nav.vedtak.feil.deklarasjon.TekniskFeil;
-import no.nav.vedtak.felles.prosesstask.api.ProsessTaskException;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskStatus;
 
 /**

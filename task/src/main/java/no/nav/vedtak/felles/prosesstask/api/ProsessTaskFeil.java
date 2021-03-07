@@ -152,7 +152,7 @@ public class ProsessTaskFeil {
 
     private String finnFeilkode(Throwable e) {
         return e instanceof VLException
-            ? ((VLException) e).getFeil().getKode()
+            ? ((VLException) e).getKode()
             : null;
     }
 
