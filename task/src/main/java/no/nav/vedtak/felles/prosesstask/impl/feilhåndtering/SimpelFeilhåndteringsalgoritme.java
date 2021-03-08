@@ -1,8 +1,8 @@
 package no.nav.vedtak.felles.prosesstask.impl.feilhåndtering;
 
-import no.nav.vedtak.feil.Feil;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskTypeInfo;
+import no.nav.vedtak.felles.prosesstask.impl.Feil;
 import no.nav.vedtak.felles.prosesstask.spi.ForsinkelseStrategi;
 import no.nav.vedtak.felles.prosesstask.spi.ProsessTaskFeilhåndteringAlgoritme;
 

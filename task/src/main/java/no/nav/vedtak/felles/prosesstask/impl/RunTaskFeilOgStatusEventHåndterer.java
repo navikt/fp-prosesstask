@@ -11,7 +11,6 @@ import javax.enterprise.inject.Instance;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import no.nav.vedtak.feil.Feil;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskFeil;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskStatus;
@@ -62,7 +61,7 @@ public class RunTaskFeilOgStatusEventHåndterer {
         if (sjekkOmSkalKjøresPåNytt(e, taskType, feilhåndteringsalgoritme, failureAttempt)) {
             LocalDateTime nyTid = getNesteKjøringForNyKjøring(feilhåndteringsData, feilhåndteringsalgoritme, failureAttempt);
 
-            Feil feil = TaskManagerFeil.FACTORY.kunneIkkeProsessereTaskVilPrøveIgjenEnkelFeilmelding(taskInfo.getId(), taskName, failureAttempt,
+            Feil feil = TaskManagerFeil.kunneIkkeProsessereTaskVilPrøveIgjenEnkelFeilmelding(taskInfo.getId(), taskName, failureAttempt,
                 nyTid, e);
 
             String feiltekst = getFeiltekstOgLoggEventueltHvisEndret(pte, feil, e, false);
@@ -72,7 +71,7 @@ public class RunTaskFeilOgStatusEventHåndterer {
         } else {
             Feil feil = feilhåndteringsalgoritme.hendelserNårIkkeKjøresPåNytt(e, pte.tilProsessTask());
             if (feil == null) {
-                feil = TaskManagerFeil.FACTORY.kunneIkkeProsessereTaskVilIkkePrøveIgjenEnkelFeilmelding(taskInfo.getId(), taskName, failureAttempt, e);
+                feil = TaskManagerFeil.kunneIkkeProsessereTaskVilIkkePrøveIgjenEnkelFeilmelding(taskInfo.getId(), taskName, failureAttempt, e);
             }
             handleFatalTaskFeil(pte, feil, e);
         }

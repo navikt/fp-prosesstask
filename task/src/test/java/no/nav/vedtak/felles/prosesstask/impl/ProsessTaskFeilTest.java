@@ -6,19 +6,16 @@ import java.time.LocalDateTime;
 
 import org.junit.jupiter.api.Test;
 
-import no.nav.vedtak.feil.Feil;
-import no.nav.vedtak.feil.FeilFactory;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskFeil;
 
 public class ProsessTaskFeilTest {
-    private static TaskManagerFeil feilFactory = FeilFactory.create(TaskManagerFeil.class);
 
     @Test
     public void skal_skrive_feil_til_json() throws Exception {
         // Arrange
         Exception exception = lagEnFeilFraEnMetode();
-        Feil feil = feilFactory.kunneIkkeProsessereTaskVilPrøveIgjenEnkelFeilmelding(1L, "hello.world", 1, LocalDateTime.now(), exception);
+        Feil feil = TaskManagerFeil.kunneIkkeProsessereTaskVilPrøveIgjenEnkelFeilmelding(1L, "hello.world", 1, LocalDateTime.now(), exception);
         ProsessTaskData prosessTaskData = new ProsessTaskData("hello.world");
         prosessTaskData.setId(1L);
         

@@ -36,6 +36,7 @@ import org.jboss.weld.interceptor.util.proxy.TargetInstanceProxy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import no.nav.vedtak.exception.TekniskException;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskStatus;
 import no.nav.vedtak.felles.prosesstask.impl.util.DatabaseUtil;
@@ -94,7 +95,8 @@ public class TaskManagerRepositoryImpl {
             }
             return s.next();
         } catch (IOException e) {
-            throw TaskManagerFeil.FACTORY.finnerIkkeSqlFil(filNavn, e).toException();
+            throw new TekniskException("PT-314160",
+                    String.format("Finner ikke sql i fil=%s. Konfigurasjon er ugyldig.", filNavn), e);
         }
     }
 

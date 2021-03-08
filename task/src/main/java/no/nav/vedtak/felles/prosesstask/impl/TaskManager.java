@@ -35,6 +35,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import no.nav.vedtak.apptjeneste.AppServiceHandler;
+import no.nav.vedtak.exception.TekniskException;
 import no.nav.vedtak.felles.jpa.TransactionHandler;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskDispatcher;
@@ -186,7 +187,7 @@ public class TaskManager implements AppServiceHandler {
         this.numberOfTaskRunnerThreads = numberOfTaskRunnerThreads;
 
         if (maxNumberOfTasksToPoll <= 0) {
-            throw TaskManagerFeil.FACTORY.ugyldigAntallTasks().toException();
+            throw new TekniskException("PT-955392", "maxNumberOfTasksToPoll<=0: ugyldig");
         }
         this.maxNumberOfTasksToPoll = maxNumberOfTasksToPoll;
     }

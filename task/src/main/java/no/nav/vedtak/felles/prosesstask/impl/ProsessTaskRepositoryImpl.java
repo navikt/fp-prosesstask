@@ -30,6 +30,7 @@ import org.hibernate.query.NativeQuery;
 import org.hibernate.type.StringType;
 import org.slf4j.MDC;
 
+import no.nav.vedtak.exception.TekniskException;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskGruppe;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskGruppe.Entry;
@@ -127,9 +128,9 @@ public class ProsessTaskRepositoryImpl implements ProsessTaskRepository {
                 Long id = doLagreTask(task);
                 task.setId(id);
             } catch (SQLException e) {
-                throw TaskManagerFeil.FACTORY
-                    .feilVedLagringAvProsessTask(task.getTaskType(), task.getNesteKjøringEtter(), task.getProperties(), e)
-                    .toException();
+                throw new TekniskException("PT-265358",
+                        String.format("Kunne ikke lagre task, skriving til database mislykkes: task=%s, kjøresEtter=%s, parametere=%s.",
+                                task.getTaskType(), task.getNesteKjøringEtter(), task.getProperties()), e);
             }
         }
 

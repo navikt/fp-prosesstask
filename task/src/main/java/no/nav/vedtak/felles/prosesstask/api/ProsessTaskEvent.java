@@ -5,7 +5,8 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Properties;
 
-import no.nav.vedtak.feil.Feil;
+import no.nav.vedtak.felles.prosesstask.impl.Feil;
+
 
 /**
  * CDI Event for ProsessTask.

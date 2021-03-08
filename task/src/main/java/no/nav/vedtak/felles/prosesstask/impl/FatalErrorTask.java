@@ -17,7 +17,6 @@ import org.jboss.weld.interceptor.util.proxy.TargetInstanceProxy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import no.nav.vedtak.feil.Feil;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskStatus;
 
 /**
@@ -84,7 +83,7 @@ public class FatalErrorTask {
                         int feiledeForsøk = pte.getFeiledeForsøk() + 1;
                         String taskName = pte.getTaskName();
                         Long taskId = pte.getId();
-                        Feil feil = TaskManagerFeil.FACTORY.kunneIkkeProsessereTaskPgaFatalFeilVilIkkePrøveIgjen(taskId, taskName, feiledeForsøk, t);
+                        Feil feil = TaskManagerFeil.kunneIkkeProsessereTaskPgaFatalFeilVilIkkePrøveIgjen(taskId, taskName, feiledeForsøk, t);
                         String feilMelding = RunTaskFeilOgStatusEventHåndterer.getFeiltekstOgLoggEventueltHvisEndret(pte, feil, t, true);
 
                         // TODO: denne bør harmoniseres med RunTaskFeilOgStatusEventHåndterer#handleTaskFeil?
