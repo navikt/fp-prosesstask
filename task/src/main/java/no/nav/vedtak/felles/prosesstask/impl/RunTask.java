@@ -30,7 +30,6 @@ import org.jboss.weld.interceptor.util.proxy.TargetInstanceProxy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import no.nav.vedtak.feil.Feil;
 import no.nav.vedtak.felles.jpa.savepoint.SavepointRolledbackException;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskMidlertidigException;
@@ -144,7 +143,7 @@ public class RunTask {
                 getEntityManager().clear(); // fjern mulig korrupt tilstand
                 conn.rollback(savepoint); // rull tilbake til savepoint
 
-                Feil feil = TaskManagerFeil.FACTORY.kunneIkkeProsessereTaskFeilKonfigurasjon(pickAndRun.getTaskInfo().getId(), name, e);
+                Feil feil = TaskManagerFeil.kunneIkkeProsessereTaskFeilKonfigurasjon(pickAndRun.getTaskInfo().getId(), name, e);
                 pickAndRun.getFeilOgStatushåndterer().handleFatalTaskFeil(pte, feil, e);
             }
         } catch (Exception e) {

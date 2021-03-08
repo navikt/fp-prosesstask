@@ -7,7 +7,6 @@ import javax.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import no.nav.vedtak.feil.Feil;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskEvent;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskStatus;
@@ -44,9 +43,7 @@ public class ProsessTaskEventPubliserer {
         } catch (RuntimeException e) { // NOSONAR
             // logger og svelger exception her. Feil oppstått i event observer
             String orgExceptionMessage = orgException == null ? null : String.valueOf(orgException);
-            TaskManagerFeil.FACTORY
-                    .feilVedPubliseringAvEvent(data.getId(), data.getTaskType(), orgExceptionMessage, e)
-                    .log(log); // NOSONAR
+            log.warn("PT-314162 Pollet task for kjøring: id={}, type={}, originalException={}", data.getId(), data.getTaskType(), orgExceptionMessage, e);
         }
 
     }

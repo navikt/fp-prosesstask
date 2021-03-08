@@ -11,11 +11,11 @@ import java.util.stream.Collectors;
 import javax.enterprise.context.Dependent;
 import javax.inject.Inject;
 
+import no.nav.vedtak.exception.TekniskException;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskRepository;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskStatus;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskTypeInfo;
-import no.nav.vedtak.felles.prosesstask.rest.ProsessTaskRestTjenesteFeil;
 import no.nav.vedtak.felles.prosesstask.rest.dto.FeiletProsessTaskDataDto;
 import no.nav.vedtak.felles.prosesstask.rest.dto.ProsessTaskDataDto;
 import no.nav.vedtak.felles.prosesstask.rest.dto.ProsessTaskDataKonverter;
@@ -29,6 +29,11 @@ import no.nav.vedtak.felles.prosesstask.rest.dto.SokeFilterDto;
 
 @Dependent
 public class ProsessTaskApplikasjonTjeneste {
+
+    static String KAN_IKKE_RESTARTE_FERDIG_TASK_FEIL_ID = "PT-711948";
+    static String MAA_ANGI_NAVARENDE_STATUS_FEIL_ID = "PT-306456";
+    static String STATUS_IKKE_FEILET = "PT-507456";
+    static String UKJENT_TASK_FEIL_ID = "PT-752429";
 
     private ProsessTaskRepository prosessTaskRepository;
 
@@ -74,10 +79,12 @@ public class ProsessTaskApplikasjonTjeneste {
     public void setProsessTaskFerdig(Long prosessTaskId, ProsessTaskStatus status) {
         ProsessTaskData taskData = prosessTaskRepository.finn(prosessTaskId);
         if (taskData == null) {
-            throw ProsessTaskRestTjenesteFeil.FACTORY.ukjentProsessTaskIdAngitt(prosessTaskId).toException();
+            throw new TekniskException(UKJENT_TASK_FEIL_ID,
+                    String.format("Ingen prosesstask med id %s eksisterer", prosessTaskId));
         }
         if (!status.equals(taskData.getStatus())) {
-            throw ProsessTaskRestTjenesteFeil.FACTORY.taskIkkeIRettStatus(prosessTaskId, status).toException();
+            throw new TekniskException(STATUS_IKKE_FEILET,
+                    String.format("Prosesstasken %s har ikke status %s og kan ikke settes FERDIG", prosessTaskId, status));
         }
         taskData.setStatus(ProsessTaskStatus.KJOERT);
         taskData.setSisteFeil(null);
@@ -155,13 +162,16 @@ public class ProsessTaskApplikasjonTjeneste {
     private void validerBetingelserForRestart(Long prosessTaskId, String nåværendeStatus, ProsessTaskData ptd) {
         if (ptd != null) {
             if (ptd.getStatus().equals(ProsessTaskStatus.FERDIG) || ptd.getStatus().equals(ProsessTaskStatus.KJOERT)) {
-                throw ProsessTaskRestTjenesteFeil.FACTORY.kanIkkeRestarteEnFerdigKjørtProsesstask(prosessTaskId).toException();
+                throw new TekniskException(KAN_IKKE_RESTARTE_FERDIG_TASK_FEIL_ID,
+                        String.format("Prosesstasken %s har allerede kjørt ferdig, og kan ikke kjøres på nytt", prosessTaskId));
             }
             if (!ProsessTaskStatus.KLAR.equals(ptd.getStatus()) && (nåværendeStatus == null || !ptd.getStatus().equals(ProsessTaskStatus.valueOf(nåværendeStatus)))) {
-                throw ProsessTaskRestTjenesteFeil.FACTORY.måAngiNåværendeProsesstaskStatusForRestart(prosessTaskId).toException();
+                throw new TekniskException(MAA_ANGI_NAVARENDE_STATUS_FEIL_ID,
+                        String.format("Prosesstasken %s har ikke status KLAR. For restart må nåværende status angis.", prosessTaskId));
             }
         } else {
-            throw ProsessTaskRestTjenesteFeil.FACTORY.ukjentProsessTaskIdAngitt(prosessTaskId).toException();
+            throw new TekniskException(UKJENT_TASK_FEIL_ID,
+                    String.format("Ingen prosesstask med id %s eksisterer", prosessTaskId));
         }
     }
 

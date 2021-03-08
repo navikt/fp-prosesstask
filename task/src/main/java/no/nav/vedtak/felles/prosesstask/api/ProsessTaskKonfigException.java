@@ -1,6 +1,7 @@
 package no.nav.vedtak.felles.prosesstask.api;
 
-import no.nav.vedtak.feil.Feil;
+
+import no.nav.vedtak.felles.prosesstask.impl.Feil;
 
 /**
  * Fatal feil som følge av konfigurasjonsfeil el.

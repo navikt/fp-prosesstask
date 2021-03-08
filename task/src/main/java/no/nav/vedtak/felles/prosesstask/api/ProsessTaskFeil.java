@@ -15,8 +15,8 @@ import com.fasterxml.jackson.databind.ObjectReader;
 import com.fasterxml.jackson.databind.ObjectWriter;
 
 import no.nav.vedtak.exception.VLException;
-import no.nav.vedtak.feil.Feil;
 import no.nav.vedtak.felles.jpa.savepoint.SavepointRolledbackException;
+import no.nav.vedtak.felles.prosesstask.impl.Feil;
 
 /**
  * Json struktur for feil som kan oppstå. Dupliserer noen properties for enkelthets skyld til senere prosessering.
@@ -152,7 +152,7 @@ public class ProsessTaskFeil {
 
     private String finnFeilkode(Throwable e) {
         return e instanceof VLException
-            ? ((VLException) e).getFeil().getKode()
+            ? ((VLException) e).getKode()
             : null;
     }
 

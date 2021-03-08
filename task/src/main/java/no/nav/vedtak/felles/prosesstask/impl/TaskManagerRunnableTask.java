@@ -7,7 +7,6 @@ import javax.persistence.PersistenceException;
 
 import org.slf4j.MDC;
 
-import no.nav.vedtak.feil.Feil;
 import no.nav.vedtak.felles.prosesstask.api.CallId;
 
 class TaskManagerRunnableTask implements Runnable {
@@ -62,8 +61,8 @@ class TaskManagerRunnableTask implements Runnable {
                 errorTask.doRun(taskInfo, fatal);
             } catch (Throwable t) {  // NOSONAR
                 // logg at vi ikke klarte å registrer feilen i db
-                Feil feil = TaskManagerFeil.FACTORY.kunneIkkeLoggeUventetFeil(taskInfo.getId(), taskInfo.getTaskType(), t);
-                feil.log(TaskManagerGenerateRunnableTasks.log);
+                TaskManagerGenerateRunnableTasks.log.error(
+                        "PT-415565 Kunne ikke registrere feil på task pga uventet feil ved oppdatering av status/feil, id={}, taskName={}.", taskInfo.getId(), taskInfo.getTaskType(), t);
             } finally {
                 clearLogContext();
                 TaskManagerGenerateRunnableTasks.CURRENT.destroy(errorTask);
@@ -71,8 +70,9 @@ class TaskManagerRunnableTask implements Runnable {
         };
 
         // logg at vi kommer til å skrive dette i ny transaksjon pga fatal feil.
-        TaskManagerFeil.FACTORY.kritiskFeilKunneIkkeProsessereTaskPgaFatalFeil(taskInfo.getId(), taskInfo.getTaskType(), fatal)
-            .log(TaskManagerGenerateRunnableTasks.log);
+        TaskManagerGenerateRunnableTasks.log.warn("PT-876628 Kritisk database feil som gir rollback. Kan ikke prosessere task, vil logge til db i ny transaksjon, id={}, taskName={} pga uventet feil.",
+                taskInfo.getId(), taskInfo.getTaskType(), fatal);
+
 
         return new IdentRunnableTask(taskInfo.getId(), errorCallback, LocalDateTime.now());
     }

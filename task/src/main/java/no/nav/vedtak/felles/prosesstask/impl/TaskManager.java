@@ -35,6 +35,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import no.nav.vedtak.apptjeneste.AppServiceHandler;
+import no.nav.vedtak.exception.TekniskException;
 import no.nav.vedtak.felles.jpa.TransactionHandler;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskDispatcher;
@@ -186,7 +187,7 @@ public class TaskManager implements AppServiceHandler {
         this.numberOfTaskRunnerThreads = numberOfTaskRunnerThreads;
 
         if (maxNumberOfTasksToPoll <= 0) {
-            throw TaskManagerFeil.FACTORY.ugyldigAntallTasks().toException();
+            throw new TekniskException("PT-955392", "maxNumberOfTasksToPoll<=0: ugyldig");
         }
         this.maxNumberOfTasksToPoll = maxNumberOfTasksToPoll;
     }
@@ -366,14 +367,14 @@ public class TaskManager implements AppServiceHandler {
                 Thread.currentThread().interrupt();
             } catch (JDBCConnectionException e) { // NOSONAR
                 backoffRound.incrementAndGet();
-                TaskManagerFeil.FACTORY.midlertidigUtilgjengeligDatabase(backoffRound.get(), e.getClass(), e.getMessage())
-                    .log(log);
+                log.warn( "PT-739415 Transient datase connection feil, venter til neste runde (runde={}): {}: {}",
+                        backoffRound.get(), e.getClass(), e.getMessage());
             } catch (Exception e) { // NOSONAR
                 backoffRound.set(backoffInterval.length - 1); // force max delay (skal kun havne her for Exception/RuntimeException)
-                TaskManagerFeil.FACTORY.kunneIkkePolleDatabase(backoffRound.get(), e).log(log);
+                log.warn("PT-996896 Kunne ikke polle database, venter til neste runde(runde={})", backoffRound.get(), e);
             } catch (Throwable t) { // NOSONAR
                 backoffRound.set(backoffInterval.length - 1); // force max delay (skal kun havne her for Error)
-                TaskManagerFeil.FACTORY.kritiskKunneIkkePolleDatabase(getBackoffIntervalSeconds(), t).log(log);
+                log.error("PT-996897 Kunne ikke polle grunnet kritisk feil, venter ({}s)", getBackoffIntervalSeconds(), t);
             }
 
             return -1;

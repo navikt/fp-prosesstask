@@ -27,7 +27,6 @@ import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskRepository;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskStatus;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskTypeInfo;
-import no.nav.vedtak.felles.prosesstask.rest.ProsessTaskRestTjenesteFeil;
 import no.nav.vedtak.felles.prosesstask.rest.dto.FeiletProsessTaskDataDto;
 import no.nav.vedtak.felles.prosesstask.rest.dto.ProsessTaskDataDto;
 import no.nav.vedtak.felles.prosesstask.rest.dto.ProsessTaskDataPayloadDto;
@@ -124,7 +123,7 @@ public class ProsessTaskApplikasjonTjenesteImplTest {
             prosessTaskApplikasjonTjeneste.flaggProsessTaskForRestart(lagProsessTaskRestartInputDto(10L, "VENTER_SVAR"));
             verify(prosessTaskRepositoryMock, never()).lagre(any(ProsessTaskData.class));
         });
-        assertThat(message).hasMessageContaining(ProsessTaskRestTjenesteFeil.MAA_ANGI_NAVARENDE_STATUS_FEIL_ID);
+        assertThat(message).hasMessageContaining(ProsessTaskApplikasjonTjeneste.MAA_ANGI_NAVARENDE_STATUS_FEIL_ID);
     }
 
     @Test
@@ -135,7 +134,7 @@ public class ProsessTaskApplikasjonTjenesteImplTest {
             prosessTaskApplikasjonTjeneste.flaggProsessTaskForRestart(lagProsessTaskRestartInputDto(10L, null));
             verify(prosessTaskRepositoryMock, never()).lagre(any(ProsessTaskData.class));
         });
-        assertThat(message).hasMessageContaining(ProsessTaskRestTjenesteFeil.MAA_ANGI_NAVARENDE_STATUS_FEIL_ID);
+        assertThat(message).hasMessageContaining(ProsessTaskApplikasjonTjeneste.MAA_ANGI_NAVARENDE_STATUS_FEIL_ID);
     }
 
     @Test
@@ -145,7 +144,7 @@ public class ProsessTaskApplikasjonTjenesteImplTest {
 
             prosessTaskApplikasjonTjeneste.flaggProsessTaskForRestart(lagProsessTaskRestartInputDto(10L, "FERDIG"));
         });
-        assertThat(message).hasMessageContaining(ProsessTaskRestTjenesteFeil.KAN_IKKE_RESTARTE_FERDIG_TASK_FEIL_ID);
+        assertThat(message).hasMessageContaining(ProsessTaskApplikasjonTjeneste.KAN_IKKE_RESTARTE_FERDIG_TASK_FEIL_ID);
     }
 
     @Test
@@ -156,7 +155,7 @@ public class ProsessTaskApplikasjonTjenesteImplTest {
             ProsessTaskRestartInputDto inputDto = lagProsessTaskRestartInputDto(10L, "VENTER_SVAR");
             prosessTaskApplikasjonTjeneste.flaggProsessTaskForRestart(inputDto);
         });
-        assertThat(message).hasMessageContaining(ProsessTaskRestTjenesteFeil.UKJENT_TASK_FEIL_ID);
+        assertThat(message).hasMessageContaining(ProsessTaskApplikasjonTjeneste.UKJENT_TASK_FEIL_ID);
     }
 
     private ProsessTaskRestartInputDto lagProsessTaskRestartInputDto(Long id, String status) {

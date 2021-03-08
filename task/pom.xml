@@ -28,6 +28,7 @@
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-api</artifactId>
+			<version>1.7.30</version>
 			<scope>provided</scope>
 		</dependency>
 
@@ -45,23 +46,12 @@
 			<artifactId>felles-db</artifactId>
 		</dependency>
 
-		<dependency>
-			<!-- for å generere prosesstask doc fra db -->
-			<groupId>com.zaxxer</groupId>
-			<artifactId>HikariCP</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<!-- for å teste generere prosesstask doc fra db -->
-			<groupId>org.flywaydb</groupId>
-			<artifactId>flyway-core</artifactId>
-			<scope>test</scope>
-		</dependency>
 
 		<!-- Integrasjonstester mot Postgresql database -->
 		<dependency>
 			<groupId>org.postgresql</groupId>
 			<artifactId>postgresql</artifactId>
+			<version>42.2.19</version>
 			<scope>test</scope>
 		</dependency>
 
@@ -72,4 +62,5 @@
 		</dependency>
 
 	</dependencies>
+
 </project>

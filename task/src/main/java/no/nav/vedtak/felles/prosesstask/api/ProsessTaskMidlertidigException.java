@@ -1,6 +1,7 @@
 package no.nav.vedtak.felles.prosesstask.api;
 
-import no.nav.vedtak.feil.Feil;
+
+import no.nav.vedtak.felles.prosesstask.impl.Feil;
 
 /**
  * Midlertidig feil som oppstår pga. transient feil mot annet grensesnitt, database eller annet.

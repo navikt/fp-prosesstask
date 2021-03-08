@@ -1,8 +1,8 @@
 package no.nav.vedtak.felles.prosesstask.spi;
 
-import no.nav.vedtak.feil.Feil;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskTypeInfo;
+import no.nav.vedtak.felles.prosesstask.impl.Feil;
 
 /**
  * Interface for implementasjoner av feilhåndtering/backoff.
