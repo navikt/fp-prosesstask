@@ -34,11 +34,7 @@ public class TaskAuditlogger {
         final Auditdata auditdata = new Auditdata(header, fields);
         auditlogger.logg(auditdata);
     }
-    
-    public boolean isEnabled() {
-        return auditlogger.isEnabled();
-    }
-    
+
     private AuditdataHeader createHeader() {
         return new AuditdataHeader.Builder()
                 .medVendor(auditlogger.getDefaultVendor())
