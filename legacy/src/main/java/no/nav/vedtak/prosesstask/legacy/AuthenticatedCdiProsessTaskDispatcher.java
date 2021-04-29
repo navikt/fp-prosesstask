@@ -13,8 +13,6 @@ import no.nav.vedtak.felles.prosesstask.api.ProsessTaskInfo;
 import no.nav.vedtak.felles.prosesstask.impl.BasicCdiProsessTaskDispatcher;
 import no.nav.vedtak.felles.prosesstask.log.TaskAuditlogger;
 import no.nav.vedtak.log.mdc.MdcExtendedLogContext;
-import no.nav.vedtak.log.sporingslogg.Sporingsdata;
-import no.nav.vedtak.log.sporingslogg.SporingsloggHelper;
 import no.nav.vedtak.sikkerhet.loginmodule.ContainerLogin;
 
 /**
@@ -24,7 +22,7 @@ import no.nav.vedtak.sikkerhet.loginmodule.ContainerLogin;
 public class AuthenticatedCdiProsessTaskDispatcher extends BasicCdiProsessTaskDispatcher {
     private static final MdcExtendedLogContext LOG_CONTEXT = MdcExtendedLogContext.getContext("prosess"); //$NON-NLS-1$
     
-    private  TaskAuditlogger taskAuditlogger;
+    private final TaskAuditlogger taskAuditlogger;
 
     @Inject
     public AuthenticatedCdiProsessTaskDispatcher(TaskAuditlogger taskAuditlogger) {
@@ -43,36 +41,11 @@ public class AuthenticatedCdiProsessTaskDispatcher extends BasicCdiProsessTaskDi
             }
 
             prosessTaskHandler.doTask(task);
-            
-            if (taskAuditlogger.isEnabled()) {
-                taskAuditlogger.logg(task);
-            } else {
-                sporingslogg(task);
-            }
 
+            taskAuditlogger.logg(task);
             // renser ikke LOG_CONTEXT her. tar alt i RunTask slik at vi kan logge exceptions også
         }
 
-    }
-
-    static void sporingslogg(ProsessTaskData data) {
-        String action = data.getTaskType();
-        Sporingsdata sporingsdata = Sporingsdata.opprett(action);
-
-        String aktørId = data.getAktørId();
-        if (aktørId != null) {
-            sporingsdata.leggTilId("aktorId", aktørId);
-        }
-        Long fagsakId = data.getFagsakId();
-        if (fagsakId != null) {
-            sporingsdata.leggTilId("fagsakId", fagsakId.toString());
-        }
-        String behandlingId = data.getBehandlingId();
-        if (behandlingId != null) {
-            sporingsdata.leggTilId("behandlingId", behandlingId);
-        }
-
-        SporingsloggHelper.logSporingForTask(AuthenticatedCdiProsessTaskDispatcher.class, sporingsdata, data.getTaskType());
     }
 
     @SuppressWarnings("resource")
