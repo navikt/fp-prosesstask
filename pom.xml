@@ -39,7 +39,7 @@
 	</modules>
 
 	<properties>
-		<java.version>11</java.version>
+		<java.version>16</java.version>
 		<maven.compiler.source>${java.version}</maven.compiler.source>
 		<maven.compiler.target>${java.version}</maven.compiler.target>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -75,7 +75,7 @@
 				<artifactId>felles</artifactId>
 				<scope>import</scope>
 				<type>pom</type>
-				<version>3.2.39</version>
+				<version>3.2.41</version>
 			</dependency>
 
 			<dependency>

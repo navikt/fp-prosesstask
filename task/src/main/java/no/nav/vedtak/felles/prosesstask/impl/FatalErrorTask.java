@@ -87,7 +87,7 @@ public class FatalErrorTask {
                         String feilMelding = RunTaskFeilOgStatusEventHåndterer.getFeiltekstOgLoggEventueltHvisEndret(pte, feil, t, true);
 
                         // TODO: denne bør harmoniseres med RunTaskFeilOgStatusEventHåndterer#handleTaskFeil?
-                        taskManagerRepository.oppdaterStatusOgNesteKjøring(pte.getId(), ProsessTaskStatus.FEILET, null, feil.getKode(), feilMelding,
+                        taskManagerRepository.oppdaterStatusOgNesteKjøring(pte.getId(), ProsessTaskStatus.FEILET, null, feil.kode(), feilMelding,
                             feiledeForsøk);
                     } else {
                         log.warn("PT-876631 Fikk ikke lås på prosess task id [{}], type [{}]. Allerede låst eller ryddet. Kan ikke oppdatere status i databasen nå.",
@@ -100,8 +100,8 @@ public class FatalErrorTask {
             PullSingleTask pullSingleTask = new PullSingleTask();
             EntityManager em = getEntityManager();
             // workaround for hibernate issue HHH-11020
-            if (em instanceof TargetInstanceProxy) {
-                em = (EntityManager) ((TargetInstanceProxy) em).weld_getTargetInstance();
+            if (em instanceof TargetInstanceProxy tip) {
+                em = (EntityManager) tip.weld_getTargetInstance();
             }
 
             @SuppressWarnings("resource") // skal ikke lukke session her

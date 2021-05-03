@@ -21,7 +21,7 @@ public abstract class SimpelFeilhåndteringsalgoritme implements ProsessTaskFeil
 
     @Override
     public boolean skalKjørePåNytt(ProsessTaskTypeInfo taskType, int antallFeilet, Exception exception) {
-        return taskType.getMaksForsøk() > antallFeilet;
+        return taskType.maksForsøk() > antallFeilet;
     }
 
     @Override

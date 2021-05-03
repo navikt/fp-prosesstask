@@ -80,15 +80,15 @@ public class ProsessTaskFeil {
                 this.feilkode = finnFeilkode(cause);
             }
             if (this.feilkode == null) {
-                this.feilkode = feil.getKode();
+                this.feilkode = feil.kode();
             }
 
-            if (feil.getCause() != null) {
+            if (feil.cause() != null) {
                 // her brukes original exception (ikke unwrapped) slik at vi får med hele historikken hvor eksakt dette inntraff
-                this.stackTrace = getStacktraceAsString(feil.getCause());// bruker original exception uansett (inkludert wrapping exceptions)
+                this.stackTrace = getStacktraceAsString(feil.cause());// bruker original exception uansett (inkludert wrapping exceptions)
             }
 
-            this.feilmelding = feil.getFeilmelding();
+            this.feilmelding = feil.feilmelding();
         }
 
         this.taskName = taskInfo.getTaskType();
@@ -143,7 +143,7 @@ public class ProsessTaskFeil {
         if (feil == null) {
             return null;
         }
-        Throwable cause = feil.getCause();
+        Throwable cause = feil.cause();
         if (cause instanceof SavepointRolledbackException && cause.getCause() != null) {
             cause = cause.getCause();
         }
@@ -151,9 +151,7 @@ public class ProsessTaskFeil {
     }
 
     private String finnFeilkode(Throwable e) {
-        return e instanceof VLException
-            ? ((VLException) e).getKode()
-            : null;
+        return e instanceof VLException vle ? vle.getKode() : null;
     }
 
     public String writeValueAsString() throws IOException {

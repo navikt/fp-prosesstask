@@ -150,7 +150,7 @@ public class RunTask {
 
             if (erTransaksjonRollbackEllerInaktiv()) {
                 // håndter likt som vanlige exceptions (under) med mindre transaksjonen er markert for rollback
-                throw (e instanceof PersistenceException) ? (PersistenceException) e : new PersistenceException(e);
+                throw (e instanceof PersistenceException pe) ? pe : new PersistenceException(e);
             } else {
                 getEntityManager().clear(); // fjern mulig korrupt tilstand
                 conn.rollback(savepoint); // rull tilbake til savepoint
@@ -283,8 +283,8 @@ public class RunTask {
             PullSingleTask pullSingleTask = new PullSingleTask();
             EntityManager em = getEntityManager();
             // workaround for hibernate issue HHH-11020
-            if (em instanceof TargetInstanceProxy) {
-                em = (EntityManager) ((TargetInstanceProxy) em).weld_getTargetInstance();
+            if (em instanceof TargetInstanceProxy tip) {
+                em = (EntityManager) tip.weld_getTargetInstance();
             }
 
             @SuppressWarnings("resource") // skal ikke lukke session her

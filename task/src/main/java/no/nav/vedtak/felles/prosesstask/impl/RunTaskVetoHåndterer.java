@@ -69,9 +69,9 @@ public class RunTaskVetoHåndterer {
             ProsessTaskVeto veto = entry.getValue();
             if (veto.isVeto()) {
                 vetoed = true;
-                Long blokkerId = veto.getBlokkertAvProsessTaskId();
+                Long blokkerId = veto.blokkertAvProsessTaskId();
 
-                Feil feil = TaskManagerFeil.kanIkkeKjøreFikkVeto(pte.getId(), pte.getTaskName(), blokkerId, veto.getBegrunnelse());
+                Feil feil = TaskManagerFeil.kanIkkeKjøreFikkVeto(pte.getId(), pte.getTaskName(), blokkerId, veto.begrunnelse());
                 ProsessTaskFeil taskFeil = new ProsessTaskFeil(pte.tilProsessTask(), feil);
                 taskFeil.setBlokkerendeProsessTaskId(blokkerId);
                 pte.setSisteFeil(taskFeil.getFeilkode(), taskFeil.writeValueAsString());

@@ -115,7 +115,7 @@ public class ProsessTaskApplikasjonTjeneste {
         Map<String, Integer> taskTypesMaxForsøk = new HashMap<>();
         ptdList.stream().map(ProsessTaskData::getTaskType).forEach(tasktype -> {
             if (taskTypesMaxForsøk.get(tasktype) == null) {
-                int forsøk = prosessTaskRepository.finnProsessTaskType(tasktype).map(ProsessTaskTypeInfo::getMaksForsøk).orElse(1);
+                int forsøk = prosessTaskRepository.finnProsessTaskType(tasktype).map(ProsessTaskTypeInfo::maksForsøk).orElse(1);
                 taskTypesMaxForsøk.put(tasktype, forsøk);
             }
         });
@@ -154,7 +154,7 @@ public class ProsessTaskApplikasjonTjeneste {
          * kan plukke den opp og kjøre.
          */
         Optional<ProsessTaskTypeInfo> taskTypeInfo = prosessTaskRepository.finnProsessTaskType(eksisterendeProsessTaskData.getTaskType());
-        if (taskTypeInfo.get().getMaksForsøk() == eksisterendeProsessTaskData.getAntallFeiledeForsøk()) { // NOSONAR
+        if (taskTypeInfo.get().maksForsøk() == eksisterendeProsessTaskData.getAntallFeiledeForsøk()) { // NOSONAR
             eksisterendeProsessTaskData.setAntallFeiledeForsøk(eksisterendeProsessTaskData.getAntallFeiledeForsøk() - 1);
         }
     }

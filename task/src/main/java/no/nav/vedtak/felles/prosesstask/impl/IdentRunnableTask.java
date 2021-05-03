@@ -5,16 +5,7 @@ import java.time.LocalDateTime;
 import org.slf4j.MDC;
 
 /** IdentRunnable som tar id og Runnable. */
-class IdentRunnableTask implements IdentRunnable {
-    private final Long id;
-    private final Runnable runnable;
-    private final LocalDateTime createTime;
-
-    IdentRunnableTask(Long id, Runnable run, LocalDateTime createTime) {
-        this.id = id;
-        this.runnable = run;
-        this.createTime = createTime;
-    }
+record IdentRunnableTask(Long id, Runnable runnable, LocalDateTime createTime) implements IdentRunnable {
 
     @Override
     public void run() {
