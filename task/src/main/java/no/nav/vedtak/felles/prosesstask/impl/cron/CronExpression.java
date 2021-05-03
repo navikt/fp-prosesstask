@@ -9,12 +9,11 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import java.util.Collections;
 
 /**
  * This provides cron support for java8 using java-time.
@@ -381,15 +380,17 @@ public class CronExpression {
 
     abstract static class BasicField {
         private static final Pattern CRON_FIELD_REGEXP = Pattern
-                .compile("(?:                                             # start of group 1\n"
-                        + "   (?:(?<all>\\*)|(?<ignore>\\?)|(?<last>L))  # global flag (L, ?, *)\n"
-                        + " | (?<start>[0-9]{1,2}|[a-z]{3,3})              # or start number or symbol\n"
-                        + "      (?:                                        # start of group 2\n"
-                        + "         (?<mod>L|W)                             # modifier (L,W)\n"
-                        + "       | -(?<end>[0-9]{1,2}|[a-z]{3,3})        # or end nummer or symbol (in range)\n"
-                        + "      )?                                         # end of group 2\n"
-                        + ")                                              # end of group 1\n"
-                        + "(?:(?<incmod>/|\\#)(?<inc>[0-9]{1,7}))?        # increment and increment modifier (/ or \\#)\n",
+                .compile("""
+                        (?:                                           # start of group 1
+                           (?:(?<all>\\*)|(?<ignore>\\?)|(?<last>L))  # global flag (L, ?, *)
+                         | (?<start>[0-9]{1,2}|[a-z]{3,3})            # or start number or symbol
+                              (?:                                     # start of group 2
+                                 (?<mod>L|W)                          # modifier (L,W)
+                               | -(?<end>[0-9]{1,2}|[a-z]{3,3})       # or end nummer or symbol (in range)
+                              )?                                      # end of group 2
+                        )                                             # end of group 1
+                        (?:(?<incmod>/|\\#)(?<inc>[0-9]{1,7}))?       # increment and increment modifier (/ or \\#)
+                        """,
                         Pattern.CASE_INSENSITIVE | Pattern.COMMENTS);
 
         final CronFieldType fieldType;

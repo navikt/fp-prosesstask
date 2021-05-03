@@ -65,7 +65,7 @@ public class RunTaskFeilOgStatusEventHåndterer {
                 nyTid, e);
 
             String feiltekst = getFeiltekstOgLoggEventueltHvisEndret(pte, feil, e, false);
-            taskManagerRepository.oppdaterStatusOgNesteKjøring(pte.getId(), ProsessTaskStatus.KLAR, nyTid, feil.getKode(), feiltekst, failureAttempt);
+            taskManagerRepository.oppdaterStatusOgNesteKjøring(pte.getId(), ProsessTaskStatus.KLAR, nyTid, feil.kode(), feiltekst, failureAttempt);
 
             // endrer ikke status ved nytt forsøk eller publiserer event p.t.
         } else {
@@ -84,7 +84,7 @@ public class RunTaskFeilOgStatusEventHåndterer {
         } finally {
             int failureAttempt = pte.getFeiledeForsøk() + 1;
             String feiltekst = getFeiltekstOgLoggEventueltHvisEndret(pte, feil, e, true);
-            taskManagerRepository.oppdaterStatusOgNesteKjøring(pte.getId(), nyStatus, null, feil.getKode(), feiltekst, failureAttempt);
+            taskManagerRepository.oppdaterStatusOgNesteKjøring(pte.getId(), nyStatus, null, feil.kode(), feiltekst, failureAttempt);
         }
     }
 

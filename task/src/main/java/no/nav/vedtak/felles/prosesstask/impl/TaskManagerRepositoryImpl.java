@@ -120,24 +120,26 @@ public class TaskManagerRepositoryImpl {
     private Session getEntityManagerAsSession() {
         EntityManager em = entityManager;
         // workaround for hibernate issue HHH-11020
-        if (em instanceof TargetInstanceProxy) {
-            em = (EntityManager) ((TargetInstanceProxy) em).weld_getTargetInstance();
+        if (em instanceof TargetInstanceProxy tip) {
+            em = (EntityManager) tip.weld_getTargetInstance();
         }
         return em.unwrap(Session.class);
     }
 
     void oppdaterStatusOgNesteKjøring(Long prosessTaskId, ProsessTaskStatus taskStatus, LocalDateTime nesteKjøringEtter, String feilkode, String feiltekst,
                                       int feilforsøk) {
-        String updateSql = "update PROSESS_TASK set" +
-            " status =:status" +
-            " ,blokkert_av = NULL" +
-            " ,neste_kjoering_etter=:neste" +
-            " ,feilede_forsoek = :forsoek" +
-            " ,siste_kjoering_feil_kode = :feilkode" +
-            " ,siste_kjoering_feil_tekst = :feiltekst" +
-            ", siste_kjoering_slutt_ts = :status_ts" +
-            " ,versjon=versjon+1 " +
-            " WHERE id = :id AND status NOT IN ('VETO', 'SUSPENDERT', 'KJOERT', 'FERDIG')";
+        String updateSql = """
+            update PROSESS_TASK set
+             status =:status
+            ,blokkert_av = NULL
+            ,neste_kjoering_etter=:neste
+            ,feilede_forsoek = :forsoek
+            ,siste_kjoering_feil_kode = :feilkode
+            ,siste_kjoering_feil_tekst = :feiltekst
+            , siste_kjoering_slutt_ts = :status_ts
+            ,versjon=versjon+1 
+            WHERE id = :id AND status NOT IN ('VETO', 'SUSPENDERT', 'KJOERT', 'FERDIG')
+            """;
 
         LocalDateTime now = LocalDateTime.now();
         String status = taskStatus.getDbKode();
@@ -158,14 +160,16 @@ public class TaskManagerRepositoryImpl {
     }
 
     void oppdaterStatus(Long prosessTaskId, ProsessTaskStatus taskStatus) {
-        String updateSql = "update PROSESS_TASK set" +
-            " status =:status" +
-            " ,neste_kjoering_etter= NULL" +
-            " ,siste_kjoering_feil_kode = NULL" +
-            " ,siste_kjoering_feil_tekst = NULL" +
-            ", siste_kjoering_slutt_ts = :status_ts" +
-            " ,versjon=versjon+1 " +
-            " WHERE id = :id";
+        String updateSql = """
+            update PROSESS_TASK set
+             status =:status
+            ,neste_kjoering_etter= NULL
+            ,siste_kjoering_feil_kode = NULL
+            ,siste_kjoering_feil_tekst = NULL
+            ,siste_kjoering_slutt_ts = :status_ts
+            ,versjon=versjon+1 
+            WHERE id = :id
+            """;
 
         String status = taskStatus.getDbKode();
         LocalDateTime now = LocalDateTime.now();
@@ -385,17 +389,19 @@ public class TaskManagerRepositoryImpl {
      * nødvendig lenger.
      */
     void unblockTasks() {
-        String sqlUnveto = "update prosess_task a set "
-            + " status='KLAR'"
-            + ", blokkert_av=NULL"
-            + ", feilede_forsoek=0"
-            + ", siste_kjoering_feil_kode=NULL"
-            + ", siste_kjoering_feil_tekst=NULL"
-            + ", neste_kjoering_etter=NULL"
-            + ", versjon = versjon +1"
-            + " WHERE status = 'VETO'"
-            + "   AND blokkert_av IS NOT NULL"
-            + "   AND EXISTS (select 1 from prosess_task b where b.id=a.blokkert_av AND b.status IN ('KJOERT', 'FERDIG'))";
+        String sqlUnveto = """
+            update prosess_task a set
+               status='KLAR'
+             , blokkert_av=NULL
+             , feilede_forsoek=0
+             , siste_kjoering_feil_kode=NULL
+             , siste_kjoering_feil_tekst=NULL
+             , neste_kjoering_etter=NULL
+             , versjon = versjon +1
+             WHERE status = 'VETO'
+              AND blokkert_av IS NOT NULL
+              AND EXISTS (select 1 from prosess_task b where b.id=a.blokkert_av AND b.status IN ('KJOERT', 'FERDIG'))
+            """;
 
         int unvetoed = entityManager.createNativeQuery(sqlUnveto)
             .executeUpdate();

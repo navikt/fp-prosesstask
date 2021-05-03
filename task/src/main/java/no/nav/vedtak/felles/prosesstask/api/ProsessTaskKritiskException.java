@@ -6,6 +6,6 @@ import no.nav.vedtak.felles.prosesstask.impl.Feil;
 
 public class ProsessTaskKritiskException extends TekniskException {
     public ProsessTaskKritiskException(Feil feil) {
-        super(feil.getKode(), feil.getFeilmelding(), feil.getCause());
+        super(feil.kode(), feil.feilmelding(), feil.cause());
     }
 }

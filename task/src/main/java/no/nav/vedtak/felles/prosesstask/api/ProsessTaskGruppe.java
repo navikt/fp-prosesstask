@@ -67,27 +67,10 @@ public class ProsessTaskGruppe {
         return this;
     }
 
-    public static class Entry {
-        private final String sekvens;
-        private final ProsessTaskData task;
-
-        Entry(String sekvens, ProsessTaskData task) {
-            this.sekvens = sekvens;
-            this.task = task;
-        }
-
-        public String getSekvens() {
-            return sekvens;
-        }
-
-        public ProsessTaskData getTask() {
-            return task;
-        }
-
-    }
+    public static record Entry(String sekvens, ProsessTaskData task) {}
 
     public void setBehandling(Long fagsakId, Long behandlingId, String aktørId) {
-        this.getTasks().forEach(e -> e.getTask().setBehandling(fagsakId, behandlingId, aktørId));
+        this.getTasks().forEach(e -> e.task().setBehandling(fagsakId, behandlingId, aktørId));
     }
 
     public void setCallId(String callId) {

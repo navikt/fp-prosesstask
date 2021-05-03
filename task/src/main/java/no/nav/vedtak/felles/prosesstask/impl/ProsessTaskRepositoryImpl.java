@@ -109,7 +109,7 @@ public class ProsessTaskRepositoryImpl implements ProsessTaskRepository {
         String unikGruppeId = null;
         boolean lifecycleOpprettet = true;
         for (Entry entry : sammensattTask.getTasks()) {
-            ProsessTaskData task = entry.getTask();
+            ProsessTaskData task = entry.task();
             if (task.getId() != null) {
                 lifecycleOpprettet = false;
             }
@@ -124,7 +124,7 @@ public class ProsessTaskRepositoryImpl implements ProsessTaskRepository {
                     task.setGruppe(unikGruppeId);
                 }
                 // ta sekvens fra rekkefølge definert i gruppen
-                task.setSekvens(entry.getSekvens());
+                task.setSekvens(entry.sekvens());
                 Long id = doLagreTask(task);
                 task.setId(id);
             } catch (SQLException e) {
