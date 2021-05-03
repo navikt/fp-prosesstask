@@ -67,7 +67,7 @@
 			<dependency>
 				<groupId>org.flywaydb</groupId>
 				<artifactId>flyway-core</artifactId>
-				<version>7.6.0</version>
+				<version>7.8.2</version>
 			</dependency>
 
 			<dependency>
@@ -225,7 +225,7 @@
 				<plugin>
 					<groupId>org.sonarsource.scanner.maven</groupId>
 					<artifactId>sonar-maven-plugin</artifactId>
-					<version>3.8.0.2131</version>
+					<version>3.9.0.2155</version>
 				</plugin>
 			</plugins>
 
