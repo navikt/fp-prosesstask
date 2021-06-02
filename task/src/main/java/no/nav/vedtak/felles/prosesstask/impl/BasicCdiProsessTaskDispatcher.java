@@ -1,5 +1,7 @@
 package no.nav.vedtak.felles.prosesstask.impl;
 
+import static io.micrometer.core.instrument.Metrics.timer;
+
 import java.sql.SQLNonTransientConnectionException;
 import java.sql.SQLRecoverableException;
 import java.sql.SQLTransientException;
@@ -24,13 +26,16 @@ import no.nav.vedtak.felles.prosesstask.api.ProsessTaskInfo;
  */
 public class BasicCdiProsessTaskDispatcher implements ProsessTaskDispatcher {
 
-    /** Disse delegres til Feilhåndteringsalgoritme for håndtering. Andre vil alltid gi FEILET status. */
+    /**
+     * Disse delegres til Feilhåndteringsalgoritme for håndtering. Andre vil alltid
+     * gi FEILET status.
+     */
     private static final Set<Class<?>> DEFAULT_FEILHÅNDTERING_EXCEPTIONS = Set.of(
-        JDBCConnectionException.class,
-        QueryTimeoutException.class,
-        SQLTransientException.class,
-        SQLNonTransientConnectionException.class,
-        SQLRecoverableException.class);
+            JDBCConnectionException.class,
+            QueryTimeoutException.class,
+            SQLTransientException.class,
+            SQLNonTransientConnectionException.class,
+            SQLRecoverableException.class);
 
     private Set<Class<?>> feilhåndteringExceptions = new LinkedHashSet<>();
 
@@ -53,12 +58,13 @@ public class BasicCdiProsessTaskDispatcher implements ProsessTaskDispatcher {
     @Override
     public boolean feilhåndterException(String taskType, Throwable e) {
         return (feilhåndteringExceptions.stream()
-            .anyMatch(fatal -> fatal.isAssignableFrom(e.getClass()) || (e.getCause() != null && fatal.isAssignableFrom(e.getCause().getClass()))));
+                .anyMatch(
+                        fatal -> fatal.isAssignableFrom(e.getClass()) || (e.getCause() != null && fatal.isAssignableFrom(e.getCause().getClass()))));
     }
 
     public ProsessTaskHandlerRef findHandler(ProsessTaskInfo task) {
         ProsessTaskHandler prosessTaskHandler = CDI.current()
-            .select(ProsessTaskHandler.class, new ProsessTaskLiteral(task.getTaskType())).get();
+                .select(ProsessTaskHandler.class, new ProsessTaskLiteral(task.getTaskType())).get();
         return new ProsessTaskHandlerRef(prosessTaskHandler);
     }
 
@@ -78,13 +84,14 @@ public class BasicCdiProsessTaskDispatcher implements ProsessTaskDispatcher {
             }
 
             if (bean.getClass().isAnnotationPresent(Dependent.class)) {
-                // må closes hvis @Dependent scoped siden vi slår opp. ApplicationScoped alltid ok. RequestScope også ok siden vi kjører med det.
+                // må closes hvis @Dependent scoped siden vi slår opp. ApplicationScoped alltid
+                // ok. RequestScope også ok siden vi kjører med det.
                 CDI.current().destroy(bean);
             }
         }
 
-        public void doTask(ProsessTaskData prosessTaskData) {
-            bean.doTask(prosessTaskData);
+        public void doTask(ProsessTaskData data) {
+            timer("task", "type", data.getTaskType()).record(() -> bean.doTask(data));
         }
 
         public ProsessTaskHandler getBean() {
