@@ -75,7 +75,7 @@
 				<artifactId>felles</artifactId>
 				<scope>import</scope>
 				<type>pom</type>
-				<version>3.2.41</version>
+				<version>3.2.90</version>
 			</dependency>
 
 			<dependency>
