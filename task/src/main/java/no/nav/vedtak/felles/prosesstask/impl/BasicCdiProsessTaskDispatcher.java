@@ -1,7 +1,5 @@
 package no.nav.vedtak.felles.prosesstask.impl;
 
-import static io.micrometer.core.instrument.Metrics.timer;
-
 import java.sql.SQLNonTransientConnectionException;
 import java.sql.SQLRecoverableException;
 import java.sql.SQLTransientException;
@@ -17,6 +15,10 @@ import org.hibernate.exception.JDBCConnectionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import io.micrometer.core.instrument.Meter.Id;
+import io.micrometer.core.instrument.Metrics;
+import io.micrometer.core.instrument.config.MeterFilter;
+import io.micrometer.core.instrument.distribution.DistributionStatisticConfig;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTask;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskDispatcher;
@@ -28,6 +30,19 @@ import no.nav.vedtak.felles.prosesstask.api.ProsessTaskInfo;
  */
 public class BasicCdiProsessTaskDispatcher implements ProsessTaskDispatcher {
 
+    static {
+        Metrics.globalRegistry.config().meterFilter(new MeterFilter() {
+            @Override
+            public DistributionStatisticConfig configure(Id id, DistributionStatisticConfig config) {
+                if (id.getName().startsWith("task")) {
+                    return DistributionStatisticConfig.builder()
+                            .percentilesHistogram(true)
+                            .percentiles(0.5, 0.95, 0.99).build().merge(config);
+                }
+                return config;
+            }
+        });
+    }
     private static final Logger LOG = LoggerFactory.getLogger(BasicCdiProsessTaskDispatcher.class);
     /**
      * Disse delegres til Feilhåndteringsalgoritme for håndtering. Andre vil alltid
@@ -49,6 +64,7 @@ public class BasicCdiProsessTaskDispatcher implements ProsessTaskDispatcher {
     protected BasicCdiProsessTaskDispatcher(Set<Class<?>> feilhåndteringExceptions) {
         this.feilhåndteringExceptions.addAll(feilhåndteringExceptions);
         this.feilhåndteringExceptions.addAll(DEFAULT_FEILHÅNDTERING_EXCEPTIONS);
+
     }
 
     @Override
@@ -78,6 +94,7 @@ public class BasicCdiProsessTaskDispatcher implements ProsessTaskDispatcher {
 
         protected ProsessTaskHandlerRef(ProsessTaskHandler bean) {
             this.bean = bean;
+
         }
 
         @Override
@@ -95,7 +112,7 @@ public class BasicCdiProsessTaskDispatcher implements ProsessTaskDispatcher {
 
         public void doTask(ProsessTaskData data) {
             LOG.info("Starter task {}", data.getTaskType());
-            timer("task", "type", data.getTaskType()).record(() -> bean.doTask(data));
+            Metrics.timer("task", "type", data.getTaskType()).record(() -> bean.doTask(data));
             LOG.info("Stoppet task {}", data.getTaskType());
         }
 
