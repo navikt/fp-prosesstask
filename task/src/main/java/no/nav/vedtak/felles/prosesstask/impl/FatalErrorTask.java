@@ -24,23 +24,20 @@ import no.nav.vedtak.felles.prosesstask.api.ProsessTaskStatus;
  * <p>
  * Kun en task kjøres, i sin egen transaksjon.
  * <p>
- * Denne tasken logger kun error til databasen i separat transaksjon. Brukes når {@link RunTask} totalhavarerer og transaksjon den kjørte i
- * blir rullet tilbake helt.
+ * Denne tasken logger kun error til databasen i separat transaksjon. Brukes når
+ * {@link RunTask} totalhavarerer og transaksjon den kjørte i blir rullet
+ * tilbake helt.
  */
 @Dependent
 @ActivateRequestContext
 @Transactional
 public class FatalErrorTask {
-    private static final Logger log = LoggerFactory.getLogger(FatalErrorTask.class);
-    private TaskManagerRepositoryImpl taskManagerRepository;
-
-    public FatalErrorTask() {
-    }
+    private static final Logger LOG = LoggerFactory.getLogger(FatalErrorTask.class);
+    private final TaskManagerRepositoryImpl taskManagerRepository;
 
     @Inject
     public FatalErrorTask(TaskManagerRepositoryImpl taskManagerRepo) {
         Objects.requireNonNull(taskManagerRepo, "taskManagerRepo"); //$NON-NLS-1$
-
         this.taskManagerRepository = taskManagerRepo;
     }
 
@@ -53,8 +50,8 @@ public class FatalErrorTask {
     }
 
     /**
-     * Denne klassen enkapsulerer plukk og kjør en task, og tilhørende bokføring av status og tidsstempler
-     * på kjøringen.
+     * Denne klassen enkapsulerer plukk og kjør en task, og tilhørende bokføring av
+     * status og tidsstempler på kjøringen.
      */
     class PickAndRunErrorTask {
 
@@ -79,18 +76,21 @@ public class FatalErrorTask {
                     if (opt.isPresent()) {
                         ProsessTaskEntitet pte = opt.get();
 
-                        // NB: her fyrer p.t. ikke events hvis feilet. Logger derfor bare her til logg og database. Antar alle feil fanget her er fatale.
+                        // NB: her fyrer p.t. ikke events hvis feilet. Logger derfor bare her til logg
+                        // og database. Antar alle feil fanget her er fatale.
                         int feiledeForsøk = pte.getFeiledeForsøk() + 1;
                         String taskName = pte.getTaskName();
                         Long taskId = pte.getId();
                         Feil feil = TaskManagerFeil.kunneIkkeProsessereTaskPgaFatalFeilVilIkkePrøveIgjen(taskId, taskName, feiledeForsøk, t);
                         String feilMelding = RunTaskFeilOgStatusEventHåndterer.getFeiltekstOgLoggEventueltHvisEndret(pte, feil, t, true);
 
-                        // TODO: denne bør harmoniseres med RunTaskFeilOgStatusEventHåndterer#handleTaskFeil?
+                        // TODO: denne bør harmoniseres med
+                        // RunTaskFeilOgStatusEventHåndterer#handleTaskFeil?
                         taskManagerRepository.oppdaterStatusOgNesteKjøring(pte.getId(), ProsessTaskStatus.FEILET, null, feil.kode(), feilMelding,
-                            feiledeForsøk);
+                                feiledeForsøk);
                     } else {
-                        log.warn("PT-876631 Fikk ikke lås på prosess task id [{}], type [{}]. Allerede låst eller ryddet. Kan ikke oppdatere status i databasen nå.",
+                        LOG.warn(
+                                "PT-876631 Fikk ikke lås på prosess task id [{}], type [{}]. Allerede låst eller ryddet. Kan ikke oppdatere status i databasen nå.",
                                 taskInfo.getId(), taskInfo.getTaskType());
                     }
                 }

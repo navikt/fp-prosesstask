@@ -8,7 +8,7 @@ import no.nav.vedtak.felles.prosesstask.spi.ProsessTaskFeilhåndteringAlgoritme;
 
 public abstract class SimpelFeilhåndteringsalgoritme implements ProsessTaskFeilhåndteringAlgoritme {
 
-    private ForsinkelseStrategi forsinkelseStrategi;
+    private final ForsinkelseStrategi forsinkelseStrategi;
 
     protected SimpelFeilhåndteringsalgoritme(ForsinkelseStrategi forsinkelseStrategi) {
         this.forsinkelseStrategi = forsinkelseStrategi;

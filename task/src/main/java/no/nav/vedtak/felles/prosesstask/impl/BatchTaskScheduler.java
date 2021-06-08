@@ -21,7 +21,7 @@ import no.nav.vedtak.felles.prosesstask.api.ProsessTaskStatus;
 @Transactional
 public class BatchTaskScheduler implements AppServiceHandler {
 
-    private static final Logger log = LoggerFactory.getLogger(BatchTaskScheduler.class);
+    private static final Logger LOG = LoggerFactory.getLogger(BatchTaskScheduler.class);
     private TaskManagerRepositoryImpl taskRepository;
 
     BatchTaskScheduler() {
@@ -34,8 +34,7 @@ public class BatchTaskScheduler implements AppServiceHandler {
 
     @Override
     public void start() {
-        var statusForBatchTasks = taskRepository.finnStatusForBatchTasks();
-        statusForBatchTasks
+        taskRepository.finnStatusForBatchTasks()
             .stream()
             .filter(entry -> ProsessTaskStatus.FEILET.equals(entry.getStatus()))
             .forEach(this::restartTask);
@@ -43,7 +42,7 @@ public class BatchTaskScheduler implements AppServiceHandler {
 
     private void restartTask(ProsessTaskEntitet pte) {
         taskRepository.oppdaterStatusOgNesteKjøring(pte.getId(), ProsessTaskStatus.KLAR, LocalDateTime.now(), null, null, 0);
-        log.info("Restarter batch-task da siste='{}' står til feilet.", pte);
+        LOG.info("Restarter batch-task da siste='{}' står til feilet.", pte);
     }
 
     @Override

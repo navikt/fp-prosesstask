@@ -13,7 +13,6 @@ import org.jboss.weld.context.unbound.UnboundLiteral;
 final class RequestContextHandler {
 
     private RequestContextHandler() {
-        // hidden ctor
     }
 
     public static <V> V doWithRequestContext(Supplier<V> supplier) {
@@ -22,7 +21,6 @@ final class RequestContextHandler {
         if (requestContext.isActive()) {
             return supplier.get();
         } else {
-
             try {
                 requestContext.activate();
                 return supplier.get();

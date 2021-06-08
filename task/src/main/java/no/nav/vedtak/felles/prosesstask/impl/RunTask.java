@@ -6,7 +6,6 @@ import java.sql.SQLException;
 import java.sql.SQLNonTransientConnectionException;
 import java.sql.SQLRecoverableException;
 import java.sql.SQLTransientException;
-import java.sql.Savepoint;
 import java.time.LocalDateTime;
 import java.util.Objects;
 import java.util.Optional;
@@ -42,14 +41,15 @@ import no.nav.vedtak.felles.prosesstask.spi.ProsessTaskFeilhåndteringAlgoritme;
  * <p>
  * Kun en task kjøres, i sin egen transaksjon.
  * <p>
- * Dersom en task kjøring feiler, benyttes spesifisert feilhåndteringsalgoritme til å avgjøre hvordan det skal håndteres, og evt. prøves på
- * nytt. (default algoritme prøver 3 ganger med mindre det er kritisk feil).
+ * Dersom en task kjøring feiler, benyttes spesifisert feilhåndteringsalgoritme
+ * til å avgjøre hvordan det skal håndteres, og evt. prøves på nytt. (default
+ * algoritme prøver 3 ganger med mindre det er kritisk feil).
  */
 @Dependent
 @ActivateRequestContext
 @Transactional
 public class RunTask {
-    private static final Logger log = LoggerFactory.getLogger(RunTask.class);
+    private static final Logger LOG = LoggerFactory.getLogger(RunTask.class);
 
     private ProsessTaskEventPubliserer eventPubliserer;
     private TaskManagerRepositoryImpl taskManagerRepository;
@@ -57,9 +57,9 @@ public class RunTask {
     private RunTaskVetoHåndterer vetoHåndterer;
 
     @Inject
-    public RunTask(TaskManagerRepositoryImpl taskManagerRepo, 
-                   ProsessTaskEventPubliserer eventPubliserer,
-                   @Any Instance<ProsessTaskFeilhåndteringAlgoritme> feilhåndteringsalgoritmer) {
+    public RunTask(TaskManagerRepositoryImpl taskManagerRepo,
+            ProsessTaskEventPubliserer eventPubliserer,
+            @Any Instance<ProsessTaskFeilhåndteringAlgoritme> feilhåndteringsalgoritmer) {
         Objects.requireNonNull(taskManagerRepo, "taskManagerRepo"); //$NON-NLS-1$
 
         this.eventPubliserer = eventPubliserer;
@@ -73,20 +73,22 @@ public class RunTask {
     }
 
     /**
-     * Markerer task for kjøring, tar savepoint og forsøker å kjøre task, inklusiv håndtering av forventede feil. Uventede feil som forårsaker
-     * rollback av hele transaksjonen (eks {@link EntityNotFoundException} delegeres oppover). Gjelder også totalt transiente feil (eks.
-     * JDBCConnectionException)
+     * Markerer task for kjøring, tar savepoint og forsøker å kjøre task, inklusiv
+     * håndtering av forventede feil. Uventede feil som forårsaker rollback av hele
+     * transaksjonen (eks {@link EntityNotFoundException} delegeres oppover).
+     * Gjelder også totalt transiente feil (eks. JDBCConnectionException)
      *
      * @throws SQLException         - dersom ikke kan ta savepoint
-     * @throws PersistenceException dersom transaksjoner er markert for total rollback (dvs. savepoint vil ikke virke)
+     * @throws PersistenceException dersom transaksjoner er markert for total
+     *                              rollback (dvs. savepoint vil ikke virke)
      */
     protected void runTaskAndUpdateStatus(Connection conn, ProsessTaskEntitet pte, PickAndRunTask pickAndRun)
-        throws SQLException {
+            throws SQLException {
         String name = pte.getTaskName();
         pickAndRun.markerTaskUnderArbeid(pte);
 
         // set up a savepoint to rollback to in case of failure
-        Savepoint savepoint = conn.setSavepoint();
+        var savepoint = conn.setSavepoint();
 
         try {
             if (vetoHåndterer.vetoRunTask(pte)) {
@@ -99,18 +101,18 @@ public class RunTask {
             getEntityManager().flush();
 
             if (ProsessTaskStatus.KLAR == pte.getStatus()) {
-                ProsessTaskStatus sluttStatus = pickAndRun.markerTaskFerdig(pte);
+                var sluttStatus = pickAndRun.markerTaskFerdig(pte);
 
-                log.info("Prosesstask [{}], id={}, status={}", pte.getTaskName(), pte.getId(), sluttStatus);
+                LOG.info("Prosesstask [{}], id={}, status={}", pte.getTaskName(), pte.getId(), sluttStatus);
                 pickAndRun.planleggNesteKjøring(pte);
             }
 
         } catch (JDBCConnectionException
-            | SQLTransientException
-            | SQLNonTransientConnectionException
-            | LockTimeoutException 
-            | ProsessTaskMidlertidigException
-            | SQLRecoverableException e) {
+                | SQLTransientException
+                | SQLNonTransientConnectionException
+                | LockTimeoutException
+                | ProsessTaskMidlertidigException
+                | SQLRecoverableException e) {
 
             // vil kun logges
             pickAndRun.getFeilOgStatushåndterer().handleTransientAndRecoverableException(e);
@@ -118,26 +120,32 @@ public class RunTask {
         } catch (SavepointRolledbackException e) {
 
             if (erTransaksjonRollbackEllerInaktiv()) {
-                // håndter likt som vanlige exceptions (under) med mindre transaksjonen er markert for rollback
+                // håndter likt som vanlige exceptions (under) med mindre transaksjonen er
+                // markert for rollback
                 throw new PersistenceException(e);
             } else {
-                // implementasjon av task har kastet en feil samtidig som det har rullet tilbake et egen-definert savepoint.
+                // implementasjon av task har kastet en feil samtidig som det har rullet tilbake
+                // et egen-definert savepoint.
                 // fanger opp dette og lagrer som feil på prosess task'en.
-                // Transaksjonen vil fortsatt committes (men da uten den tilstand som er rullet tilbake til et savepoint).
+                // Transaksjonen vil fortsatt committes (men da uten den tilstand som er rullet
+                // tilbake til et savepoint).
 
-                // NB: Task forventes å være robust nok til å kunne gjentas dersom feilhåndteringsalgortime er konfigurert til det.
+                // NB: Task forventes å være robust nok til å kunne gjentas dersom
+                // feilhåndteringsalgortime er konfigurert til det.
 
                 // allerede rullet tilbake, skal ikke rulle mer her
                 // anta feil kan skrives tilbake til databasen
                 pickAndRun.getFeilOgStatushåndterer().handleTaskFeil(pte, e);
-                // NB: pt. har denne samme feilhåndtering som andre exceptions (se under) bortsett fra at savepoint her rulles ikke tilbake.
+                // NB: pt. har denne samme feilhåndtering som andre exceptions (se under)
+                // bortsett fra at savepoint her rulles ikke tilbake.
             }
 
         } catch (InjectionException e) {
             // Fatal feil, kan ikke kjøre denne på nytt uansett
 
             if (erTransaksjonRollbackEllerInaktiv()) {
-                // håndter likt som vanlige exceptions (under) med mindre transaksjonen er markert for rollback
+                // håndter likt som vanlige exceptions (under) med mindre transaksjonen er
+                // markert for rollback
                 throw new PersistenceException(e);
             } else {
                 getEntityManager().clear(); // fjern mulig korrupt tilstand
@@ -149,7 +157,8 @@ public class RunTask {
         } catch (Exception e) {
 
             if (erTransaksjonRollbackEllerInaktiv()) {
-                // håndter likt som vanlige exceptions (under) med mindre transaksjonen er markert for rollback
+                // håndter likt som vanlige exceptions (under) med mindre transaksjonen er
+                // markert for rollback
                 throw (e instanceof PersistenceException pe) ? pe : new PersistenceException(e);
             } else {
                 getEntityManager().clear(); // fjern mulig korrupt tilstand
@@ -170,15 +179,16 @@ public class RunTask {
     }
 
     /**
-     * Denne klassen enkapsulerer plukk og kjør en task, og tilhørende bokføring av status og tidsstempler
-     * på kjøringen.
+     * Denne klassen enkapsulerer plukk og kjør en task, og tilhørende bokføring av
+     * status og tidsstempler på kjøringen.
      */
     class PickAndRunTask {
         private final RunTaskInfo taskInfo;
         private final RunTaskFeilOgStatusEventHåndterer feilOgStatushåndterer;
 
         PickAndRunTask(RunTaskInfo taskInfo) {
-            this.feilOgStatushåndterer = new RunTaskFeilOgStatusEventHåndterer(taskInfo, eventPubliserer, taskManagerRepository, feilhåndteringalgoritmer);
+            this.feilOgStatushåndterer = new RunTaskFeilOgStatusEventHåndterer(taskInfo, eventPubliserer, taskManagerRepository,
+                    feilhåndteringalgoritmer);
             this.taskInfo = taskInfo;
         }
 
@@ -234,13 +244,13 @@ public class RunTask {
                 getEntityManager().persist(nyPte);
                 getEntityManager().flush();
 
-                log.info("Oppretter ny prosesstask [{}], id={}, status={}, cron={}, nå={}, nytt kjøretidspunkt etter={}",
-                    nyPte.getTaskName(),
-                    nyPte.getId(),
-                    nyPte.getStatus(),
-                    now,
-                    taskType.getCronExpression(),
-                    nyPte.getNesteKjøringEtter());
+                LOG.info("Oppretter ny prosesstask [{}], id={}, status={}, cron={}, nå={}, nytt kjøretidspunkt etter={}",
+                        nyPte.getTaskName(),
+                        nyPte.getId(),
+                        nyPte.getStatus(),
+                        now,
+                        taskType.getCronExpression(),
+                        nyPte.getNesteKjøringEtter());
             }
         }
 
@@ -257,7 +267,10 @@ public class RunTask {
         void runTask() {
 
             final PickAndRunTask pickAndRun = this;
-            /* Bruker SQL+JDBC for å kunne benytte savepoints og inkrementell oppdatering i transaksjonen. */
+            /*
+             * Bruker SQL+JDBC for å kunne benytte savepoints og inkrementell oppdatering i
+             * transaksjonen.
+             */
             class PullSingleTask implements Work {
                 @Override
                 public void execute(Connection conn) throws SQLException {
@@ -267,11 +280,11 @@ public class RunTask {
                             runTaskAndUpdateStatus(conn, pte.get(), pickAndRun);
                         }
                     } catch (JDBCConnectionException
-                        | SQLTransientException
-                        | SQLNonTransientConnectionException
-                        | LockTimeoutException
-                        | ProsessTaskMidlertidigException
-                        | SQLRecoverableException e) {
+                            | SQLTransientException
+                            | SQLNonTransientConnectionException
+                            | LockTimeoutException
+                            | ProsessTaskMidlertidigException
+                            | SQLRecoverableException e) {
 
                         // vil kun logges
                         pickAndRun.getFeilOgStatushåndterer().handleTransientAndRecoverableException(e);
@@ -288,7 +301,7 @@ public class RunTask {
             }
 
             @SuppressWarnings("resource") // skal ikke lukke session her
-                Session session = em.unwrap(Session.class);
+            Session session = em.unwrap(Session.class);
 
             session.doWork(pullSingleTask);
 

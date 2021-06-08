@@ -5,7 +5,6 @@ import org.slf4j.event.Level;
 
 public record Feil(String kode, String feilmelding, Level logLevel, Throwable cause) {
 
-
     private String toLogString() {
         return (kode + ":" + feilmelding).replaceAll("(\\r|\\n)", "");
     }
@@ -24,13 +23,12 @@ public record Feil(String kode, String feilmelding, Level logLevel, Throwable ca
         return this;
     }
 
-
     private void logUtenCause(Logger logger) {
         String text = toLogString();
         switch (logLevel) {
-            case ERROR -> logger.error(text); // NOSONAR
-            case WARN -> logger.warn(text); // NOSONAR
-            case INFO -> logger.info(text); // NOSONAR
+            case ERROR -> logger.error(text);
+            case WARN -> logger.warn(text);
+            case INFO -> logger.info(text);
             default -> throw new IllegalArgumentException("Ikke-støttet LogLevel: " + logLevel);
         }
     }
@@ -38,9 +36,9 @@ public record Feil(String kode, String feilmelding, Level logLevel, Throwable ca
     private void logMedCause(Logger logger) {
         String text = toLogString();
         switch (logLevel) {
-            case ERROR -> logger.error(text, cause); // NOSONAR
-            case WARN -> logger.warn(text, cause); // NOSONAR
-            case INFO -> logger.info(text, cause); // NOSONAR
+            case ERROR -> logger.error(text, cause);
+            case WARN -> logger.warn(text, cause);
+            case INFO -> logger.info(text, cause);
             default -> throw new IllegalArgumentException("Ikke-støttet LogLevel: " + logLevel);
         }
     }

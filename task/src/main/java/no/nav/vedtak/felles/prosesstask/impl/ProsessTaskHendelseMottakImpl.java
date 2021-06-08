@@ -21,7 +21,7 @@ import no.nav.vedtak.felles.prosesstask.api.ProsessTaskStatus;
 @ApplicationScoped
 public class ProsessTaskHendelseMottakImpl implements ProsessTaskHendelseMottak {
 
-    private static final Logger log = LoggerFactory.getLogger(ProsessTaskHendelseMottakImpl.class);
+    private static final Logger LOG = LoggerFactory.getLogger(ProsessTaskHendelseMottakImpl.class);
 
     private ProsessTaskRepositoryImpl repository;
 
@@ -50,7 +50,7 @@ public class ProsessTaskHendelseMottakImpl implements ProsessTaskHendelseMottak 
         }
         task.setStatus(ProsessTaskStatus.KLAR);
         task.setNesteKjøringEtter(LocalDateTime.now());
-        log.info("Behandler hendelse {} i task {}, behandling id {}", hendelse, taskId, task.getBehandlingId()); //$NON-NLS-1$
+        LOG.info("Behandler hendelse {} i task {}, behandling id {}", hendelse, taskId, task.getBehandlingId()); //$NON-NLS-1$
         repository.lagre(task);
     }
 

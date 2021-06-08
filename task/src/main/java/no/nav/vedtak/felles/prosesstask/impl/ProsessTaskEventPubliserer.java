@@ -14,40 +14,37 @@ import no.nav.vedtak.felles.prosesstask.api.ProsessTaskStatus;
 @Dependent
 public class ProsessTaskEventPubliserer {
 
-    private static final Logger log = LoggerFactory.getLogger(ProsessTaskEventPubliserer.class);
+    private static final Logger LOG = LoggerFactory.getLogger(ProsessTaskEventPubliserer.class);
 
-    private Event<ProsessTaskEvent> publiserer;
+    private final Event<ProsessTaskEvent> publiserer;
 
-    private HandleProsessTaskLifecycleObserver handleProsessTaskLifecycleObserver;
-
-    protected ProsessTaskEventPubliserer() {
-        // for CDI
-    }
+    private final HandleProsessTaskLifecycleObserver handleProsessTaskLifecycleObserver;
 
     @Inject
     public ProsessTaskEventPubliserer(Event<ProsessTaskEvent> publiserer) {
-        super();
         this.publiserer = publiserer;
         handleProsessTaskLifecycleObserver = new HandleProsessTaskLifecycleObserver();
     }
-    
+
     public void fireEvent(ProsessTaskData data, ProsessTaskStatus gammelStatus, ProsessTaskStatus nyStatus) {
         fireEvent(data, gammelStatus, nyStatus, null, null);
     }
-    
+
     public void fireEvent(ProsessTaskData data, ProsessTaskStatus gammelStatus, ProsessTaskStatus nyStatus, Feil feil, Exception orgException) {
         // I CDI 1.2 skjer publisering av event kun synkront så feil kan
-        // avbryte inneværende transaksjon. Logger eventuelle exceptions fra event observere uten å la tasken endre status.
+        // avbryte inneværende transaksjon. Logger eventuelle exceptions fra event
+        // observere uten å la tasken endre status.
         try {
             publiserer.fire(new ProsessTaskEvent(data, gammelStatus, nyStatus, feil, orgException));
         } catch (RuntimeException e) { // NOSONAR
             // logger og svelger exception her. Feil oppstått i event observer
             String orgExceptionMessage = orgException == null ? null : String.valueOf(orgException);
-            log.warn("PT-314162 Pollet task for kjøring: id={}, type={}, originalException={}", data.getId(), data.getTaskType(), orgExceptionMessage, e);
+            LOG.warn("PT-314162 Pollet task for kjøring: id={}, type={}, originalException={}", data.getId(), data.getTaskType(), orgExceptionMessage,
+                    e);
         }
 
     }
-    
+
     public HandleProsessTaskLifecycleObserver getHandleProsessTaskLifecycleObserver() {
         return handleProsessTaskLifecycleObserver;
     }

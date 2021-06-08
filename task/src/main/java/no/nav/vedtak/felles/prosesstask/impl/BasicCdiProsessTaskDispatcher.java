@@ -15,33 +15,22 @@ import org.hibernate.exception.JDBCConnectionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import io.micrometer.core.instrument.Meter.Id;
 import io.micrometer.core.instrument.Metrics;
-import io.micrometer.core.instrument.config.MeterFilter;
-import io.micrometer.core.instrument.distribution.DistributionStatisticConfig;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTask;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskDispatcher;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskHandler;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskInfo;
+import no.nav.vedtak.log.metrics.MetricsUtil;
 
 /**
  * Implementerer dispatch vha. CDI scoped beans.
  */
 public class BasicCdiProsessTaskDispatcher implements ProsessTaskDispatcher {
+    private static final String METRIC_NAME = "task";
 
     static {
-        Metrics.globalRegistry.config().meterFilter(new MeterFilter() {
-            @Override
-            public DistributionStatisticConfig configure(Id id, DistributionStatisticConfig config) {
-                if (id.getName().startsWith("task")) {
-                    return DistributionStatisticConfig.builder()
-                            .percentilesHistogram(true)
-                            .percentiles(0.5, 0.95, 0.99).build().merge(config);
-                }
-                return config;
-            }
-        });
+        MetricsUtil.utvidMedHistogram(METRIC_NAME);
     }
     private static final Logger LOG = LoggerFactory.getLogger(BasicCdiProsessTaskDispatcher.class);
     /**
@@ -69,7 +58,7 @@ public class BasicCdiProsessTaskDispatcher implements ProsessTaskDispatcher {
 
     @Override
     public void dispatch(ProsessTaskData task) throws Exception {
-        try (ProsessTaskHandlerRef prosessTaskHandler = findHandler(task)) {
+        try (var prosessTaskHandler = findHandler(task)) {
             prosessTaskHandler.doTask(task);
         }
     }
@@ -82,15 +71,14 @@ public class BasicCdiProsessTaskDispatcher implements ProsessTaskDispatcher {
     }
 
     public ProsessTaskHandlerRef findHandler(ProsessTaskInfo task) {
-        ProsessTaskHandler prosessTaskHandler = CDI.current()
-                .select(ProsessTaskHandler.class, new ProsessTaskLiteral(task.getTaskType())).get();
+        var prosessTaskHandler = CDI.current().select(ProsessTaskHandler.class, new ProsessTaskLiteral(task.getTaskType())).get();
         return new ProsessTaskHandlerRef(prosessTaskHandler);
     }
 
     /** Referanse til en {@link ProsessTaskHandler}. */
     public static class ProsessTaskHandlerRef implements AutoCloseable {
 
-        private ProsessTaskHandler bean;
+        private final ProsessTaskHandler bean;
 
         protected ProsessTaskHandlerRef(ProsessTaskHandler bean) {
             this.bean = bean;
@@ -112,7 +100,7 @@ public class BasicCdiProsessTaskDispatcher implements ProsessTaskDispatcher {
 
         public void doTask(ProsessTaskData data) {
             LOG.info("Starter task {}", data.getTaskType());
-            Metrics.timer("task", "type", data.getTaskType()).record(() -> bean.doTask(data));
+            Metrics.timer(METRIC_NAME, "type", data.getTaskType()).record(() -> bean.doTask(data));
             LOG.info("Stoppet task {}", data.getTaskType());
         }
 

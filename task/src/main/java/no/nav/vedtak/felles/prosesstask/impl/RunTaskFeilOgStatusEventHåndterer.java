@@ -1,5 +1,8 @@
 package no.nav.vedtak.felles.prosesstask.impl;
 
+import static no.nav.vedtak.felles.prosesstask.impl.TaskManagerFeil.kunneIkkeProsessereTaskVilIkkePrøveIgjenEnkelFeilmelding;
+import static no.nav.vedtak.felles.prosesstask.impl.TaskManagerFeil.kunneIkkeProsessereTaskVilPrøveIgjenEnkelFeilmelding;
+
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -16,10 +19,13 @@ import no.nav.vedtak.felles.prosesstask.api.ProsessTaskFeil;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskStatus;
 import no.nav.vedtak.felles.prosesstask.spi.ProsessTaskFeilhåndteringAlgoritme;
 
-/** Samler feilhåndtering og status publisering som skjer på vanlige prosess tasks. */
+/**
+ * Samler feilhåndtering og status publisering som skjer på vanlige prosess
+ * tasks.
+ */
 public class RunTaskFeilOgStatusEventHåndterer {
 
-    private static final Logger log = LoggerFactory.getLogger(RunTaskFeilOgStatusEventHåndterer.class);
+    private static final Logger LOG = LoggerFactory.getLogger(RunTaskFeilOgStatusEventHåndterer.class);
 
     private final ProsessTaskEventPubliserer eventPubliserer;
     private final TaskManagerRepositoryImpl taskManagerRepository;
@@ -28,8 +34,8 @@ public class RunTaskFeilOgStatusEventHåndterer {
     private final RunTaskInfo taskInfo;
 
     public RunTaskFeilOgStatusEventHåndterer(RunTaskInfo taskInfo, ProsessTaskEventPubliserer eventPubliserer,
-                                             TaskManagerRepositoryImpl taskManagerRepository,
-                                             Instance<ProsessTaskFeilhåndteringAlgoritme> feilhåndteringsalgoritmer) {
+            TaskManagerRepositoryImpl taskManagerRepository,
+            Instance<ProsessTaskFeilhåndteringAlgoritme> feilhåndteringsalgoritmer) {
         this.taskInfo = taskInfo;
         this.eventPubliserer = eventPubliserer;
         this.taskManagerRepository = taskManagerRepository;
@@ -47,38 +53,35 @@ public class RunTaskFeilOgStatusEventHåndterer {
     }
 
     /**
-     * handle exception on task. Update failure count if less than max.
-     * NB: Exception may be null if a lifecycle observer vetoed it (veto==true)
+     * handle exception on task. Update failure count if less than max. NB:
+     * Exception may be null if a lifecycle observer vetoed it (veto==true)
      */
     protected void handleTaskFeil(ProsessTaskEntitet pte, Exception e) {
         String taskName = pte.getTaskName();
-        ProsessTaskType taskType = taskManagerRepository.getTaskType(taskName);
-        ProsessTaskFeilhand feilhåndteringsData = taskType.getFeilhåndteringAlgoritme();
-        ProsessTaskFeilhåndteringAlgoritme feilhåndteringsalgoritme = getFeilhåndteringsalgoritme(feilhåndteringsData.getKode());
+        var taskType = taskManagerRepository.getTaskType(taskName);
+        var feilhåndteringsData = taskType.getFeilhåndteringAlgoritme();
+        var feilhåndteringsalgoritme = getFeilhåndteringsalgoritme(feilhåndteringsData.getKode());
 
         int failureAttempt = pte.getFeiledeForsøk() + 1;
 
         if (sjekkOmSkalKjøresPåNytt(e, taskType, feilhåndteringsalgoritme, failureAttempt)) {
             LocalDateTime nyTid = getNesteKjøringForNyKjøring(feilhåndteringsData, feilhåndteringsalgoritme, failureAttempt);
-
-            Feil feil = TaskManagerFeil.kunneIkkeProsessereTaskVilPrøveIgjenEnkelFeilmelding(taskInfo.getId(), taskName, failureAttempt,
-                nyTid, e);
-
+            var feil = kunneIkkeProsessereTaskVilPrøveIgjenEnkelFeilmelding(taskInfo.getId(), taskName, failureAttempt, nyTid, e);
             String feiltekst = getFeiltekstOgLoggEventueltHvisEndret(pte, feil, e, false);
             taskManagerRepository.oppdaterStatusOgNesteKjøring(pte.getId(), ProsessTaskStatus.KLAR, nyTid, feil.kode(), feiltekst, failureAttempt);
 
             // endrer ikke status ved nytt forsøk eller publiserer event p.t.
         } else {
-            Feil feil = feilhåndteringsalgoritme.hendelserNårIkkeKjøresPåNytt(e, pte.tilProsessTask());
+            var feil = feilhåndteringsalgoritme.hendelserNårIkkeKjøresPåNytt(e, pte.tilProsessTask());
             if (feil == null) {
-                feil = TaskManagerFeil.kunneIkkeProsessereTaskVilIkkePrøveIgjenEnkelFeilmelding(taskInfo.getId(), taskName, failureAttempt, e);
+                feil = kunneIkkeProsessereTaskVilIkkePrøveIgjenEnkelFeilmelding(taskInfo.getId(), taskName, failureAttempt, e);
             }
             handleFatalTaskFeil(pte, feil, e);
         }
     }
 
     protected void handleFatalTaskFeil(ProsessTaskEntitet pte, Feil feil, Exception e) {
-        ProsessTaskStatus nyStatus = ProsessTaskStatus.FEILET;
+        var nyStatus = ProsessTaskStatus.FEILET;
         try {
             publiserNyStatusEvent(pte.tilProsessTask(), pte.getStatus(), nyStatus, feil, e);
         } finally {
@@ -95,23 +98,25 @@ public class RunTaskFeilOgStatusEventHåndterer {
         /*
          * assume won't help to try and write to database just now, log only instead
          */
-        log.warn("PT-530440 Kunne ikke prosessere task pga transient database feil: id={}, taskName={}. Vil automatisk prøve igjen",
+        LOG.warn("PT-530440 Kunne ikke prosessere task pga transient database feil: id={}, taskName={}. Vil automatisk prøve igjen",
                 taskInfo.getId(), taskInfo.getTaskType(), e);
     }
 
-    private LocalDateTime getNesteKjøringForNyKjøring(ProsessTaskFeilhand feilhåndteringsData, ProsessTaskFeilhåndteringAlgoritme feilhåndteringsalgoritme,
-                                                      int failureAttempt) {
+    private LocalDateTime getNesteKjøringForNyKjøring(ProsessTaskFeilhand feilhåndteringsData,
+            ProsessTaskFeilhåndteringAlgoritme feilhåndteringsalgoritme,
+            int failureAttempt) {
         int secsBetweenAttempts = feilhåndteringsalgoritme.getForsinkelseStrategi().sekunderTilNesteForsøk(failureAttempt,
-            feilhåndteringsData);
+                feilhåndteringsData);
 
         LocalDateTime nyTid = LocalDateTime.now().plusSeconds(secsBetweenAttempts);
         return nyTid;
     }
 
     private boolean sjekkOmSkalKjøresPåNytt(Exception e, ProsessTaskType taskType, ProsessTaskFeilhåndteringAlgoritme feilhåndteringsalgoritme,
-                                            int failureAttempt) {
+            int failureAttempt) {
 
-        // Prøv på nytt hvis kjent exception og feilhåndteringsalgoritmen tilsier nytt forsøk. Ellers fail-fast
+        // Prøv på nytt hvis kjent exception og feilhåndteringsalgoritmen tilsier nytt
+        // forsøk. Ellers fail-fast
         if (feilhåndteringExceptions(e) || (e.getCause() != null && feilhåndteringExceptions(e.getCause()))) {
             return feilhåndteringsalgoritme.skalKjørePåNytt(taskType.tilProsessTaskTypeInfo(), failureAttempt, e);
         }
@@ -124,7 +129,7 @@ public class RunTaskFeilOgStatusEventHåndterer {
 
     protected static String getFeiltekstOgLoggEventueltHvisEndret(ProsessTaskEntitet pte, Feil feil, Throwable t, boolean erEndeligFeil) {
 
-        ProsessTaskFeil taskFeil = new ProsessTaskFeil(pte.tilProsessTask(), feil);
+        var taskFeil = new ProsessTaskFeil(pte.tilProsessTask(), feil);
 
         String feilkode = taskFeil.getFeilkode();
         String feiltekst = null;
@@ -133,22 +138,23 @@ public class RunTaskFeilOgStatusEventHåndterer {
         } catch (IOException e1) {
             // kunne ikke skrive ut json, log stack trace
             feiltekst = "Kunne ikke skrive ut json struktur for feil: " + feilkode + ", json exception: " + e1;
-            log.warn(feiltekst, t); // NOSONAR
+            LOG.warn(feiltekst, t); // NOSONAR
         }
 
         if (erEndeligFeil
-            || feilkode == null
-            || !Objects.equals(feilkode, pte.getSisteFeilKode())
-            || !Objects.equals(feiltekst, pte.getSisteFeilTekst())) {
-            // logg hvis første gang feil, er feil som ikke vil rekjøres, eller feil er endret
-            feil.log(log);
+                || feilkode == null
+                || !Objects.equals(feilkode, pte.getSisteFeilKode())
+                || !Objects.equals(feiltekst, pte.getSisteFeilTekst())) {
+            // logg hvis første gang feil, er feil som ikke vil rekjøres, eller feil er
+            // endret
+            feil.log(LOG);
         }
         return feiltekst;
     }
 
     protected ProsessTaskFeilhåndteringAlgoritme getFeilhåndteringsalgoritme(String kode) {
         List<ProsessTaskFeilhåndteringAlgoritme> kandidater = new ArrayList<>(1);
-        for (ProsessTaskFeilhåndteringAlgoritme algoritme : feilhåndteringsalgoritmer) {
+        for (var algoritme : feilhåndteringsalgoritmer) {
             if (algoritme.kode().equals(kode)) {
                 kandidater.add(algoritme);
             }

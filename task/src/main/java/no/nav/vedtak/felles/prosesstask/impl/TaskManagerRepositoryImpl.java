@@ -1,7 +1,6 @@
 package no.nav.vedtak.felles.prosesstask.impl;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.lang.management.ManagementFactory;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
@@ -46,18 +45,14 @@ public class TaskManagerRepositoryImpl {
 
     private static final EnumSet<ProsessTaskStatus> KJØRT_STATUSER = EnumSet.of(ProsessTaskStatus.FERDIG, ProsessTaskStatus.KJOERT);
     private static final Set<ProsessTaskStatus> IKKE_KJØRT_STATUSER = EnumSet.complementOf(KJØRT_STATUSER)
-        .stream().collect(Collectors.toUnmodifiableSet());
+            .stream().collect(Collectors.toUnmodifiableSet());
 
     private static final Logger log = LoggerFactory.getLogger(TaskManagerRepositoryImpl.class);
 
     private String jvmUniqueProcessName = getJvmUniqueProcessName();
     private String sqlFraFil = getSqlFraFil(TaskManager.class.getSimpleName() + "_pollTask.sql");
 
-    private EntityManager entityManager;
-
-    protected TaskManagerRepositoryImpl() {
-        // for CDI proxying
-    }
+    private final EntityManager entityManager;
 
     public TaskManagerRepositoryImpl(EntityManager entityMangager) {
         Objects.requireNonNull(entityMangager, "entityManager");
@@ -66,8 +61,7 @@ public class TaskManagerRepositoryImpl {
 
     @Inject
     public TaskManagerRepositoryImpl(@Any Instance<EntityManager> entityMangager) {
-        Objects.requireNonNull(entityMangager, "entityManager");
-        this.entityManager = entityMangager.get();
+        this(entityMangager.get());
     }
 
     EntityManager getEntityManager() {
@@ -83,7 +77,7 @@ public class TaskManagerRepositoryImpl {
     }
 
     static String getSqlFraFil(String filNavn) {
-        try (InputStream is = TaskManager.class.getResourceAsStream(filNavn);
+        try (var is = TaskManager.class.getResourceAsStream(filNavn);
                 Scanner s = is == null ? null : new Scanner(is, "UTF8")) {
 
             if (s == null) {
@@ -106,13 +100,12 @@ public class TaskManagerRepositoryImpl {
     List<ProsessTaskData> pollNeste(LocalDateTime etterTid) {
         final String sqlForPolling = getSqlForPolling();
 
-        @SuppressWarnings("resource")
-        List<ProsessTaskEntitet> resultList = getEntityManagerAsSession()
-            .createNativeQuery(sqlForPolling, ProsessTaskEntitet.class) // NOSONAR - statisk SQL
-            .setParameter("neste_kjoering", etterTid, TemporalType.TIMESTAMP)
-            .setParameter("skip_ids", Set.of(-1))
-            .setHint(QueryHints.HINT_CACHE_MODE, "IGNORE")
-            .getResultList();
+        var resultList = getEntityManagerAsSession()
+                .createNativeQuery(sqlForPolling, ProsessTaskEntitet.class) // NOSONAR - statisk SQL
+                .setParameter("neste_kjoering", etterTid, TemporalType.TIMESTAMP)
+                .setParameter("skip_ids", Set.of(-1))
+                .setHint(QueryHints.HINT_CACHE_MODE, "IGNORE")
+                .getResultList();
         return tilProsessTask(resultList);
     }
 
@@ -126,8 +119,9 @@ public class TaskManagerRepositoryImpl {
         return em.unwrap(Session.class);
     }
 
-    void oppdaterStatusOgNesteKjøring(Long prosessTaskId, ProsessTaskStatus taskStatus, LocalDateTime nesteKjøringEtter, String feilkode, String feiltekst,
-                                      int feilforsøk) {
+    void oppdaterStatusOgNesteKjøring(Long prosessTaskId, ProsessTaskStatus taskStatus, LocalDateTime nesteKjøringEtter, String feilkode,
+            String feiltekst,
+            int feilforsøk) {
         String updateSql = """
             update PROSESS_TASK set
              status =:status
@@ -137,7 +131,7 @@ public class TaskManagerRepositoryImpl {
             ,siste_kjoering_feil_kode = :feilkode
             ,siste_kjoering_feil_tekst = :feiltekst
             , siste_kjoering_slutt_ts = :status_ts
-            ,versjon=versjon+1 
+            ,versjon=versjon+1
             WHERE id = :id AND status NOT IN ('VETO', 'SUSPENDERT', 'KJOERT', 'FERDIG')
             """;
 
@@ -145,14 +139,14 @@ public class TaskManagerRepositoryImpl {
         String status = taskStatus.getDbKode();
         @SuppressWarnings("resource")
         int tasks = getEntityManagerAsSession().createNativeQuery(updateSql)
-            .setParameter("id", prosessTaskId) // NOSONAR
-            .setParameter("status", status) // NOSONAR
-            .setParameter("status_ts", now, TemporalType.TIMESTAMP) // NOSONAR
-            .setParameter("neste", nesteKjøringEtter, TemporalType.TIMESTAMP) // NOSONAR
-            .setParameter("feilkode", feilkode)// NOSONAR
-            .setParameter("feiltekst", feiltekst)// NOSONAR
-            .setParameter("forsoek", feilforsøk)// NOSONAR
-            .executeUpdate();
+                .setParameter("id", prosessTaskId) // NOSONAR
+                .setParameter("status", status) // NOSONAR
+                .setParameter("status_ts", now, TemporalType.TIMESTAMP) // NOSONAR
+                .setParameter("neste", nesteKjøringEtter, TemporalType.TIMESTAMP) // NOSONAR
+                .setParameter("feilkode", feilkode)// NOSONAR
+                .setParameter("feiltekst", feiltekst)// NOSONAR
+                .setParameter("forsoek", feilforsøk)// NOSONAR
+                .executeUpdate();
 
         if (tasks > 0) {
             log.info("Oppdatert task [{}], ny status[{}], feilkode[{}], nesteKjøringEtter[{}]", prosessTaskId, status, feilkode, nesteKjøringEtter);
@@ -167,7 +161,7 @@ public class TaskManagerRepositoryImpl {
             ,siste_kjoering_feil_kode = NULL
             ,siste_kjoering_feil_tekst = NULL
             ,siste_kjoering_slutt_ts = :status_ts
-            ,versjon=versjon+1 
+            ,versjon=versjon+1
             WHERE id = :id
             """;
 
@@ -175,10 +169,10 @@ public class TaskManagerRepositoryImpl {
         LocalDateTime now = LocalDateTime.now();
         @SuppressWarnings({ "unused", "resource" })
         int tasks = getEntityManagerAsSession().createNativeQuery(updateSql) // NOSONAR
-            .setParameter("id", prosessTaskId)
-            .setParameter("status", status)
-            .setParameter("status_ts", now, TemporalType.TIMESTAMP)
-            .executeUpdate();
+                .setParameter("id", prosessTaskId)
+                .setParameter("status", status)
+                .setParameter("status_ts", now, TemporalType.TIMESTAMP)
+                .executeUpdate();
 
     }
 
@@ -186,69 +180,74 @@ public class TaskManagerRepositoryImpl {
     @SuppressWarnings("resource")
     void oppdaterTaskUnderArbeid(Long prosessTaskId, LocalDateTime now) {
         String updateSql = "update PROSESS_TASK set" +
-            "  siste_kjoering_ts = :naa" +
-            " ,versjon=versjon+1 " +
-            " WHERE id = :id";
+                "  siste_kjoering_ts = :naa" +
+                " ,versjon=versjon+1 " +
+                " WHERE id = :id";
 
         @SuppressWarnings("unused")
         int tasks = getEntityManagerAsSession().createNativeQuery(updateSql) // NOSONAR
-            .setParameter("id", prosessTaskId)
-            .setParameter("naa", now, TemporalType.TIMESTAMP)
-            .executeUpdate();
+                .setParameter("id", prosessTaskId)
+                .setParameter("naa", now, TemporalType.TIMESTAMP)
+                .executeUpdate();
 
     }
 
-    /** Markere tasks om er kjørt FERDIG. Dette har som konsekvens at det flytter tasks fra default partisjon til FERDIG partisjoner. */
+    /**
+     * Markere tasks om er kjørt FERDIG. Dette har som konsekvens at det flytter
+     * tasks fra default partisjon til FERDIG partisjoner.
+     */
     void moveToDonePartition() {
         String updateSql = "update PROSESS_TASK set status = 'FERDIG' WHERE status='KJOERT'";
 
         @SuppressWarnings("unused")
         int tasks = entityManager.createNativeQuery(updateSql)
-            .executeUpdate();
+                .executeUpdate();
 
     }
 
     /** Markere task plukket til arbeid (ligger på in-memory kø). */
     void oppdaterTaskPlukket(Long prosessTaskId, LocalDateTime nesteKjøring, LocalDateTime now) {
         String updateSql = "update PROSESS_TASK set" +
-            "  neste_kjoering_etter= :neste_kjoering" +
-            " ,siste_kjoering_plukk_ts = :naa" +
-            " ,siste_kjoering_server = :server" +
-            " ,versjon=versjon+1 " +
-            " WHERE id = :id";
+                "  neste_kjoering_etter= :neste_kjoering" +
+                " ,siste_kjoering_plukk_ts = :naa" +
+                " ,siste_kjoering_server = :server" +
+                " ,versjon=versjon+1 " +
+                " WHERE id = :id";
 
         @SuppressWarnings("unused")
         int tasks = entityManager.createNativeQuery(updateSql) // NOSONAR
-            .setParameter("id", prosessTaskId)
-            .setParameter("neste_kjoering", nesteKjøring)
-            .setParameter("naa", now)
-            .setParameter("server", jvmUniqueProcessName)
-            .executeUpdate();
+                .setParameter("id", prosessTaskId)
+                .setParameter("neste_kjoering", nesteKjøring)
+                .setParameter("naa", now)
+                .setParameter("server", jvmUniqueProcessName)
+                .executeUpdate();
 
     }
 
     /**
-     * Poll neste vha. scrolling. Dvs. vi plukker en og en task og håndterer den får vi laster mer fra databasen. Sikrer
-     * at flere pollere kan opere samtidig og uavhengig av hverandre.
+     * Poll neste vha. scrolling. Dvs. vi plukker en og en task og håndterer den får
+     * vi laster mer fra databasen. Sikrer at flere pollere kan opere samtidig og
+     * uavhengig av hverandre.
      */
     @SuppressWarnings({ "resource" })
     List<ProsessTaskEntitet> pollNesteScrollingUpdate(int numberOfTasks, long waitTimeBeforeNextPollingAttemptSecs, Set<Long> skipIds) {
         int numberOfTasksStillToGo = numberOfTasks;
         List<ProsessTaskEntitet> tasksToRun = new ArrayList<>(numberOfTasks);
 
-        // bruker JDBC/SQL + Scrolling For å kunne streame resultat (henter spesifikt kun en og en rad om
+        // bruker JDBC/SQL + Scrolling For å kunne streame resultat (henter spesifikt
+        // kun en og en rad om
         // gangen) og definere eksakt spørring.
 
         // Scroller for å kunne oppdatere en og en rad uten å ta lås på neste.
         var timestamp = LocalDateTime.now();
         try (ScrollableResults results = getEntityManagerAsSession()
-            .createNativeQuery(getSqlForPolling(), ProsessTaskEntitet.class)
-            .setFlushMode(FlushMode.MANUAL)
-            // hent kun 1 av gangen for å la andre pollere slippe til
-            .setHint(QueryHints.HINT_FETCH_SIZE, 1)
-            .setParameter("neste_kjoering", timestamp, TemporalType.TIMESTAMP)
-            .setParameter("skip_ids", skipIds.isEmpty() ? Set.of(-1) : skipIds)
-            .scroll(ScrollMode.FORWARD_ONLY);) {
+                .createNativeQuery(getSqlForPolling(), ProsessTaskEntitet.class)
+                .setFlushMode(FlushMode.MANUAL)
+                // hent kun 1 av gangen for å la andre pollere slippe til
+                .setHint(QueryHints.HINT_FETCH_SIZE, 1)
+                .setParameter("neste_kjoering", timestamp, TemporalType.TIMESTAMP)
+                .setParameter("skip_ids", skipIds.isEmpty() ? Set.of(-1) : skipIds)
+                .scroll(ScrollMode.FORWARD_ONLY);) {
 
             LocalDateTime now = getNåTidSekundOppløsning();
             LocalDateTime nyNesteTid = now.plusSeconds(waitTimeBeforeNextPollingAttemptSecs);
@@ -268,14 +267,16 @@ public class TaskManagerRepositoryImpl {
     }
 
     LocalDateTime getNåTidSekundOppløsning() {
-        // nåtid trunkeres til seconds siden det er det nestekjøring presisjon i db tilsier. Merk at her må også sistekjøring settes
+        // nåtid trunkeres til seconds siden det er det nestekjøring presisjon i db
+        // tilsier. Merk at her må også sistekjøring settes
         // med sekund oppløsning siden disse sammenlignes i hand-over til RunTask
         return LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
     }
 
     void logTaskPollet(ProsessTaskEntitet pte) {
         log.info("Pollet task for kjøring: id={}, type={}, gruppe={}, sekvens={}, status={}, tidligereFeiledeForsøk={}, angitt nesteKjøringEtter={}", // NOSONAR
-            pte.getId(), pte.getTaskName(), pte.getGruppe(), pte.getSekvens(), pte.getStatus(), pte.getFeiledeForsøk(), pte.getNesteKjøringEtter());
+                pte.getId(), pte.getTaskName(), pte.getGruppe(), pte.getSekvens(), pte.getStatus(), pte.getFeiledeForsøk(),
+                pte.getNesteKjøringEtter());
     }
 
     List<ProsessTaskData> tilProsessTask(List<ProsessTaskEntitet> resultList) {
@@ -294,22 +295,23 @@ public class TaskManagerRepositoryImpl {
 
     @SuppressWarnings("unchecked")
     private Optional<ProsessTaskEntitet> finnOgLås(Long taskId, String status, LocalDateTime sistKjørtLowWatermark, String taskType) {
-        // plukk task kun dersom id og task er samme (ellers er den allerede håndtert av andre).
+        // plukk task kun dersom id og task er samme (ellers er den allerede håndtert av
+        // andre).
         String sql = " select pte.* from PROSESS_TASK pte "
-            + " WHERE pte.id=:id"
-            + "   AND pte.task_type=:taskType"
-            + "   AND pte.status=:status"
-            + "   AND ( pte.siste_kjoering_ts IS NULL OR pte.siste_kjoering_ts >=:sisteTs )"
-            + "   FOR UPDATE SKIP LOCKED";
+                + " WHERE pte.id=:id"
+                + "   AND pte.task_type=:taskType"
+                + "   AND pte.status=:status"
+                + "   AND ( pte.siste_kjoering_ts IS NULL OR pte.siste_kjoering_ts >=:sisteTs )"
+                + "   FOR UPDATE SKIP LOCKED";
 
         @SuppressWarnings("resource")
         Query query = getEntityManagerAsSession().createNativeQuery(sql, ProsessTaskEntitet.class)
-            .setHint(org.hibernate.annotations.QueryHints.FETCH_SIZE, 1)
-            .setHint("javax.persistence.cache.storeMode", "REFRESH")
-            .setParameter("id", taskId)// NOSONAR
-            .setParameter("taskType", taskType)// NOSONAR
-            .setParameter("status", status)// NOSONAR
-            .setParameter("sisteTs", sistKjørtLowWatermark, TemporalType.TIMESTAMP);
+                .setHint(org.hibernate.annotations.QueryHints.FETCH_SIZE, 1)
+                .setHint("javax.persistence.cache.storeMode", "REFRESH")
+                .setParameter("id", taskId)// NOSONAR
+                .setParameter("taskType", taskType)// NOSONAR
+                .setParameter("status", status)// NOSONAR
+                .setParameter("sisteTs", sistKjørtLowWatermark, TemporalType.TIMESTAMP);
 
         return query.getResultList().stream().findFirst();
     }
@@ -326,10 +328,10 @@ public class TaskManagerRepositoryImpl {
 
         @SuppressWarnings("resource")
         Query query = getEntityManagerAsSession().createNativeQuery(sql, ProsessTaskEntitet.class)
-            .setHint(org.hibernate.annotations.QueryHints.FETCH_SIZE, 1)
-            .setHint("javax.persistence.cache.storeMode", "REFRESH")
-            .setParameter("id", blokkerendeTaskId)// NOSONAR
-            .setParameter("statuser", ikkeKjørtStatuser);
+                .setHint(org.hibernate.annotations.QueryHints.FETCH_SIZE, 1)
+                .setHint("javax.persistence.cache.storeMode", "REFRESH")
+                .setParameter("id", blokkerendeTaskId)// NOSONAR
+                .setParameter("statuser", ikkeKjørtStatuser);
 
         Stream<ProsessTaskEntitet> stream = query.getResultStream();
         return stream.findFirst();
@@ -344,10 +346,10 @@ public class TaskManagerRepositoryImpl {
     List<ProsessTaskEntitet> finnStatusForBatchTasks() {
         @SuppressWarnings("unchecked")
         NativeQuery<ProsessTaskEntitet> query = (NativeQuery<ProsessTaskEntitet>) entityManager
-            .createNativeQuery(
-                "SELECT pt.* from PROSESS_TASK pt inner join PROSESS_TASK_TYPE t on t.kode=pt.task_type " +
-                    "where t.cron_expression is not null and pt.status IN ('KLAR', 'FEILET', 'SUSPENDERT')",
-                ProsessTaskEntitet.class);
+                .createNativeQuery(
+                        "SELECT pt.* from PROSESS_TASK pt inner join PROSESS_TASK_TYPE t on t.kode=pt.task_type " +
+                                "where t.cron_expression is not null and pt.status IN ('KLAR', 'FEILET', 'SUSPENDERT')",
+                        ProsessTaskEntitet.class);
         return query.getResultList();
     }
 
@@ -355,38 +357,39 @@ public class TaskManagerRepositoryImpl {
         String sql;
         if (DatabaseUtil.isPostgres(entityManager)) {
             sql = "select current_setting('TIMEZONE') as dbtz,"
-                + "  to_char(current_timestamp, 'YYYY-MM-DD HH24:MI:SS.US+TZ') as dbtid,"
-                + "  to_char(cast(:inputTid as timestamp with time zone), 'YYYY-MM-DD HH24:MI:SS.US+TZ') as inputtid,"
-                + "  :inputTid as inputtid2,"
-                + "  (current_timestamp - :inputTid) as drift";
+                    + "  to_char(current_timestamp, 'YYYY-MM-DD HH24:MI:SS.US+TZ') as dbtid,"
+                    + "  to_char(cast(:inputTid as timestamp with time zone), 'YYYY-MM-DD HH24:MI:SS.US+TZ') as inputtid,"
+                    + "  :inputTid as inputtid2,"
+                    + "  (current_timestamp - :inputTid) as drift";
         } else if (DatabaseUtil.isOracle(entityManager)) {
             sql = "select DBTIMEZONE as dbtz,"
-                + "  to_char(current_timestamp, 'YYYY-MM-DD HH24:MI:SSxFF6+TZH:TZM') as dbtid,"
-                + "  to_char(cast(:inputTid as timestamp with time zone), 'YYYY-MM-DD HH24:MI:SSxFF6+TZH:TZM') as inputtid,"
-                + "  :inputTid as inputtid2,"
-                + "  (current_timestamp - :inputTid) as drift"
-                + " from dual";
+                    + "  to_char(current_timestamp, 'YYYY-MM-DD HH24:MI:SSxFF6+TZH:TZM') as dbtid,"
+                    + "  to_char(cast(:inputTid as timestamp with time zone), 'YYYY-MM-DD HH24:MI:SSxFF6+TZH:TZM') as inputtid,"
+                    + "  :inputTid as inputtid2,"
+                    + "  (current_timestamp - :inputTid) as drift"
+                    + " from dual";
         } else {
             throw new UnsupportedOperationException("Unsupported Database: " + DatabaseUtil.getDialect(entityManager));
         }
 
         LocalDateTime now = LocalDateTime.now();
         @SuppressWarnings({ "resource", "cast" })
-        var result = (StartupData) getEntityManagerAsSession().createNativeQuery(sql, StartupData.class)
-            .setParameter("inputTid", now, TemporalType.TIMESTAMP)
-            .getSingleResult();
+        var result = getEntityManagerAsSession().createNativeQuery(sql, StartupData.class)
+                .setParameter("inputTid", now, TemporalType.TIMESTAMP)
+                .getSingleResult();
 
         Object hibernateTz = entityManager.getEntityManagerFactory().getProperties().get("hibernate.jdbc.time_zone");
         String userTz = System.getProperty("user.timezone");
         log.info("Startup: DB(tz={}, current_timestamp={}), App(user.timezone={}, hibernate.jdbc.time_zone={}, inputtid={}, inputtid2={}). Drift={}",
-            result.dbtz, result.dbtid, userTz, hibernateTz, result.inputtid, result.inputtid2, result.drift);
+                result.dbtz, result.dbtid, userTz, hibernateTz, result.inputtid, result.inputtid2, result.drift);
     }
 
     /**
-     * Når vi setter veto/blokkert på en task er vi ikke garantert at ikke den som blokkerer ikke er i ferd med å kjøres/snart er ferdig (fordi
-     * vi opererer med read committed / ikke serialzable rea)
-     * istdf å ta lås på blokkerende tasks før hvert veto, ettergår vi bare de som har blitt blokkert og opphever veto dersom det ikke er
-     * nødvendig lenger.
+     * Når vi setter veto/blokkert på en task er vi ikke garantert at ikke den som
+     * blokkerer ikke er i ferd med å kjøres/snart er ferdig (fordi vi opererer med
+     * read committed / ikke serialzable rea) istdf å ta lås på blokkerende tasks
+     * før hvert veto, ettergår vi bare de som har blitt blokkert og opphever veto
+     * dersom det ikke er nødvendig lenger.
      */
     void unblockTasks() {
         String sqlUnveto = """
@@ -404,7 +407,7 @@ public class TaskManagerRepositoryImpl {
             """;
 
         int unvetoed = entityManager.createNativeQuery(sqlUnveto)
-            .executeUpdate();
+                .executeUpdate();
         if (unvetoed > 0) {
             log.info("Fjernet veto fra {} tasks som var blokkert av andre tasks som allerede er ferdig", unvetoed);
         }
@@ -422,9 +425,9 @@ public class TaskManagerRepositoryImpl {
         String sql = " select pte.* from PROSESS_TASK pte WHERE pte.id=:id";
         @SuppressWarnings("resource")
         Query query = getEntityManagerAsSession().createNativeQuery(sql, ProsessTaskEntitet.class)
-            .setHint(org.hibernate.annotations.QueryHints.FETCH_SIZE, 1)
-            .setHint("javax.persistence.cache.storeMode", "REFRESH")
-            .setParameter("id", id);// NOSONAR
+                .setHint(org.hibernate.annotations.QueryHints.FETCH_SIZE, 1)
+                .setHint("javax.persistence.cache.storeMode", "REFRESH")
+                .setParameter("id", id);// NOSONAR
         return (ProsessTaskEntitet) query.getSingleResult();
     }
 

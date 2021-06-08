@@ -51,7 +51,7 @@ public class TaskManager implements AppServiceHandler {
     public static final String TASK_MANAGER_POLLING_TASKS_SIZE = "task.manager.polling.tasks.size";
     public static final String TASK_MANAGER_RUNNER_THREADS = "task.manager.runner.threads";
 
-    private static final Logger log = LoggerFactory.getLogger(TaskManager.class);
+    private static final Logger LOG = LoggerFactory.getLogger(TaskManager.class);
 
     private TaskManagerRepositoryImpl taskManagerRepository;
 
@@ -203,7 +203,7 @@ public class TaskManager implements AppServiceHandler {
             startTaskThreads();
             startPollerThread();
         } else {
-            log.info(
+            LOG.info(
                     "Kan ikke starte {}, ingen tråder konfigurert, sjekk om du har konfigurert kontaineren din riktig bør ha minst en cpu tilgjengelig.",
                     getClass().getSimpleName());
         }
@@ -227,11 +227,11 @@ public class TaskManager implements AppServiceHandler {
 
     synchronized void startPollerThread() {
         if (pollingServiceScheduledFutures != null) {
-            throw new IllegalStateException("Service allerede startet, stopp først");//$NON-NLS-1$
+            throw new IllegalStateException("Service allerede startet, stopp først");
         }
         if (pollingService == null) {
             this.pollingService = Executors
-                    .newSingleThreadScheduledExecutor(new NamedThreadFactory(threadPoolNamePrefix + "-poller", false)); //$NON-NLS-1$
+                    .newSingleThreadScheduledExecutor(new NamedThreadFactory(threadPoolNamePrefix + "-poller", false));
         }
         this.pollingServiceScheduledFutures = List.of(
                 pollingService.scheduleWithFixedDelay(new PollAvailableTasks(), delayBetweenPollingMillis / 2, delayBetweenPollingMillis,
@@ -279,7 +279,7 @@ public class TaskManager implements AppServiceHandler {
         if (tasksFound.isEmpty()) {
             if (pollerRoundNoneLastReported.get().plusHours(1).isBefore(now)) {
                 pollerRoundNoneLastReported.set(now);
-                log.info("Ingen tasks funnet siden [{}].", pollerRoundNoneFoundSince.get());
+                LOG.info("Ingen tasks funnet siden [{}].", pollerRoundNoneFoundSince.get());
             }
         } else {
             pollerRoundNoneFoundSince.set(now); // reset
@@ -291,7 +291,7 @@ public class TaskManager implements AppServiceHandler {
         if (capacity < 1) {
             long round = pollerRoundNoCapacityRounds.incrementAndGet();
             if (round % 60 == 0) {
-                log.warn(
+                LOG.warn(
                         "Ingen ledig kapasitet i siste polling runder siden [{}].  Sjekk eventuelt om tasks blir kjørt eller om de henger/er treghet under kjøring.",
                         pollerRoundNoCapacitySince.get());
             }
@@ -375,14 +375,14 @@ public class TaskManager implements AppServiceHandler {
                 Thread.currentThread().interrupt();
             } catch (JDBCConnectionException e) { // NOSONAR
                 backoffRound.incrementAndGet();
-                log.warn("PT-739415 Transient datase connection feil, venter til neste runde (runde={}): {}: {}",
+                LOG.warn("PT-739415 Transient datase connection feil, venter til neste runde (runde={}): {}: {}",
                         backoffRound.get(), e.getClass(), e.getMessage());
             } catch (Exception e) { // NOSONAR
                 backoffRound.set(backoffInterval.length - 1); // force max delay (skal kun havne her for Exception/RuntimeException)
-                log.warn("PT-996896 Kunne ikke polle database, venter til neste runde(runde={})", backoffRound.get(), e);
+                LOG.warn("PT-996896 Kunne ikke polle database, venter til neste runde(runde={})", backoffRound.get(), e);
             } catch (Throwable t) { // NOSONAR
                 backoffRound.set(backoffInterval.length - 1); // force max delay (skal kun havne her for Error)
-                log.error("PT-996897 Kunne ikke polle grunnet kritisk feil, venter ({}s)", getBackoffIntervalSeconds(), t);
+                LOG.error("PT-996897 Kunne ikke polle grunnet kritisk feil, venter ({}s)", getBackoffIntervalSeconds(), t);
             }
 
             return -1;
@@ -402,7 +402,7 @@ public class TaskManager implements AppServiceHandler {
                  *
                  * @see ScheduledExecutorService#scheduleWithFixedDelay
                  */
-                log.error("Polling fatal feil, logger exception men tråden vil bli drept", fatal);
+                LOG.error("Polling fatal feil, logger exception men tråden vil bli drept", fatal);
                 throw fatal;
             }
         }
@@ -494,7 +494,7 @@ public class TaskManager implements AppServiceHandler {
                 return new DoInNewTransaction().doWork();
             } catch (Throwable t) { // NOSONAR
                 // logg, ikke rethrow feil her da det dreper trådene
-                log.error("Kunne ikke flytte KJOERT tasks til FERDIG partisjoner", t);
+                LOG.error("Kunne ikke flytte KJOERT tasks til FERDIG partisjoner", t);
             }
             return 1;
         }
@@ -541,7 +541,7 @@ public class TaskManager implements AppServiceHandler {
                 return new DoInNewTransaction().doWork();
             } catch (Throwable t) { // NOSONAR
                 // logg, ikke rethrow feil her da det dreper trådene
-                log.error("Kunne ikke unblokkerer tasks som kan frigis", t);
+                LOG.error("Kunne ikke unblokkerer tasks som kan frigis", t);
             }
             return 1;
         }
