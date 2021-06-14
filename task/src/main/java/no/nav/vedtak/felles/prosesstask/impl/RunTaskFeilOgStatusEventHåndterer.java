@@ -76,8 +76,7 @@ public class RunTaskFeilOgStatusEventHåndterer {
             var feil = kunneIkkeProsessereTaskVilPrøveIgjenEnkelFeilmelding(taskInfo.getId(), taskName, failureAttempt, nyTid, e);
             String feiltekst = getFeiltekstOgLoggEventueltHvisEndret(pte, feil, e, false);
             taskManagerRepository.oppdaterStatusOgNesteKjøring(pte.getId(), ProsessTaskStatus.KLAR, nyTid, feil.kode(), feiltekst, failureAttempt);
-            counter(TASK_FEIL, SEVERITY, "retryable", TYPE, taskInfo.getTaskType()).increment();
-
+            count("retryable");
             // endrer ikke status ved nytt forsøk eller publiserer event p.t.
         } else {
             var feil = feilhåndteringsalgoritme.hendelserNårIkkeKjøresPåNytt(e, pte.tilProsessTask());
@@ -92,7 +91,7 @@ public class RunTaskFeilOgStatusEventHåndterer {
         var nyStatus = ProsessTaskStatus.FEILET;
         try {
             publiserNyStatusEvent(pte.tilProsessTask(), pte.getStatus(), nyStatus, feil, e);
-            counter(TASK_FEIL, SEVERITY, "fatal", TYPE, taskInfo.getTaskType()).increment();
+            count("fatal");
         } finally {
             int failureAttempt = pte.getFeiledeForsøk() + 1;
             String feiltekst = getFeiltekstOgLoggEventueltHvisEndret(pte, feil, e, true);
@@ -107,7 +106,7 @@ public class RunTaskFeilOgStatusEventHåndterer {
         /*
          * assume won't help to try and write to database just now, log only instead
          */
-        counter(TASK_FEIL, SEVERITY, "transient", TYPE, taskInfo.getTaskType()).increment();
+        count("transient");
         LOG.warn("PT-530440 Kunne ikke prosessere task pga transient database feil: id={}, taskName={}. Vil automatisk prøve igjen",
                 taskInfo.getId(), taskInfo.getTaskType(), e);
     }
@@ -175,4 +174,7 @@ public class RunTaskFeilOgStatusEventHåndterer {
         throw new IllegalStateException("Forventet å finne 1 feilhåndteringsalgoritme for '" + kode + "', men fant " + kandidater); //$NON-NLS-1$ //$NON-NLS-2$
     }
 
+    private void count(String severity) {
+        counter(TASK_FEIL, SEVERITY, severity, TYPE, taskInfo.getTaskType()).increment();
+    }
 }
