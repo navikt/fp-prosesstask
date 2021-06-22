@@ -73,7 +73,7 @@
 			<dependency>
 				<groupId>no.nav.foreldrepenger.felles</groupId>
 				<artifactId>felles</artifactId>
-				<scope>proivded</scope>
+				<scope>provided</scope>
 				<type>pom</type>
 			</dependency>
 
