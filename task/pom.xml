@@ -17,12 +17,12 @@
 		<dependency>
 			<groupId>no.nav.foreldrepenger.felles</groupId>
 			<artifactId>felles-log</artifactId>
-			<scope>provided</scope>
+<!--			<scope>provided</scope>-->
 		</dependency>
 		<dependency>
 			<groupId>no.nav.foreldrepenger.felles</groupId>
 			<artifactId>felles-db</artifactId>
-			<scope>provided</scope>
+<!--			<scope>provided</scope>-->
 		</dependency>
 
 		<dependency>
