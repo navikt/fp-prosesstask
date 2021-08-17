@@ -19,7 +19,6 @@ import no.nav.vedtak.felles.prosesstask.api.ProsessTaskTypeInfo;
 import no.nav.vedtak.felles.prosesstask.rest.dto.FeiletProsessTaskDataDto;
 import no.nav.vedtak.felles.prosesstask.rest.dto.ProsessTaskDataDto;
 import no.nav.vedtak.felles.prosesstask.rest.dto.ProsessTaskDataKonverter;
-import no.nav.vedtak.felles.prosesstask.rest.dto.ProsessTaskDataPayloadDto;
 import no.nav.vedtak.felles.prosesstask.rest.dto.ProsessTaskOpprettInputDto;
 import no.nav.vedtak.felles.prosesstask.rest.dto.ProsessTaskRestartInputDto;
 import no.nav.vedtak.felles.prosesstask.rest.dto.ProsessTaskRestartResultatDto;
@@ -69,11 +68,6 @@ public class ProsessTaskApplikasjonTjeneste {
             return Optional.of(ProsessTaskDataKonverter.tilFeiletProsessTaskDataDto(taskData));
         }
         return Optional.empty();
-    }
-
-    public Optional<ProsessTaskDataPayloadDto> finnProsessTaskMedPayload(Long prosessTaskId) {
-        ProsessTaskData taskData = prosessTaskRepository.finn(prosessTaskId);
-        return taskData == null ? Optional.empty() : Optional.of(ProsessTaskDataKonverter.tilProsessTaskDataPayloadDto(taskData));
     }
 
     public void setProsessTaskFerdig(Long prosessTaskId, ProsessTaskStatus status) {

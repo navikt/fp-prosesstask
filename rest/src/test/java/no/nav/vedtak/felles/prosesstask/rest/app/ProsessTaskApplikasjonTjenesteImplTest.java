@@ -1,5 +1,6 @@
 package no.nav.vedtak.felles.prosesstask.rest.app;
 
+import static no.nav.vedtak.felles.prosesstask.api.ProsessTaskData.AKTØR_ID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
@@ -15,7 +16,9 @@ import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -29,7 +32,6 @@ import no.nav.vedtak.felles.prosesstask.api.ProsessTaskStatus;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskTypeInfo;
 import no.nav.vedtak.felles.prosesstask.rest.dto.FeiletProsessTaskDataDto;
 import no.nav.vedtak.felles.prosesstask.rest.dto.ProsessTaskDataDto;
-import no.nav.vedtak.felles.prosesstask.rest.dto.ProsessTaskDataPayloadDto;
 import no.nav.vedtak.felles.prosesstask.rest.dto.ProsessTaskOpprettInputDto;
 import no.nav.vedtak.felles.prosesstask.rest.dto.ProsessTaskRestartInputDto;
 import no.nav.vedtak.felles.prosesstask.rest.dto.ProsessTaskRestartResultatDto;
@@ -208,11 +210,17 @@ public class ProsessTaskApplikasjonTjenesteImplTest {
     @Test
     public void skal_filtrere_ut_prosesstask_med_status_feilet() {
         final Long taskId = 10L;
-        when(prosessTaskRepositoryMock.finn(anyLong())).thenReturn(lagMedStatus(ProsessTaskStatus.FEILET));
+        var uuid = UUID.randomUUID();
+        Map<String, String> parameters = Map.of(AKTØR_ID, "1111111111111",
+                "behandlingUUId", uuid.toString(),
+                "localProp", String.valueOf(123L));
+        when(prosessTaskRepositoryMock.finn(anyLong())).thenReturn(lagMedStatusPlussParameters(ProsessTaskStatus.FEILET, parameters));
         FeiletProsessTaskDataDto result = prosessTaskApplikasjonTjeneste.finnFeiletProsessTask(taskId).get();
 
         verify(prosessTaskRepositoryMock, times(1)).finn(taskId);
         assertThat(result.getProsessTaskDataDto().getStatus()).isEqualTo(ProsessTaskStatus.FEILET.getDbKode());
+        assertThat(result.getProsessTaskDataDto().getTaskParametre().stringPropertyNames()).hasSize(1);
+        assertThat(result.getProsessTaskDataDto().getTaskParametre().getProperty("behandlingUUId")).isEqualTo(uuid.toString());
     }
 
     @Test
@@ -226,15 +234,6 @@ public class ProsessTaskApplikasjonTjenesteImplTest {
     }
 
     @Test
-    public void skal_returnere_task_payload_hvis_eksisterer() throws Exception {
-        final Long taskId = 10L;
-        when(prosessTaskRepositoryMock.finn(anyLong())).thenReturn(lagMedPayload());
-        ProsessTaskDataPayloadDto result = prosessTaskApplikasjonTjeneste.finnProsessTaskMedPayload(taskId).get();
-        verify(prosessTaskRepositoryMock, times(1)).finn(taskId);
-        assertThat(result.getPayload()).isEqualTo(PAYLOAD_STRING);
-    }
-
-    @Test
     public void skal_returnere_empty_hvis_ugyldig_kjoretidsintervall() throws Exception {
         SokeFilterDto sokeFilterDto = new SokeFilterDto();
         sokeFilterDto.setSisteKjoeretidspunktFraOgMed(LocalDateTime.now());
@@ -245,17 +244,18 @@ public class ProsessTaskApplikasjonTjenesteImplTest {
         assertThat(result).isEmpty();
     }
 
-    private ProsessTaskData lagMedPayload() {
-        ProsessTaskData prosessTaskData = new ProsessTaskData(TASK_TYPE);
-        prosessTaskData.setStatus(ProsessTaskStatus.FERDIG);
-        prosessTaskData.setPayload(PAYLOAD_STRING);
-        return prosessTaskData;
-    }
-
     private ProsessTaskData lagMedStatus(ProsessTaskStatus status) {
         ProsessTaskData prosessTaskData = new ProsessTaskData(TASK_TYPE);
         prosessTaskData.setStatus(status);
         prosessTaskData.setAntallFeiledeForsøk(0);
+        return prosessTaskData;
+    }
+
+    private ProsessTaskData lagMedStatusPlussParameters(ProsessTaskStatus status, Map<String, String> parameters) {
+        ProsessTaskData prosessTaskData = new ProsessTaskData(TASK_TYPE);
+        prosessTaskData.setStatus(status);
+        prosessTaskData.setAntallFeiledeForsøk(0);
+        parameters.forEach(prosessTaskData::setProperty);
         return prosessTaskData;
     }
 
