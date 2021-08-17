@@ -1,8 +1,13 @@
 package no.nav.vedtak.felles.prosesstask.rest.dto;
 
+import java.util.Properties;
+import java.util.Set;
+
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
 
 public class ProsessTaskDataKonverter {
+
+    private static final Set<String> EXTRACT_PARAMS = Set.of("behandlingid", "behandlinguuid", "fagsakid", "saksnummer");
 
     private ProsessTaskDataKonverter() {
     }
@@ -18,7 +23,7 @@ public class ProsessTaskDataKonverter {
         dto.setStatus(data.getStatus().getDbKode());
         dto.setSistKjørt(data.getSistKjørt());
         dto.setSisteFeilKode(data.getSisteFeilKode());
-        dto.setTaskParametre(data.getProperties());
+        dto.setTaskParametre(filtrerProperties(data.getProperties()));
 
         return dto;
     }
@@ -35,18 +40,12 @@ public class ProsessTaskDataKonverter {
         return dto;
     }
 
-    public static ProsessTaskDataPayloadDto tilProsessTaskDataPayloadDto(ProsessTaskData data) {
-        ProsessTaskDataPayloadDto dto = new ProsessTaskDataPayloadDto();
-
-        dto.setProsessTaskDataDto(tilProsessTaskDataDto(data));
-
-        dto.setFeiledeForsøk(data.getAntallFeiledeForsøk());
-        dto.setSisteFeilTekst(data.getSisteFeil());
-        dto.setSisteKjøringServerProsess(data.getSisteKjøringServerProsess());
-
-        dto.setPayload(data.getPayloadAsString());
-
-        return dto;
+    private static Properties filtrerProperties(Properties input) {
+        var output = new Properties();
+        input.stringPropertyNames().stream()
+                .filter(p -> EXTRACT_PARAMS.contains(p.toLowerCase()))
+                .forEach(p -> output.setProperty(p, input.getProperty(p)));
+        return output;
     }
 
 }

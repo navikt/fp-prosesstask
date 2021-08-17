@@ -1,7 +1,5 @@
 package no.nav.vedtak.felles.prosesstask.rest.dto;
 
-import java.util.Optional;
-
 import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
 
@@ -13,13 +11,12 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonUnwrapped;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import no.nav.vedtak.log.sporingslogg.Sporingsdata;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonFormat(shape = JsonFormat.Shape.OBJECT)
 @JsonAutoDetect(getterVisibility = Visibility.NONE, setterVisibility = Visibility.NONE, fieldVisibility = Visibility.ANY)
 @Schema
-public class FeiletProsessTaskDataDto implements ProsessTaskDataInfo {
+public class FeiletProsessTaskDataDto {
 
     @JsonProperty(value="sisteKjøringServerProsess")
     @Size(max=100)
@@ -70,10 +67,5 @@ public class FeiletProsessTaskDataDto implements ProsessTaskDataInfo {
 
     public void setProsessTaskDataDto(ProsessTaskDataDto prosessTaskDataDto) {
         this.prosessTaskDataDto = prosessTaskDataDto;
-    }
-
-    @Override
-    public Optional<Sporingsdata> lagSporingsloggData(String action) {
-        return prosessTaskDataDto.lagSporingsloggData(action);
     }
 }
