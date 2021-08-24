@@ -1,15 +1,15 @@
 package no.nav.vedtak.felles.prosesstask.impl.feilhåndtering;
 
+import no.nav.vedtak.felles.prosesstask.impl.ProsessTaskType;
 import no.nav.vedtak.felles.prosesstask.spi.ForsinkelseStrategi;
 import no.nav.vedtak.felles.prosesstask.spi.ProsessTaskFeilHåndteringParametere;
 
 public class BackoffFeilhåndteringStrategi implements ForsinkelseStrategi {
 
-    // TODO (FC): definert noen enkle tall. Bør konfigureres eksternt
-    final int[] backoffIntervaller = new int[]{30, 30, 30, 60}; // NOSONAR
-
     @Override
-    public int sekunderTilNesteForsøk(int runde, ProsessTaskFeilHåndteringParametere feilhåndteringAlgoritme) {
-        return backoffIntervaller[Math.min(runde, backoffIntervaller.length) - 1];
+    public int sekunderTilNesteForsøk(ProsessTaskType taskType, int runde, ProsessTaskFeilHåndteringParametere feilhåndteringAlgoritme) {
+        if (runde >= taskType.getMaksForsøk()) throw new IllegalStateException("Manglende limitsjekk");
+        if (runde == 0) return 0;
+        return taskType.getSekunderFørNesteForsøk() * (int) Math.pow(2, (double) runde - 1);
     }
 }
