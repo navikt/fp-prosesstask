@@ -18,7 +18,7 @@ public class ÅpningstidForsinkelseStrategiTest {
     public void utenforÅpningsTidTest() {
         LocalDateTime localDateTime = LocalDateTime.of(2017, 6, 14, 5, 5, 5);
         LocalDateTime expected = LocalDateTime.of(2017, 6, 14, klokkeslettÅpning, 5, 5);
-        int i = strategi.sekunderTilNesteForsøk(localDateTime, klokkeslettÅpning, klokkeslettStenging);
+        int i = strategi.sekunderTilNesteForsøk(localDateTime, 120, klokkeslettÅpning, klokkeslettStenging);
         long diff = expected.toEpochSecond(ZoneOffset.UTC) - localDateTime.toEpochSecond(ZoneOffset.UTC) + 120;
         Assertions.assertEquals(i, diff);
     }
@@ -26,7 +26,7 @@ public class ÅpningstidForsinkelseStrategiTest {
     @Test
     public void innenforÅpningsTidTest() {
         LocalDateTime localDateTime = LocalDateTime.of(2017, 6, 14, 10, 5, 5);
-        int i = strategi.sekunderTilNesteForsøk(localDateTime, klokkeslettÅpning, klokkeslettStenging);
+        int i = strategi.sekunderTilNesteForsøk(localDateTime, 120, klokkeslettÅpning, klokkeslettStenging);
         Assertions.assertTrue(i == 120);
     }
 
@@ -34,7 +34,7 @@ public class ÅpningstidForsinkelseStrategiTest {
     public void helgenÅpningsTidTest() {
         LocalDateTime localDateTime = LocalDateTime.of(2017, 6, 17, 10, 5, 5);
         LocalDateTime expected = LocalDateTime.of(2017, 6, 19, klokkeslettÅpning, 5, 5);
-        int i = strategi.sekunderTilNesteForsøk(localDateTime, klokkeslettÅpning, klokkeslettStenging);
+        int i = strategi.sekunderTilNesteForsøk(localDateTime, 120, klokkeslettÅpning, klokkeslettStenging);
         long diff = expected.toEpochSecond(ZoneOffset.UTC) - localDateTime.toEpochSecond(ZoneOffset.UTC) + 120;
         Assertions.assertEquals(i, diff);
     }

@@ -24,7 +24,7 @@ public class ProsessTaskType {
     private int maksForsøk = 1;
 
     @Column(name = "feil_sek_mellom_forsoek", updatable = false, insertable = false, nullable = false)
-    private int sekundeFørNesteForsøk = 1;
+    private int sekunderFørNesteForsøk = 1;
 
     @ManyToOne
     @JoinColumn(name = "feilhandtering_algoritme", updatable = false, insertable = false)
@@ -62,12 +62,19 @@ public class ProsessTaskType {
         this.cronExpression = cronExpression;
     }
 
+    public ProsessTaskType(String kode, String navn, int maksForsøk, int sekunderFørNesteForsøk) {
+        this.maksForsøk = maksForsøk;
+        this.sekunderFørNesteForsøk = sekunderFørNesteForsøk;
+        this.kode = kode;
+        this.navn = navn;
+    }
+
     public int getMaksForsøk() {
         return maksForsøk;
     }
 
-    public int getSekundeFørNesteForsøk() {
-        return sekundeFørNesteForsøk;
+    public int getSekunderFørNesteForsøk() {
+        return sekunderFørNesteForsøk;
     }
 
     public ProsessTaskFeilhand getFeilhåndteringAlgoritme() {

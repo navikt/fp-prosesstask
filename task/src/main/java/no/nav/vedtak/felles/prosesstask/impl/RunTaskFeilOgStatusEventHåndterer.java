@@ -72,7 +72,7 @@ public class RunTaskFeilOgStatusEventHåndterer {
         int failureAttempt = pte.getFeiledeForsøk() + 1;
 
         if (sjekkOmSkalKjøresPåNytt(e, taskType, feilhåndteringsalgoritme, failureAttempt)) {
-            LocalDateTime nyTid = getNesteKjøringForNyKjøring(feilhåndteringsData, feilhåndteringsalgoritme, failureAttempt);
+            LocalDateTime nyTid = getNesteKjøringForNyKjøring(taskType, feilhåndteringsData, feilhåndteringsalgoritme, failureAttempt);
             var feil = kunneIkkeProsessereTaskVilPrøveIgjenEnkelFeilmelding(taskInfo.getId(), taskName, failureAttempt, nyTid, e);
             String feiltekst = getFeiltekstOgLoggEventueltHvisEndret(pte, feil, e, false);
             taskManagerRepository.oppdaterStatusOgNesteKjøring(pte.getId(), ProsessTaskStatus.KLAR, nyTid, feil.kode(), feiltekst, failureAttempt);
@@ -111,10 +111,11 @@ public class RunTaskFeilOgStatusEventHåndterer {
                 taskInfo.getId(), taskInfo.getTaskType(), e);
     }
 
-    private LocalDateTime getNesteKjøringForNyKjøring(ProsessTaskFeilhand feilhåndteringsData,
+    private LocalDateTime getNesteKjøringForNyKjøring(ProsessTaskType taskType,
+            ProsessTaskFeilhand feilhåndteringsData,
             ProsessTaskFeilhåndteringAlgoritme feilhåndteringsalgoritme,
             int failureAttempt) {
-        int secsBetweenAttempts = feilhåndteringsalgoritme.getForsinkelseStrategi().sekunderTilNesteForsøk(failureAttempt,
+        int secsBetweenAttempts = feilhåndteringsalgoritme.getForsinkelseStrategi().sekunderTilNesteForsøk(taskType, failureAttempt,
                 feilhåndteringsData);
 
         LocalDateTime nyTid = LocalDateTime.now().plusSeconds(secsBetweenAttempts);
