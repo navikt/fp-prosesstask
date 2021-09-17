@@ -6,6 +6,7 @@ import java.util.Optional;
 import java.util.Properties;
 
 import no.nav.vedtak.felles.prosesstask.impl.Feil;
+import no.nav.vedtak.felles.prosesstask.impl.TaskType;
 
 
 /**
@@ -161,6 +162,11 @@ public class ProsessTaskEvent implements ProsessTaskInfo {
     @Override
     public String getTaskType() {
         return data.getTaskType();
+    }
+
+    @Override
+    public TaskType taskType() {
+        return data.taskType();
     }
 
 }

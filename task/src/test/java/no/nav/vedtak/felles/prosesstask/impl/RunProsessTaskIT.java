@@ -8,20 +8,16 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
-import javax.enterprise.inject.Any;
-import javax.enterprise.inject.Instance;
-import javax.inject.Inject;
-
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
 import no.nav.vedtak.felles.jpa.savepoint.SavepointRolledbackException;
 import no.nav.vedtak.felles.prosesstask.JpaExtension;
+import no.nav.vedtak.felles.prosesstask.api.ProsessTask;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskDispatcher;
-import no.nav.vedtak.felles.prosesstask.spi.ProsessTaskFeilhåndteringAlgoritme;
+import no.nav.vedtak.felles.prosesstask.api.ProsessTaskHandler;
 import no.nav.vedtak.felles.testutilities.cdi.CdiAwareExtension;
 
 @ExtendWith(CdiAwareExtension.class)
@@ -34,25 +30,12 @@ public class RunProsessTaskIT {
 
     private TaskManagerRepositoryImpl taskManagerRepo = new TaskManagerRepositoryImpl(repoRule.getEntityManager());
 
-    @Inject
-    @Any
-    Instance<ProsessTaskFeilhåndteringAlgoritme> feilhåndteringAlgoritmer;
-
     LocalDateTime now = LocalDateTime.now();
-
-    @BeforeEach
-    public void setupTestData() throws Exception {
-        TestProsessTaskTestData testData = new TestProsessTaskTestData(repoRule.getEntityManager());
-        for (int i = 1; i <= 10; i++) {
-            testData.opprettTaskType("mytask" + i);
-        }
-        testData.opprettTaskType("mytask11", "0 0 6 * * ?");
-    }
 
     @Test
     public void skal_kjøre_en_task() throws Exception {
         // Arrange
-        ProsessTaskData pt1 = nyTask("mytask1", -10);
+        ProsessTaskData pt1 = nyTask(new TaskType("mytask1"), -10);
         repo.lagre(pt1);
         repo.flushAndClear();
 
@@ -62,7 +45,7 @@ public class RunProsessTaskIT {
         });
 
         // Act
-        RunTask runTask = new RunTask(taskManagerRepo, null, feilhåndteringAlgoritmer);
+        RunTask runTask = new RunTask(taskManagerRepo, null);
 
         runTask.doRun(new RunTaskInfo(dispatcher, pt1));
 
@@ -78,8 +61,8 @@ public class RunProsessTaskIT {
     @Test
     public void skal_kjøre_en_task_og_planlegge_ny() throws Exception {
         // Arrange
-        String taskType = "mytask11";
-        ProsessTaskData pt1 = nyTask(taskType, -10);
+        String taskType = LocalDummyProsessTask.DUMMY_TASK;
+        ProsessTaskData pt1 = nyTask(new TaskType(taskType), -10);
         repo.lagre(pt1);
         repo.flushAndClear();
 
@@ -89,7 +72,7 @@ public class RunProsessTaskIT {
         });
 
         // Act
-        RunTask runTask = new RunTask(taskManagerRepo, null, feilhåndteringAlgoritmer);
+        RunTask runTask = new RunTask(taskManagerRepo, null);
 
         runTask.doRun(new RunTaskInfo(dispatcher, pt1));
 
@@ -110,10 +93,25 @@ public class RunProsessTaskIT {
         assertThat(first.getNesteKjøringEtter()).isAfter(now);
     }
 
+    @ProsessTask(LocalDummyProsessTask.DUMMY_TASK)
+    static class LocalDummyProsessTask implements ProsessTaskHandler {
+
+        static final String DUMMY_TASK = "mytask11";
+        @Override
+        public void doTask(ProsessTaskData data) {
+            //
+        }
+
+        @Override
+        public String cronExpression() {
+            return "0 0 6 * * ?";
+        }
+    }
+
     @Test
     public void skal_kjøre_en_task_som_feiler_og_inkrementere_feilede_forsøk_teller() throws Exception {
         // Arrange
-        ProsessTaskData pt1 = nyTask("mytask1", -10);
+        ProsessTaskData pt1 = nyTask(new TaskType("mytask1"), -10);
         repo.lagre(pt1);
         repo.flushAndClear();
 
@@ -124,7 +122,7 @@ public class RunProsessTaskIT {
         });
 
         // Act
-        RunTask runTask = new RunTask(taskManagerRepo, null, feilhåndteringAlgoritmer);
+        RunTask runTask = new RunTask(taskManagerRepo, null);
 
         runTask.doRun(new RunTaskInfo(dispatcher, pt1));
 
@@ -143,7 +141,7 @@ public class RunProsessTaskIT {
     @Test
     public void skal_kjøre_en_task_som_feiler_med_savepoint_og_inkrementere_feilede_forsøk_teller() throws Exception {
         // Arrange
-        ProsessTaskData pt1 = nyTask("mytask1", -10);
+        ProsessTaskData pt1 = nyTask(new TaskType("mytask1"), -10);
         repo.lagre(pt1);
         repo.flushAndClear();
 
@@ -154,7 +152,7 @@ public class RunProsessTaskIT {
         });
 
         // Act
-        RunTask runTask = new RunTask(taskManagerRepo, null, feilhåndteringAlgoritmer);
+        RunTask runTask = new RunTask(taskManagerRepo, null);
 
         runTask.doRun(new RunTaskInfo(dispatcher, pt1));
 
@@ -177,7 +175,7 @@ public class RunProsessTaskIT {
     @Test
     public void skal_kjøre_en_task_som_feiler_pga_transient_databasefeil_og_ikke_endre_noe() throws Exception {
         // Arrange
-        ProsessTaskData pt1 = nyTask("mytask1", -10);
+        ProsessTaskData pt1 = nyTask(new TaskType("mytask1"), -10);
         repo.lagre(pt1);
         repo.flushAndClear();
 
@@ -188,7 +186,7 @@ public class RunProsessTaskIT {
         });
 
         // Acts
-        RunTask runTask = new RunTask(taskManagerRepo, null, feilhåndteringAlgoritmer);
+        RunTask runTask = new RunTask(taskManagerRepo, null);
 
         runTask.doRun(new RunTaskInfo(dispatcher, pt1));
 
@@ -204,8 +202,8 @@ public class RunProsessTaskIT {
         assertThat(prosessTask.getAntallFeiledeForsøk()).isEqualTo(0);
     }
 
-    private ProsessTaskData nyTask(String taskNavn, int nesteKjøringRelativt) {
-        ProsessTaskData task = new ProsessTaskData(taskNavn);
+    private ProsessTaskData nyTask(TaskType taskType, int nesteKjøringRelativt) {
+        ProsessTaskData task = new ProsessTaskData(taskType);
         task.setNesteKjøringEtter(now.plusSeconds(nesteKjøringRelativt));
         return task;
     }
@@ -223,7 +221,7 @@ public class RunProsessTaskIT {
         }
         
         @Override
-        public void dispatch(ProsessTaskData task) throws Exception {
+        public void dispatch(ProsessTaskHandlerRef taskHandler, ProsessTaskData task) throws Exception {
             consumer.dispatch(task);
         }
     }

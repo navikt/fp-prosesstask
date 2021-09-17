@@ -275,7 +275,7 @@ public class TaskManagerRepositoryImpl {
 
     void logTaskPollet(ProsessTaskEntitet pte) {
         log.info("Pollet task for kjøring: id={}, type={}, gruppe={}, sekvens={}, status={}, tidligereFeiledeForsøk={}, angitt nesteKjøringEtter={}", // NOSONAR
-                pte.getId(), pte.getTaskName(), pte.getGruppe(), pte.getSekvens(), pte.getStatus(), pte.getFeiledeForsøk(),
+                pte.getId(), pte.getTaskType().value(), pte.getGruppe(), pte.getSekvens(), pte.getStatus(), pte.getFeiledeForsøk(),
                 pte.getNesteKjøringEtter());
     }
 
@@ -287,14 +287,14 @@ public class TaskManagerRepositoryImpl {
         Long taskId = taskInfo.getId();
         String status = ProsessTaskStatus.KLAR.getDbKode();
         LocalDateTime sistKjørtLowWatermark = taskInfo.getTimestampLowWatermark();
-        String taskType = taskInfo.getTaskType();
+        var taskType = taskInfo.getTaskType();
 
         return finnOgLås(taskId, status, sistKjørtLowWatermark, taskType);
 
     }
 
     @SuppressWarnings("unchecked")
-    private Optional<ProsessTaskEntitet> finnOgLås(Long taskId, String status, LocalDateTime sistKjørtLowWatermark, String taskType) {
+    private Optional<ProsessTaskEntitet> finnOgLås(Long taskId, String status, LocalDateTime sistKjørtLowWatermark, TaskType taskType) {
         // plukk task kun dersom id og task er samme (ellers er den allerede håndtert av
         // andre).
         String sql = " select pte.* from PROSESS_TASK pte "
@@ -309,7 +309,7 @@ public class TaskManagerRepositoryImpl {
                 .setHint(org.hibernate.annotations.QueryHints.FETCH_SIZE, 1)
                 .setHint("javax.persistence.cache.storeMode", "REFRESH")
                 .setParameter("id", taskId)// NOSONAR
-                .setParameter("taskType", taskType)// NOSONAR
+                .setParameter("taskType", taskType.value())// NOSONAR
                 .setParameter("status", status)// NOSONAR
                 .setParameter("sisteTs", sistKjørtLowWatermark, TemporalType.TIMESTAMP);
 
@@ -343,13 +343,11 @@ public class TaskManagerRepositoryImpl {
         logDatabaseDetaljer();
     }
 
-    List<ProsessTaskEntitet> finnStatusForBatchTasks() {
+    List<ProsessTaskEntitet> finnFeiletTasks() {
         @SuppressWarnings("unchecked")
         NativeQuery<ProsessTaskEntitet> query = (NativeQuery<ProsessTaskEntitet>) entityManager
                 .createNativeQuery(
-                        "SELECT pt.* from PROSESS_TASK pt inner join PROSESS_TASK_TYPE t on t.kode=pt.task_type " +
-                                "where t.cron_expression is not null and pt.status IN ('KLAR', 'FEILET', 'SUSPENDERT')",
-                        ProsessTaskEntitet.class);
+                        "SELECT pt.* from PROSESS_TASK pt where pt.status IN ('FEILET')", ProsessTaskEntitet.class);
         return query.getResultList();
     }
 
@@ -411,10 +409,6 @@ public class TaskManagerRepositoryImpl {
         if (unvetoed > 0) {
             log.info("Fjernet veto fra {} tasks som var blokkert av andre tasks som allerede er ferdig", unvetoed);
         }
-    }
-
-    ProsessTaskType getTaskType(String taskName) {
-        return entityManager.find(ProsessTaskType.class, taskName);
     }
 
     static synchronized String getJvmUniqueProcessName() {

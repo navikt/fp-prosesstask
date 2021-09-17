@@ -34,13 +34,10 @@ WHERE pt.id
               -- bruker dette istdf. (status NOT IN('FERDIG', 'KJOERT')). Innført for å bruke partisjoner med minst data, unngår skanning av alle partisjoner
               status in ('FEILET', 'KLAR', 'VENTER_SVAR', 'SUSPENDERT', 'VETO')
           ) tbl
-            INNER JOIN prosess_task_type tt ON tt.kode = tbl.task_type
         WHERE
           -- filtrer vekk de som ikke har samme sekvensnr som første i gruppen, og som er KLAR
             tbl.task_sekvens=tbl.foerste_sekvens
           AND tbl.status IN ('KLAR')
-          -- sjekk feilede forsøk
-          AND tbl.feilede_forsoek < tt.feil_maks_forsoek
       )
   -- fjerner de som har mindre enn maks antall feilde forsøk
   -- håndterer at kjøring ikke skjer før angitt tidstempel

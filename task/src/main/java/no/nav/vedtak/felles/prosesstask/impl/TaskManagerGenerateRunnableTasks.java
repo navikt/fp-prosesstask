@@ -46,18 +46,18 @@ public class TaskManagerGenerateRunnableTasks {
         ProsessTaskData prosessTaskData = pte.tilProsessTask();
         final RunTaskInfo taskInfo = new RunTaskInfo(taskDispatcher, prosessTaskData);
         final String callId = pte.getPropertyValue(CallId.CALL_ID);
-        String taskName = pte.getTaskName();
-        IdentRunnable r = createRunnable(taskInfo, callId, taskName);
+        var taskType = pte.getTaskType();
+        IdentRunnable r = createRunnable(taskInfo, callId, taskType);
         return r;
     }
 
-    private IdentRunnable createRunnable(final RunTaskInfo taskInfo, final String callId, String taskName) {
-        Runnable r = createTaskManagerRunnableTask(taskInfo, callId, taskName);
+    private IdentRunnable createRunnable(final RunTaskInfo taskInfo, final String callId, TaskType taskType) {
+        Runnable r = createTaskManagerRunnableTask(taskInfo, callId, taskType);
         return new IdentRunnableTask(taskInfo.getId(), r, LocalDateTime.now());
     }
 
-    TaskManagerRunnableTask createTaskManagerRunnableTask(final RunTaskInfo taskInfo, final String callId, String taskName) {
-        return new TaskManagerRunnableTask(taskName, taskInfo, callId, fatalErrorSubmitFunc);
+    TaskManagerRunnableTask createTaskManagerRunnableTask(final RunTaskInfo taskInfo, final String callId, TaskType taskType) {
+        return new TaskManagerRunnableTask(taskType, taskInfo, callId, fatalErrorSubmitFunc);
     }
 
 }

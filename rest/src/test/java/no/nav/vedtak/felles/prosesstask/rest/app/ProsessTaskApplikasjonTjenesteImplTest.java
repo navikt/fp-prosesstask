@@ -5,7 +5,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -17,7 +16,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.UUID;
 
 import org.junit.jupiter.api.Assertions;
@@ -29,7 +27,7 @@ import no.nav.vedtak.exception.TekniskException;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskRepository;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskStatus;
-import no.nav.vedtak.felles.prosesstask.api.ProsessTaskTypeInfo;
+import no.nav.vedtak.felles.prosesstask.impl.TaskType;
 import no.nav.vedtak.felles.prosesstask.rest.dto.FeiletProsessTaskDataDto;
 import no.nav.vedtak.felles.prosesstask.rest.dto.ProsessTaskDataDto;
 import no.nav.vedtak.felles.prosesstask.rest.dto.ProsessTaskOpprettInputDto;
@@ -40,8 +38,9 @@ import no.nav.vedtak.felles.prosesstask.rest.dto.SokeFilterDto;
 
 public class ProsessTaskApplikasjonTjenesteImplTest {
 
-    private static final String PAYLOAD_STRING = "payload-string";
-    private static final String TASK_TYPE = "random-string-uten-mening";
+    private static final String TASK_TYPE_NAME = "random-string-uten-mening";
+    private static final String TASK_TYPE_NAME_EXT = "random-string-uten-meningaa";
+    private static final TaskType TASK_TYPE = new TaskType(TASK_TYPE_NAME);
     private static final int DEFAULT_MAKS_ANTALL_FEIL_FORSØK = 3;
 
     private ProsessTaskRepository prosessTaskRepositoryMock;
@@ -53,11 +52,6 @@ public class ProsessTaskApplikasjonTjenesteImplTest {
         prosessTaskRepositoryMock = mock(ProsessTaskRepository.class);
         prosessTaskApplikasjonTjeneste = new ProsessTaskApplikasjonTjeneste(prosessTaskRepositoryMock);
 
-        when(prosessTaskRepositoryMock.finnProsessTaskType(anyString())).thenReturn(lagProsessTaskType());
-    }
-
-    private Optional<ProsessTaskTypeInfo> lagProsessTaskType() {
-        return Optional.of(new ProsessTaskTypeInfo(TASK_TYPE, DEFAULT_MAKS_ANTALL_FEIL_FORSØK));
     }
 
     @Test
@@ -197,7 +191,7 @@ public class ProsessTaskApplikasjonTjenesteImplTest {
         when(prosessTaskRepositoryMock.finnAlle(ProsessTaskStatus.FEILET)).thenReturn(Arrays.asList(
             lagMedStatusOgFeiledeForsøk(TASK_TYPE, ProsessTaskStatus.FEILET, DEFAULT_MAKS_ANTALL_FEIL_FORSØK, 10L),
             lagMedStatusOgFeiledeForsøk(TASK_TYPE, ProsessTaskStatus.FEILET, DEFAULT_MAKS_ANTALL_FEIL_FORSØK, 11L),
-            lagMedStatusOgFeiledeForsøk(TASK_TYPE + "aa", ProsessTaskStatus.FEILET, DEFAULT_MAKS_ANTALL_FEIL_FORSØK, 12L)));
+            lagMedStatusOgFeiledeForsøk(new TaskType(TASK_TYPE_NAME_EXT), ProsessTaskStatus.FEILET, DEFAULT_MAKS_ANTALL_FEIL_FORSØK, 12L)));
         when(prosessTaskRepositoryMock.lagre(any(ProsessTaskData.class))).thenReturn("gruppe-id");
 
         ProsessTaskRetryAllResultatDto result = prosessTaskApplikasjonTjeneste.flaggAlleFeileteProsessTasksForRestart();
@@ -259,7 +253,7 @@ public class ProsessTaskApplikasjonTjenesteImplTest {
         return prosessTaskData;
     }
 
-    private ProsessTaskData lagMedStatusOgFeiledeForsøk(String taskType, ProsessTaskStatus status, int antallFeiledeForsøk, Long id) {
+    private ProsessTaskData lagMedStatusOgFeiledeForsøk(TaskType taskType, ProsessTaskStatus status, int antallFeiledeForsøk, Long id) {
         ProsessTaskData prosessTaskData = new ProsessTaskData(taskType);
         prosessTaskData.setId(id);
         prosessTaskData.setStatus(status);

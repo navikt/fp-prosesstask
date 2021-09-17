@@ -1,5 +1,8 @@
 package no.nav.vedtak.felles.prosesstask.api;
 
+import no.nav.vedtak.felles.prosesstask.impl.ProsessTaskHandlerRef;
+import no.nav.vedtak.felles.prosesstask.impl.TaskType;
+
 /**
  * Interface som må implementers for å håndtere implementasjoner av oppgaver. Dersom det er flere mulige
  * implementasjoner håndteres dette inni {@link #dispatch(ProsessTaskData)} metoden.
@@ -12,9 +15,11 @@ package no.nav.vedtak.felles.prosesstask.api;
  */
 public interface ProsessTaskDispatcher {
 
-    void dispatch(ProsessTaskData task) throws Exception; // NOSONAR
+    void dispatch(ProsessTaskHandlerRef taskHandler, ProsessTaskData task) throws Exception; // NOSONAR
 
     /** Skal benytte feilhåndtering algoritme for angitt exception. Hvis ikke håndteres den som fatal feil. */
-    boolean feilhåndterException(String taskType, Throwable e);
+    boolean feilhåndterException(Throwable e);
+
+    ProsessTaskHandlerRef taskHandler(TaskType taskType);
 
 }

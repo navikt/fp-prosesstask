@@ -14,6 +14,8 @@ import javax.sql.rowset.serial.SerialClob;
 
 import org.slf4j.MDC;
 
+import no.nav.vedtak.felles.prosesstask.impl.TaskType;
+
 /**
  * Task info describing the task to run, including error handling.
  */
@@ -50,7 +52,7 @@ public class ProsessTaskData implements ProsessTaskInfo {
 
     public static final Pattern VALID_KEY_PATTERN = Pattern.compile("[a-zA-Z0-9_\\.]+$"); //$NON-NLS-1$
     private final Properties props = new Properties();
-    private final String taskType;
+    private final TaskType taskType;
     private int antallFeiledeForsøk;
     private String gruppe;
     private Long id;
@@ -67,6 +69,10 @@ public class ProsessTaskData implements ProsessTaskInfo {
     private LocalDateTime opprettetTid;
 
     public ProsessTaskData(String taskType) {
+        this.taskType = new TaskType(taskType);
+    }
+
+    public ProsessTaskData(TaskType taskType) {
         this.taskType = taskType;
     }
 
@@ -297,6 +303,11 @@ public class ProsessTaskData implements ProsessTaskInfo {
 
     @Override
     public String getTaskType() {
+        return taskType.value();
+    }
+
+    @Override
+    public TaskType taskType() {
         return taskType;
     }
 

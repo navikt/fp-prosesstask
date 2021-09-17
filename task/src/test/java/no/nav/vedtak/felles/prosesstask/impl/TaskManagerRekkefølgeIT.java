@@ -5,7 +5,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
@@ -24,14 +23,6 @@ public class TaskManagerRekkefølgeIT {
     private TaskManagerRepositoryImpl taskManagerRepo = new TaskManagerRepositoryImpl(repoRule.getEntityManager());
 
     private LocalDateTime now = LocalDateTime.now();
-
-    @BeforeEach
-    public void setupTestData() throws Exception {
-        TestProsessTaskTestData testData = new TestProsessTaskTestData(repoRule.getEntityManager());
-        for (int i = 1; i <= 10; i++) {
-            testData.opprettTaskType("mytask" + i);
-        }
-    }
 
     @Test
     public void skal_finne_sql_for_polling() throws Exception {
@@ -175,7 +166,7 @@ public class TaskManagerRekkefølgeIT {
     }
 
     private ProsessTaskData nyTask(String taskNavn, int nesteKjøringRelativt) {
-        ProsessTaskData task = new ProsessTaskData(taskNavn);
+        ProsessTaskData task = new ProsessTaskData(new TaskType(taskNavn));
         task.setNesteKjøringEtter(now.plusSeconds(nesteKjøringRelativt));
         return task;
     }

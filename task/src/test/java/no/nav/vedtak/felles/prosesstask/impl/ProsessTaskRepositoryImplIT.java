@@ -4,7 +4,6 @@ import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.assertj.core.api.Assertions;
@@ -19,6 +18,9 @@ import no.nav.vedtak.felles.prosesstask.api.ProsessTaskRepository;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskStatus;
 
 public class ProsessTaskRepositoryImplIT {
+
+    private static final TaskType TASK_TYPE = new TaskType("hello.world");
+    private static final TaskType TASK_TYPE_2 = new TaskType("hello.world2");
 
     @RegisterExtension
     public static final JpaExtension repoRule = new JpaExtension();
@@ -73,30 +75,15 @@ public class ProsessTaskRepositoryImplIT {
         Assertions.assertThat(prosessTaskData).hasSize(1);
     }
 
-    @Test
-    public void skal_finne_tasks_med_cron_expressions() {
-        Map<ProsessTaskType, ProsessTaskEntitet> map = prosessTaskRepository.finnStatusForBatchTasks();
-
-        Assertions.assertThat(map).hasSize(2);
-    }
-
     private void lagTestData() {
-        ProsessTaskType taskType = new ProsessTaskType("hello.world");
-        ProsessTaskType taskType2 = new ProsessTaskType("hello.world2", "0 0 8 * * ?");
-        ProsessTaskType taskType3 = new ProsessTaskType("hello.world3", "0 0 8 * * ?");
-        
-        lagre(taskType);
-        lagre(taskType2);
-        lagre(taskType3);
-        flushAndClear();
 
-        lagre(lagTestEntitet(ProsessTaskStatus.FERDIG, NÅ.minusHours(2), "hello.world"));
-        lagre(lagTestEntitet(ProsessTaskStatus.KJOERT, NÅ.minusMinutes(59), "hello.world"));
-        lagre(lagTestEntitet(ProsessTaskStatus.VENTER_SVAR, NÅ.minusHours(3), "hello.world"));
-        lagre(lagTestEntitet(ProsessTaskStatus.FEILET, NÅ.minusHours(4), "hello.world"));
-        lagre(lagTestEntitet(ProsessTaskStatus.KLAR, NÅ.minusHours(5), "hello.world"));
-        lagre(lagTestEntitet(ProsessTaskStatus.SUSPENDERT, NÅ.minusHours(6), "hello.world"));
-        lagre(lagTestEntitet(ProsessTaskStatus.KLAR, NÅ.minusHours(6), "hello.world2"));
+        lagre(lagTestEntitet(ProsessTaskStatus.FERDIG, NÅ.minusHours(2), TASK_TYPE));
+        lagre(lagTestEntitet(ProsessTaskStatus.KJOERT, NÅ.minusMinutes(59), TASK_TYPE));
+        lagre(lagTestEntitet(ProsessTaskStatus.VENTER_SVAR, NÅ.minusHours(3), TASK_TYPE));
+        lagre(lagTestEntitet(ProsessTaskStatus.FEILET, NÅ.minusHours(4), TASK_TYPE));
+        lagre(lagTestEntitet(ProsessTaskStatus.KLAR, NÅ.minusHours(5), TASK_TYPE));
+        lagre(lagTestEntitet(ProsessTaskStatus.SUSPENDERT, NÅ.minusHours(6), TASK_TYPE));
+        lagre(lagTestEntitet(ProsessTaskStatus.KLAR, NÅ.minusHours(6), TASK_TYPE_2));
         flushAndClear();
     }
     
@@ -111,7 +98,7 @@ public class ProsessTaskRepositoryImplIT {
         em.persist(entity);
     }
 
-    private ProsessTaskEntitet lagTestEntitet(ProsessTaskStatus status, LocalDateTime sistKjørt, String taskType) {
+    private ProsessTaskEntitet lagTestEntitet(ProsessTaskStatus status, LocalDateTime sistKjørt, TaskType taskType) {
         ProsessTaskData data = new ProsessTaskData(taskType);
         data.setPayload("payload");
         data.setStatus(status);

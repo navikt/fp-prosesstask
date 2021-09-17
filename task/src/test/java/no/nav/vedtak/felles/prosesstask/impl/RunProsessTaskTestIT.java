@@ -35,9 +35,10 @@ import no.nav.vedtak.felles.testutilities.db.NonTransactional;
 public class RunProsessTaskTestIT {
 
     private static final LocalDateTime NÅ = LocalDateTime.now();
-    private static final String TASK1 = "mytask1";
-    private static final String TASK2 = "mytask2";
-    private static final String TASK3 = "mytask3";
+    private static final String TASK1_NAME = "mytask1";
+    private static final TaskType TASK1 = new TaskType(TASK1_NAME);
+    private static final TaskType TASK2 = new TaskType("mytask2");
+    private static final TaskType TASK3 = new TaskType("mytask3");
 
     @RegisterExtension
     public static final JpaExtension repoRule = new JpaExtension();
@@ -70,7 +71,7 @@ public class RunProsessTaskTestIT {
         AtomicBoolean kjørt = new AtomicBoolean();
         ProsessTaskDispatcher taskDispatcher = new BasicCdiProsessTaskDispatcher() {
             @Override
-            public void dispatch(ProsessTaskData task) throws Exception {
+            public void dispatch(ProsessTaskHandlerRef taskHandler, ProsessTaskData task) throws Exception {
                 kjørt.set(true);
             }
         };
@@ -88,23 +89,20 @@ public class RunProsessTaskTestIT {
         testEnTask(taskDispatcher);
 
         // Assert
-        assertThat(getBean().getLastHandler()).isInstanceOf(DummyProsessTask.class);
+        assertThat(getBean().getLastHandler()).isInstanceOf(LocalDummyProsessTask.class);
         ProsessTaskData last = getBean().getLastData();
         assertThat(last).isNotNull();
         assertThat(last.getId()).isNotNull();
-        assertThat(last.getTaskType()).isEqualTo(TASK3);
+        assertThat(last.taskType()).isEqualTo(TASK3);
 
         ProsessTaskEntitet lagret = repoRule.doInTransaction((em) -> em.find(ProsessTaskEntitet.class, last.getId()));
-        assertThat(lagret.getTaskName()).isEqualTo(TASK3);
+        assertThat(lagret.getTaskType()).isEqualTo(TASK3);
 
     }
 
     private Object slettTestData(EntityManager em) throws SQLException {
         TestProsessTaskTestData data = new TestProsessTaskTestData(em);
         data.slettAlleProssessTask();
-        data.slettUtvalgtProssessTaskType(TASK1);
-        data.slettUtvalgtProssessTaskType(TASK2);
-        data.slettUtvalgtProssessTaskType(TASK3);
         return null;
     }
 
@@ -112,9 +110,7 @@ public class RunProsessTaskTestIT {
         TestProsessTaskTestData testData = new TestProsessTaskTestData(em);
         testData.slettAlleProssessTask();
         LocalDateTime kjørEtter = LocalDateTime.now().minusSeconds(50);
-        testData.opprettTaskType(TASK1)
-            .opprettTaskType(TASK2)
-            .opprettTaskType(TASK3)
+        testData
             .opprettTask(new ProsessTaskData(TASK1).medNesteKjøringEtter(kjørEtter).medSekvens("a"))
             .opprettTask(new ProsessTaskData(TASK2).medNesteKjøringEtter(kjørEtter).medSekvens("a"));
 
@@ -136,8 +132,8 @@ public class RunProsessTaskTestIT {
         assertThat(latch.await(120, TimeUnit.SECONDS)).isTrue();
     }
 
-    @ProsessTask(TASK1)
-    static class DummyProsessTask implements ProsessTaskHandler {
+    @ProsessTask(TASK1_NAME)
+    static class LocalDummyProsessTask implements ProsessTaskHandler {
 
         @Inject
         ProsessTaskRepository repo;

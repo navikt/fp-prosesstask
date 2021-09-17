@@ -2,9 +2,7 @@ package no.nav.vedtak.felles.prosesstask.rest.app;
 
 import java.time.LocalDateTime;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -15,7 +13,7 @@ import no.nav.vedtak.exception.TekniskException;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskRepository;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskStatus;
-import no.nav.vedtak.felles.prosesstask.api.ProsessTaskTypeInfo;
+import no.nav.vedtak.felles.prosesstask.impl.TaskType;
 import no.nav.vedtak.felles.prosesstask.rest.dto.FeiletProsessTaskDataDto;
 import no.nav.vedtak.felles.prosesstask.rest.dto.ProsessTaskDataDto;
 import no.nav.vedtak.felles.prosesstask.rest.dto.ProsessTaskDataKonverter;
@@ -104,22 +102,13 @@ public class ProsessTaskApplikasjonTjeneste {
     public ProsessTaskRetryAllResultatDto flaggAlleFeileteProsessTasksForRestart() {
         ProsessTaskRetryAllResultatDto retryAllResultatDto = new ProsessTaskRetryAllResultatDto();
 
-        List<ProsessTaskData> ptdList = prosessTaskRepository.finnAlle(ProsessTaskStatus.FEILET);
-
-        Map<String, Integer> taskTypesMaxForsøk = new HashMap<>();
-        ptdList.stream().map(ProsessTaskData::getTaskType).forEach(tasktype -> {
-            if (taskTypesMaxForsøk.get(tasktype) == null) {
-                int forsøk = prosessTaskRepository.finnProsessTaskType(tasktype).map(ProsessTaskTypeInfo::maksForsøk).orElse(1);
-                taskTypesMaxForsøk.put(tasktype, forsøk);
-            }
-        });
         LocalDateTime now = LocalDateTime.now();
-        ptdList.forEach(ptd -> {
+        prosessTaskRepository.finnAlle(ProsessTaskStatus.FEILET).forEach(ptd -> {
             ptd.setStatus(ProsessTaskStatus.KLAR);
             ptd.setNesteKjøringEtter(now);
             ptd.setSisteFeilKode(null);
             ptd.setSisteFeil(null);
-            if (taskTypesMaxForsøk.get(ptd.getTaskType()) == ptd.getAntallFeiledeForsøk()) { // NOSONAR
+            if (ptd.getAntallFeiledeForsøk() > 0) { // NOSONAR
                 ptd.setAntallFeiledeForsøk(ptd.getAntallFeiledeForsøk() - 1);
             }
             prosessTaskRepository.lagre(ptd);
@@ -129,7 +118,7 @@ public class ProsessTaskApplikasjonTjeneste {
     }
 
     public ProsessTaskDataDto opprettTask(ProsessTaskOpprettInputDto inputDto) {
-        ProsessTaskData taskData = new ProsessTaskData(inputDto.getTaskType());
+        ProsessTaskData taskData = new ProsessTaskData(new TaskType(inputDto.getTaskType()));
         taskData.setProperties(inputDto.getTaskParametre());
         prosessTaskRepository.lagre(taskData);
 
@@ -147,8 +136,7 @@ public class ProsessTaskApplikasjonTjeneste {
          * Tvungen kjøring: reduserer anall feilede kjøring med 1 slik at {@link no.nav.foreldrepenger.felles.prosesstask.impl.TaskManager}
          * kan plukke den opp og kjøre.
          */
-        Optional<ProsessTaskTypeInfo> taskTypeInfo = prosessTaskRepository.finnProsessTaskType(eksisterendeProsessTaskData.getTaskType());
-        if (taskTypeInfo.get().maksForsøk() == eksisterendeProsessTaskData.getAntallFeiledeForsøk()) { // NOSONAR
+        if (eksisterendeProsessTaskData.getAntallFeiledeForsøk() > 0) { // NOSONAR
             eksisterendeProsessTaskData.setAntallFeiledeForsøk(eksisterendeProsessTaskData.getAntallFeiledeForsøk() - 1);
         }
     }

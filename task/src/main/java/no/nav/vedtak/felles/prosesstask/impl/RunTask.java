@@ -12,9 +12,7 @@ import java.util.Optional;
 
 import javax.enterprise.context.Dependent;
 import javax.enterprise.context.control.ActivateRequestContext;
-import javax.enterprise.inject.Any;
 import javax.enterprise.inject.InjectionException;
-import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityNotFoundException;
@@ -34,7 +32,6 @@ import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskMidlertidigException;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskStatus;
 import no.nav.vedtak.felles.prosesstask.impl.cron.CronExpression;
-import no.nav.vedtak.felles.prosesstask.spi.ProsessTaskFeilhåndteringAlgoritme;
 
 /**
  * Kjører en task. Flere JVM'er kan kjøre tasks i parallell
@@ -53,18 +50,15 @@ public class RunTask {
 
     private ProsessTaskEventPubliserer eventPubliserer;
     private TaskManagerRepositoryImpl taskManagerRepository;
-    private Instance<ProsessTaskFeilhåndteringAlgoritme> feilhåndteringalgoritmer;
     private RunTaskVetoHåndterer vetoHåndterer;
 
     @Inject
     public RunTask(TaskManagerRepositoryImpl taskManagerRepo,
-            ProsessTaskEventPubliserer eventPubliserer,
-            @Any Instance<ProsessTaskFeilhåndteringAlgoritme> feilhåndteringsalgoritmer) {
+            ProsessTaskEventPubliserer eventPubliserer) {
         Objects.requireNonNull(taskManagerRepo, "taskManagerRepo"); //$NON-NLS-1$
 
         this.eventPubliserer = eventPubliserer;
         this.taskManagerRepository = taskManagerRepo;
-        this.feilhåndteringalgoritmer = feilhåndteringsalgoritmer;
         this.vetoHåndterer = new RunTaskVetoHåndterer(eventPubliserer, taskManagerRepo.getEntityManager());
     }
 
@@ -84,7 +78,7 @@ public class RunTask {
      */
     protected void runTaskAndUpdateStatus(Connection conn, ProsessTaskEntitet pte, PickAndRunTask pickAndRun)
             throws SQLException {
-        String name = pte.getTaskName();
+        var taskType = pte.getTaskType();
         pickAndRun.markerTaskUnderArbeid(pte);
 
         // set up a savepoint to rollback to in case of failure
@@ -103,7 +97,7 @@ public class RunTask {
             if (ProsessTaskStatus.KLAR == pte.getStatus()) {
                 var sluttStatus = pickAndRun.markerTaskFerdig(pte);
 
-                LOG.info("Prosesstask [{}], id={}, status={}", pte.getTaskName(), pte.getId(), sluttStatus);
+                LOG.info("Prosesstask [{}], id={}, status={}", pte.getTaskType().value(), pte.getId(), sluttStatus);
                 pickAndRun.planleggNesteKjøring(pte);
             }
 
@@ -115,7 +109,7 @@ public class RunTask {
                 | SQLRecoverableException e) {
 
             // vil kun logges
-            pickAndRun.getFeilOgStatushåndterer().handleTransientAndRecoverableException(e);
+            pickAndRun.handleTransientAndRecoverableException(e);
 
         } catch (SavepointRolledbackException e) {
 
@@ -135,7 +129,7 @@ public class RunTask {
 
                 // allerede rullet tilbake, skal ikke rulle mer her
                 // anta feil kan skrives tilbake til databasen
-                pickAndRun.getFeilOgStatushåndterer().handleTaskFeil(pte, e);
+                pickAndRun.handleTaskFeil(pte, e);
                 // NB: pt. har denne samme feilhåndtering som andre exceptions (se under)
                 // bortsett fra at savepoint her rulles ikke tilbake.
             }
@@ -151,8 +145,8 @@ public class RunTask {
                 getEntityManager().clear(); // fjern mulig korrupt tilstand
                 conn.rollback(savepoint); // rull tilbake til savepoint
 
-                Feil feil = TaskManagerFeil.kunneIkkeProsessereTaskFeilKonfigurasjon(pickAndRun.getTaskInfo().getId(), name, e);
-                pickAndRun.getFeilOgStatushåndterer().handleFatalTaskFeil(pte, feil, e);
+                Feil feil = TaskManagerFeil.kunneIkkeProsessereTaskFeilKonfigurasjon(pickAndRun.getTaskInfo().getId(), taskType, e);
+                pickAndRun.handleFatalTaskFeil(pte, feil, e);
             }
         } catch (Exception e) {
 
@@ -165,7 +159,7 @@ public class RunTask {
                 conn.rollback(savepoint); // rull tilbake til savepoint
 
                 // anta feil kan skrives tilbake til databasen
-                pickAndRun.getFeilOgStatushåndterer().handleTaskFeil(pte, e);
+                pickAndRun.handleTaskFeil(pte, e);
             }
         }
     }
@@ -184,20 +178,29 @@ public class RunTask {
      */
     class PickAndRunTask {
         private final RunTaskInfo taskInfo;
+        private final ProsessTaskHandlerRef taskHandler;
         private final RunTaskFeilOgStatusEventHåndterer feilOgStatushåndterer;
 
         PickAndRunTask(RunTaskInfo taskInfo) {
-            this.feilOgStatushåndterer = new RunTaskFeilOgStatusEventHåndterer(taskInfo, eventPubliserer, taskManagerRepository,
-                    feilhåndteringalgoritmer);
             this.taskInfo = taskInfo;
+            this.feilOgStatushåndterer = new RunTaskFeilOgStatusEventHåndterer(taskInfo, eventPubliserer, taskManagerRepository);
+            this.taskHandler = getTaskHandlerRef(taskInfo.getTaskType());
         }
 
         RunTaskInfo getTaskInfo() {
             return taskInfo;
         }
 
-        RunTaskFeilOgStatusEventHåndterer getFeilOgStatushåndterer() {
-            return feilOgStatushåndterer;
+        void handleTaskFeil(ProsessTaskEntitet pte, Exception e) {
+            feilOgStatushåndterer.handleTaskFeil(taskHandler, pte, e);
+        }
+
+        void handleFatalTaskFeil(ProsessTaskEntitet pte,Feil feil, Exception e) {
+            feilOgStatushåndterer.handleFatalTaskFeil(pte, feil, e);
+        }
+
+        void handleTransientAndRecoverableException(Exception e) {
+            feilOgStatushåndterer.handleTransientAndRecoverableException(e);
         }
 
         private ProsessTaskEntitet refreshProsessTask(Long id) {
@@ -216,6 +219,12 @@ public class RunTask {
             return nyStatus;
         }
 
+        private ProsessTaskHandlerRef getTaskHandlerRef(TaskType taskType) {
+            try (var handler = getTaskInfo().getTaskDispatcher().taskHandler(taskType)) {
+                return handler;
+            }
+        }
+
         // markerer task som påbegynt (merk committer ikke før til slutt).
         void markerTaskUnderArbeid(ProsessTaskEntitet pte) {
             // mark row being processed with timestamp and server process id
@@ -228,13 +237,13 @@ public class RunTask {
 
         // regner ut neste kjøretid for tasks som kan repeteres (har CronExpression)
         void planleggNesteKjøring(ProsessTaskEntitet pte) throws SQLException {
-            ProsessTaskType taskType = taskManagerRepository.getTaskType(getTaskInfo().getTaskType());
             String gruppe = ProsessTaskRepositoryImpl.getUniktProsessTaskGruppeNavn(taskManagerRepository.getEntityManager());
-            if (taskType.getErGjentagende()) {
-                ProsessTaskData data = new ProsessTaskData(pte.getTaskName());
+            var cronExpression = taskHandler.getBean().cronExpression();
+            if (cronExpression != null) {
+                ProsessTaskData data = new ProsessTaskData(pte.getTaskType());
                 data.setStatus(ProsessTaskStatus.KLAR);
                 LocalDateTime now = LocalDateTime.now();
-                LocalDateTime nesteKjøring = new CronExpression(taskType.getCronExpression()).nextLocalDateTimeAfter(now);
+                LocalDateTime nesteKjøring = new CronExpression(cronExpression).nextLocalDateTimeAfter(now);
                 data.setNesteKjøringEtter(nesteKjøring);
                 data.setGruppe(gruppe); // <- ny gruppe
                 data.setSekvens(pte.getSekvens());
@@ -245,18 +254,18 @@ public class RunTask {
                 getEntityManager().flush();
 
                 LOG.info("Oppretter ny prosesstask [{}], id={}, status={}, cron={}, nå={}, nytt kjøretidspunkt etter={}",
-                        nyPte.getTaskName(),
+                        nyPte.getTaskType().value(),
                         nyPte.getId(),
                         nyPte.getStatus(),
                         now,
-                        taskType.getCronExpression(),
+                        cronExpression,
                         nyPte.getNesteKjøringEtter());
             }
         }
 
         void dispatchWork(ProsessTaskEntitet pte) throws Exception { // NOSONAR
             ProsessTaskData taskData = pte.tilProsessTask();
-            taskInfo.getTaskDispatcher().dispatch(taskData);
+            taskInfo.getTaskDispatcher().dispatch(taskHandler, taskData);
         }
 
         private EntityManager getEntityManager() {
@@ -287,7 +296,7 @@ public class RunTask {
                             | SQLRecoverableException e) {
 
                         // vil kun logges
-                        pickAndRun.getFeilOgStatushåndterer().handleTransientAndRecoverableException(e);
+                        pickAndRun.handleTransientAndRecoverableException(e);
                     }
                 }
 

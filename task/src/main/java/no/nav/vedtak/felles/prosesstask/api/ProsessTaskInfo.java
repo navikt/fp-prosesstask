@@ -4,6 +4,8 @@ import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.Properties;
 
+import no.nav.vedtak.felles.prosesstask.impl.TaskType;
+
 /**
  * Representerer read-only data om en {@link ProsessTask}.
  */
@@ -18,6 +20,8 @@ public interface ProsessTaskInfo {
     LocalDateTime getSistKjørt();
 
     String getTaskType();
+
+    TaskType taskType();
 
     int getPriority();
 

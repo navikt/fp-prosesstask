@@ -192,6 +192,10 @@ public class ProsessTaskEntitet {
         return taskType;
     }
 
+    public TaskType getTaskType() {
+        return new TaskType(taskType);
+    }
+
     public LocalDateTime getOpprettetTid() {
         return opprettetTid;
     }
@@ -200,7 +204,7 @@ public class ProsessTaskEntitet {
     public String toString() {
         return getClass().getSimpleName()
             + "<id=" + getId()
-            + ", taskType=" + getTaskName()
+            + ", taskType=" + getTaskType().value()
             + ", props=" + getProperties()
             + ", status=" + getStatus()
             + ", sisteKjoeringTid=" + getSisteKjøring()
@@ -208,7 +212,7 @@ public class ProsessTaskEntitet {
     }
 
     public ProsessTaskData tilProsessTask() {
-        ProsessTaskData task = new ProsessTaskData(getTaskName());
+        ProsessTaskData task = new ProsessTaskData(getTaskType());
         task.setId(getId());
 
         task.setNesteKjøringEtter(getNesteKjøringEtter());
@@ -262,7 +266,7 @@ public class ProsessTaskEntitet {
 
     private ProsessTaskEntitet kopierBasicFelter(ProsessTaskInfo prosessTask) {
         this.id = prosessTask.getId();
-        this.taskType = prosessTask.getTaskType();
+        this.taskType = prosessTask.taskType().value();
         this.nesteKjøringEtter = prosessTask.getNesteKjøringEtter();
         this.prioritet = prosessTask.getPriority();
 

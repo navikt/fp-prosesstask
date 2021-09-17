@@ -11,11 +11,13 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 
+import no.nav.vedtak.felles.prosesstask.impl.TaskType;
+
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
 public class ProsessTaskDataTest {
 
-    private static final String ORIGINALTYPE = "ORIGINALTYPE";
+    private static final TaskType ORIGINALTYPE = new TaskType("ORIGINALTYPE");
 
     private ProsessTaskData original;
 

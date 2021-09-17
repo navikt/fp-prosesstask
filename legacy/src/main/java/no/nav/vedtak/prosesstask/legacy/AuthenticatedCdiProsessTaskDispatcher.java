@@ -9,8 +9,9 @@ import no.nav.vedtak.exception.IntegrasjonException;
 import no.nav.vedtak.exception.TekniskException;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskHandler;
-import no.nav.vedtak.felles.prosesstask.api.ProsessTaskInfo;
 import no.nav.vedtak.felles.prosesstask.impl.BasicCdiProsessTaskDispatcher;
+import no.nav.vedtak.felles.prosesstask.impl.ProsessTaskHandlerRef;
+import no.nav.vedtak.felles.prosesstask.impl.TaskType;
 import no.nav.vedtak.felles.prosesstask.log.TaskAuditlogger;
 import no.nav.vedtak.log.mdc.MdcExtendedLogContext;
 import no.nav.vedtak.sikkerhet.loginmodule.ContainerLogin;
@@ -31,27 +32,25 @@ public class AuthenticatedCdiProsessTaskDispatcher extends BasicCdiProsessTaskDi
     }
 
     @Override
-    public void dispatch(ProsessTaskData task) {
-        try (ProsessTaskHandlerRef prosessTaskHandler = findHandler(task)) {
-            if (task.getFagsakId() != null) {
-                LOG_CONTEXT.add("fagsak", task.getFagsakId()); // NOSONAR //$NON-NLS-1$
-            }
-            if (task.getBehandlingId() != null) {
-                LOG_CONTEXT.add("behandling", task.getBehandlingId()); // NOSONAR //$NON-NLS-1$
-            }
+    public void dispatch(ProsessTaskHandlerRef taskHandler, ProsessTaskData task) {
 
-            prosessTaskHandler.doTask(task);
-
-            taskAuditlogger.logg(task);
-            // renser ikke LOG_CONTEXT her. tar alt i RunTask slik at vi kan logge exceptions også
+        if (task.getFagsakId() != null) {
+            LOG_CONTEXT.add("fagsak", task.getFagsakId()); // NOSONAR //$NON-NLS-1$
+        }
+        if (task.getBehandlingId() != null) {
+            LOG_CONTEXT.add("behandling", task.getBehandlingId()); // NOSONAR //$NON-NLS-1$
         }
 
+        taskHandler.doTask(task);
+
+        taskAuditlogger.logg(task);
+        // renser ikke LOG_CONTEXT her. tar alt i RunTask slik at vi kan logge exceptions også
     }
 
     @SuppressWarnings("resource")
     @Override
-    public ProsessTaskHandlerRef findHandler(ProsessTaskInfo task) {
-        ProsessTaskHandlerRef prosessTaskHandler = super.findHandler(task);
+    public ProsessTaskHandlerRef findHandler(TaskType taskType) {
+        ProsessTaskHandlerRef prosessTaskHandler = super.findHandler(taskType);
         return new AuthenticatedProsessTaskHandlerRef(prosessTaskHandler.getBean());
     }
 

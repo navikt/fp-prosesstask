@@ -4,7 +4,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
@@ -21,23 +20,16 @@ public class OpprettProsessTaskIT {
     
     private ProsessTaskRepository repo = new ProsessTaskRepositoryImpl(repoRule.getEntityManager(), null, null);
 
-    @BeforeEach
-    public void setupTestData() throws Exception {
-        new TestProsessTaskTestData(repoRule.getEntityManager())
-            .opprettTaskType("mytask1")
-            .opprettTaskType("mytask2");
-    }
-
     @Test
     public void skal_lagre_ProsessTask() throws Exception {
-        ProsessTaskData pt = new ProsessTaskData("mytask1");
+        ProsessTaskData pt = new ProsessTaskData(new TaskType("mytask1"));
         repo.lagre(pt);
     }
 
     @Test
     public void skal_lagre_SammensattProsessTask() throws Exception {
-        ProsessTaskData pt1 = new ProsessTaskData("mytask1");
-        ProsessTaskData pt2 = new ProsessTaskData("mytask2");
+        ProsessTaskData pt1 = new ProsessTaskData(new TaskType("mytask1"));
+        ProsessTaskData pt2 = new ProsessTaskData(new TaskType("mytask2"));
         ProsessTaskGruppe sammensatt = new ProsessTaskGruppe();
         sammensatt
             .addNesteSekvensiell(pt1)

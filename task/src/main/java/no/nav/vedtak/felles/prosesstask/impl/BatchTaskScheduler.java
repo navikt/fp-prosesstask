@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.context.control.ActivateRequestContext;
+import javax.enterprise.inject.spi.CDI;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
 
@@ -11,6 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import no.nav.vedtak.apptjeneste.AppServiceHandler;
+import no.nav.vedtak.felles.prosesstask.api.ProsessTaskHandler;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskStatus;
 
 /**
@@ -34,10 +36,19 @@ public class BatchTaskScheduler implements AppServiceHandler {
 
     @Override
     public void start() {
-        taskRepository.finnStatusForBatchTasks()
+        taskRepository.finnFeiletTasks()
             .stream()
-            .filter(entry -> ProsessTaskStatus.FEILET.equals(entry.getStatus()))
+            .filter(this::erBatchTask)
             .forEach(this::restartTask);
+    }
+
+    private boolean erBatchTask(ProsessTaskEntitet pte) {
+        try {
+            return CDI.current().select(ProsessTaskHandler.class, new ProsessTaskHandlerRef.ProsessTaskLiteral(pte.getTaskType().value()))
+                    .get().cronExpression() != null;
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     private void restartTask(ProsessTaskEntitet pte) {

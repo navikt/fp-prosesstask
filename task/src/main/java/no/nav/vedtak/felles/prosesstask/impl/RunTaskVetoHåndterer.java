@@ -46,7 +46,7 @@ public class RunTaskVetoHåndterer {
 
         if (frigitt > 0) {
             LOG.info("ProsessTask [id={}, taskType={}] FERDIG. Frigitt {} tidligere blokkerte tasks", blokkerendeTask.getId(),
-                    blokkerendeTask.getTaskName(),
+                    blokkerendeTask.getTaskType(),
                     frigitt);
             return true;
         }
@@ -70,7 +70,7 @@ public class RunTaskVetoHåndterer {
                 vetoed = true;
                 Long blokkerId = veto.blokkertAvProsessTaskId();
 
-                Feil feil = TaskManagerFeil.kanIkkeKjøreFikkVeto(pte.getId(), pte.getTaskName(), blokkerId, veto.begrunnelse());
+                Feil feil = TaskManagerFeil.kanIkkeKjøreFikkVeto(pte.getId(), pte.getTaskType(), blokkerId, veto.begrunnelse());
                 var taskFeil = new ProsessTaskFeil(pte.tilProsessTask(), feil);
                 taskFeil.setBlokkerendeProsessTaskId(blokkerId);
                 pte.setSisteFeil(taskFeil.getFeilkode(), taskFeil.writeValueAsString());
