@@ -1,40 +1,24 @@
 package no.nav.vedtak.felles.prosesstask.api;
 
+import no.nav.vedtak.felles.prosesstask.impl.ProsessTaskDefaultRetryPolicy;
+import no.nav.vedtak.felles.prosesstask.spi.ProsessTaskRetryPolicy;
+
 /**
  * Implementerer en ProsessTask. Klasser som implementere bør også annoteres med {@link ProsessTask} for å angi type.
  */
 public interface ProsessTaskHandler {
     void doTask(ProsessTaskData prosessTaskData);
 
-    /**
-     * Cron-expression to schedule next instance of a repeating task.
-     */
-    default String cronExpression() {
-        return null;
-    }
-
     /*
-     * Methods and parameters for default backoff failure handling strategy
-     * Tasks can implement any of these methods to change strategy or configuration
+     * Default policy is to retry 2 times with an increasing delay, first after 30s
+
+     * Local policies can be provided by implementing retryPolicy
+     * - The default policy can be used with other settings for maxFailedRuns and delay.
+     * - Other retry strategies.
      */
-    default boolean retryTask(int numFailedRuns, @SuppressWarnings("unused") Throwable t) {
-        return numFailedRuns < maxFailedRuns();
+    default ProsessTaskRetryPolicy retryPolicy() {
+        return new ProsessTaskDefaultRetryPolicy(3, 30);
     }
 
-    default int secondsToNextRun(int numFailedRuns) {
-        if (numFailedRuns >= maxFailedRuns()) {
-            throw new IllegalArgumentException("Max number of runs exceeded");
-        }
-        if (numFailedRuns == 0) return 0;
-        return numFailedRuns * baseSecondsBetweenRuns();
-    }
-
-    default int maxFailedRuns() {
-        return 3;
-    }
-
-    default int baseSecondsBetweenRuns() {
-        return 30;
-    }
 
 }

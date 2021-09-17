@@ -33,15 +33,16 @@ public class ProsessTaskHandlerRef implements AutoCloseable {
     }
 
     public String cronExpression() {
-        return bean.cronExpression();
+        var annotatedCronExpression = bean.getClass().getAnnotation(ProsessTask.class).cronExpression();
+        return annotatedCronExpression.isBlank() ? null : annotatedCronExpression;
     }
 
     public boolean retryTask(int numFailedRuns, Throwable t) {
-        return bean.retryTask(numFailedRuns, t);
+        return bean.retryPolicy().retryTask(numFailedRuns, t);
     }
 
     public int secondsToNextRun(int numFailedRuns) {
-        return bean.secondsToNextRun(numFailedRuns);
+        return bean.retryPolicy().secondsToNextRun(numFailedRuns);
     }
 
     @Override
@@ -75,6 +76,16 @@ public class ProsessTaskHandlerRef implements AutoCloseable {
         @Override
         public String value() {
             return taskType;
+        }
+
+        @Override
+        public String cronExpression() {
+            return "";
+        }
+
+        @Override
+        public String description() {
+            return "";
         }
 
     }

@@ -8,6 +8,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 import javax.enterprise.inject.Stereotype;
+import javax.enterprise.util.Nonbinding;
 import javax.inject.Qualifier;
 
 /**
@@ -48,5 +49,17 @@ public @interface ProsessTask {
      * Må spesifiseres.
      */
     String value();
+
+    /**
+     * Cron-expression to schedule next instance of a repeating task.
+     */
+    @Nonbinding
+    String cronExpression() default "";
+
+    /**
+     * Beskrivelse av prosesstask
+     */
+    @Nonbinding
+    String description() default "";
 
 }

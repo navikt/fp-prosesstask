@@ -93,18 +93,13 @@ public class RunProsessTaskIT {
         assertThat(first.getNesteKjøringEtter()).isAfter(now);
     }
 
-    @ProsessTask(LocalDummyProsessTask.DUMMY_TASK)
+    @ProsessTask(value = LocalDummyProsessTask.DUMMY_TASK, cronExpression = "0 0 6 * * ?")
     static class LocalDummyProsessTask implements ProsessTaskHandler {
 
         static final String DUMMY_TASK = "mytask11";
         @Override
         public void doTask(ProsessTaskData data) {
             //
-        }
-
-        @Override
-        public String cronExpression() {
-            return "0 0 6 * * ?";
         }
     }
 

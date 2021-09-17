@@ -12,6 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import no.nav.vedtak.apptjeneste.AppServiceHandler;
+import no.nav.vedtak.felles.prosesstask.api.ProsessTask;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskHandler;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskStatus;
 
@@ -44,8 +45,11 @@ public class BatchTaskScheduler implements AppServiceHandler {
 
     private boolean erBatchTask(ProsessTaskEntitet pte) {
         try {
-            return CDI.current().select(ProsessTaskHandler.class, new ProsessTaskHandlerRef.ProsessTaskLiteral(pte.getTaskType().value()))
-                    .get().cronExpression() != null;
+            var literal =  new ProsessTaskHandlerRef.ProsessTaskLiteral(pte.getTaskType().value());
+            var annotatedCronExpression = CDI.current()
+                    .select(ProsessTaskHandler.class, literal)
+                    .getClass().getAnnotation(ProsessTask.class).cronExpression();
+            return !annotatedCronExpression.isBlank();
         } catch (Exception e) {
             return false;
         }
