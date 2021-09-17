@@ -32,6 +32,18 @@ public class ProsessTaskHandlerRef implements AutoCloseable {
         this.bean = bean;
     }
 
+    public String cronExpression() {
+        return bean.cronExpression();
+    }
+
+    public boolean retryTask(int numFailedRuns, Throwable t) {
+        return bean.retryTask(numFailedRuns, t);
+    }
+
+    public int secondsToNextRun(int numFailedRuns) {
+        return bean.secondsToNextRun(numFailedRuns);
+    }
+
     @Override
     public void close() {
         if (bean == null) {
@@ -50,10 +62,6 @@ public class ProsessTaskHandlerRef implements AutoCloseable {
         Metrics.timer(METRIC_NAME, "type", data.getTaskType()).record(() -> bean.doTask(data));
         LOG.info("Stoppet task {}", data.getTaskType());
     }
-
-    public ProsessTaskHandler getBean() {
-            return bean;
-        }
 
     /** Lookup Literal Referanse til en {@link ProsessTaskHandler} for CDI. */
     public static class ProsessTaskLiteral extends AnnotationLiteral<ProsessTask> implements ProsessTask {

@@ -238,7 +238,7 @@ public class RunTask {
         // regner ut neste kjøretid for tasks som kan repeteres (har CronExpression)
         void planleggNesteKjøring(ProsessTaskEntitet pte) throws SQLException {
             String gruppe = ProsessTaskRepositoryImpl.getUniktProsessTaskGruppeNavn(taskManagerRepository.getEntityManager());
-            var cronExpression = taskHandler.getBean().cronExpression();
+            var cronExpression = taskHandler.cronExpression();
             if (cronExpression != null) {
                 ProsessTaskData data = new ProsessTaskData(pte.getTaskType());
                 data.setStatus(ProsessTaskStatus.KLAR);

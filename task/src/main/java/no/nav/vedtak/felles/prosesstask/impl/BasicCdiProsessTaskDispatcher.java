@@ -65,11 +65,14 @@ public class BasicCdiProsessTaskDispatcher implements ProsessTaskDispatcher {
 
     @Override
     public ProsessTaskHandlerRef taskHandler(TaskType taskType) {
-        return findHandler(taskType);
+        return findHandlerRef(taskType);
     }
 
-    public ProsessTaskHandlerRef findHandler(TaskType taskType) {
-        var prosessTaskHandler = CDI.current().select(ProsessTaskHandler.class, new ProsessTaskHandlerRef.ProsessTaskLiteral(taskType.value())).get();
-        return new ProsessTaskHandlerRef(prosessTaskHandler);
+    public ProsessTaskHandlerRef findHandlerRef(TaskType taskType) {
+        return new ProsessTaskHandlerRef(findHandler(taskType));
+    }
+
+    public ProsessTaskHandler findHandler(TaskType taskType) {
+        return CDI.current().select(ProsessTaskHandler.class, new ProsessTaskHandlerRef.ProsessTaskLiteral(taskType.value())).get();
     }
 }

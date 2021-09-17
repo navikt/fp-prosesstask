@@ -98,7 +98,7 @@ public class RunTaskFeilOgStatusEventHåndterer {
     }
 
     private LocalDateTime getNesteKjøringForNyKjøring(ProsessTaskHandlerRef taskHandler, int failureAttempt) {
-        int secsBetweenAttempts = taskHandler.getBean().secondsToNextRun(failureAttempt);
+        int secsBetweenAttempts = taskHandler.secondsToNextRun(failureAttempt);
 
         LocalDateTime nyTid = LocalDateTime.now().plusSeconds(secsBetweenAttempts);
         return nyTid;
@@ -108,7 +108,7 @@ public class RunTaskFeilOgStatusEventHåndterer {
 
         // Prøv på nytt hvis kjent exception og feilhåndteringsalgoritmen tilsier nytt forsøk. Ellers fail-fast
         if (feilhåndteringExceptions(e) || (e.getCause() != null && feilhåndteringExceptions(e.getCause()))) {
-            return taskHandler.getBean().retryTask(failureAttempt, e);
+            return taskHandler.retryTask(failureAttempt, e);
         }
         return false;
     }

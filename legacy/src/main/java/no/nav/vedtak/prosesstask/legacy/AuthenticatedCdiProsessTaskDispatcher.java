@@ -49,9 +49,9 @@ public class AuthenticatedCdiProsessTaskDispatcher extends BasicCdiProsessTaskDi
 
     @SuppressWarnings("resource")
     @Override
-    public ProsessTaskHandlerRef findHandler(TaskType taskType) {
-        ProsessTaskHandlerRef prosessTaskHandler = super.findHandler(taskType);
-        return new AuthenticatedProsessTaskHandlerRef(prosessTaskHandler.getBean());
+    public ProsessTaskHandlerRef findHandlerRef(TaskType taskType) {
+        var prosessTaskHandler = super.findHandler(taskType);
+        return new AuthenticatedProsessTaskHandlerRef(prosessTaskHandler);
     }
 
     private static class AuthenticatedProsessTaskHandlerRef extends ProsessTaskHandlerRef {
