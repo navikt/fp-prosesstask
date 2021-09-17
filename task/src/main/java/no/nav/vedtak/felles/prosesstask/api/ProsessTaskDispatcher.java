@@ -10,7 +10,6 @@ import no.nav.vedtak.felles.prosesstask.impl.TaskType;
  * I tillegg må
  * <ul>
  * <li>klassen markeres med {@link ProsessTask} annotation slik at den oppdages og kan plugges inn runtime.</li>
- * <li>Samme navn registreres i PROSESS_TASK_TYPE tabell</li>
  * </ul>
  */
 public interface ProsessTaskDispatcher {

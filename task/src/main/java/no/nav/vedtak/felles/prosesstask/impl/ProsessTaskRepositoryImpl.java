@@ -313,11 +313,11 @@ public class ProsessTaskRepositoryImpl implements ProsessTaskRepository {
     }
 
     @Override
-    public List<TaskStatus> finnStatusForTaskIGruppe(String task, String gruppe) {
+    public List<TaskStatus> finnStatusForTaskIGruppe(TaskType task, String gruppe) {
 
         final Query query = entityManager
             .createNativeQuery("SELECT pt.status, count(*) FROM PROSESS_TASK pt WHERE pt.task_type = :task AND pt.TASK_GRUPPE = :gruppe GROUP BY pt.status")
-            .setParameter("task", task)
+            .setParameter("task", task.value())
             .setParameter("gruppe", gruppe);
 
         List<TaskStatus> statuser = new ArrayList<>();

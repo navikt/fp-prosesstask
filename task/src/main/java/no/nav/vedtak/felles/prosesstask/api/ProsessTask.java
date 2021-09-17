@@ -32,10 +32,6 @@ import javax.inject.Qualifier;
  *
  * }
  * </pre>
- * <p>
- * Denne må matche ett innslag i <code>PROSESS_TASK_TYPE</code> tabell for å kunne kjøres. <br/>
- * En konkret kjøring utføres
- * ved å registrere typen i tillegg i <code>PROSESS_TASK</code> tabellen.
  */
 @Qualifier
 @Stereotype
@@ -46,7 +42,7 @@ import javax.inject.Qualifier;
 public @interface ProsessTask {
 
     /**
-     * Settes til task type, slik det er definert i PROSESS_TASK_TYPE tabell.
+     * Settes til task type og må mathe task_type i prosesstasktabellen.
      * Markerer implementasjonen slik at det kan oppdages runtime.
      * <p>
      * Må spesifiseres.

@@ -29,7 +29,7 @@ public interface ProsessTaskRepository {
 
     List<ProsessTaskData> finnUferdigeBatchTasks(TaskType task);
 
-    List<TaskStatus> finnStatusForTaskIGruppe(String task, String gruppe);
+    List<TaskStatus> finnStatusForTaskIGruppe(TaskType task, String gruppe);
 
     /**
      * finn alle som matcher angitt søk på statuser, gruppe (optional), som skal kjøres (evt. er kjørt), og som har parametere som matcher
