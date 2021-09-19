@@ -18,6 +18,7 @@ import no.nav.vedtak.felles.prosesstask.api.ProsessTask;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskDispatcher;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskHandler;
+import no.nav.vedtak.felles.prosesstask.api.TaskType;
 import no.nav.vedtak.felles.testutilities.cdi.CdiAwareExtension;
 
 @ExtendWith(CdiAwareExtension.class)
@@ -61,8 +62,9 @@ public class RunProsessTaskIT {
     @Test
     public void skal_kjøre_en_task_og_planlegge_ny() throws Exception {
         // Arrange
-        String taskType = LocalDummyProsessTask.DUMMY_TASK;
-        ProsessTaskData pt1 = nyTask(new TaskType(taskType), -10);
+        var taskType = TaskType.forProsessTaskHandler(LocalDummyProsessTask.class);
+        var pt1 = ProsessTaskData.forProsessTaskHandler(LocalDummyProsessTask.class);
+        pt1.setNesteKjøringEtter(now.minusSeconds(10));
         repo.lagre(pt1);
         repo.flushAndClear();
 
@@ -86,17 +88,16 @@ public class RunProsessTaskIT {
 
         List<ProsessTaskData> prosessTaskData = repo.finnIkkeStartet()
                 .stream()
-                .filter(it -> it.getTaskType().equals(taskType))
+                .filter(it -> it.taskType().equals(taskType))
                 .collect(Collectors.toList());
         assertThat(prosessTaskData).hasSize(1);
         ProsessTaskData first = prosessTaskData.get(0);
         assertThat(first.getNesteKjøringEtter()).isAfter(now);
     }
 
-    @ProsessTask(value = LocalDummyProsessTask.DUMMY_TASK, cronExpression = "0 0 6 * * ?")
+    @ProsessTask(value = "mytask11", cronExpression = "0 0 6 * * ?")
     static class LocalDummyProsessTask implements ProsessTaskHandler {
 
-        static final String DUMMY_TASK = "mytask11";
         @Override
         public void doTask(ProsessTaskData data) {
             //

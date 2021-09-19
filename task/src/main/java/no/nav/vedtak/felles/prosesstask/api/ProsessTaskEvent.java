@@ -4,9 +4,9 @@ import java.time.LocalDateTime;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Properties;
+import java.util.UUID;
 
 import no.nav.vedtak.felles.prosesstask.impl.Feil;
-import no.nav.vedtak.felles.prosesstask.impl.TaskType;
 
 
 /**
@@ -73,6 +73,11 @@ public class ProsessTaskEvent implements ProsessTaskInfo {
     }
 
     @Override
+    public UUID getBehandlingUuid() {
+        return data.getBehandlingUuid();
+    }
+
+    @Override
     public Long getFagsakId() {
         return data.getFagsakId();
     }
@@ -93,8 +98,8 @@ public class ProsessTaskEvent implements ProsessTaskInfo {
     }
 
     @Override
-    public Optional<ProsessTaskHendelse> getHendelse() {
-        return data.getHendelse();
+    public Optional<String> getVentetHendelse() {
+        return data.getVentetHendelse();
     }
 
     @Override

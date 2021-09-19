@@ -24,6 +24,7 @@ import org.hibernate.annotations.Type;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskInfo;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskStatus;
+import no.nav.vedtak.felles.prosesstask.api.TaskType;
 
 /**
  * Task info describing the task to run, including error handling.

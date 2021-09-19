@@ -9,9 +9,9 @@ import no.nav.vedtak.exception.IntegrasjonException;
 import no.nav.vedtak.exception.TekniskException;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskHandler;
+import no.nav.vedtak.felles.prosesstask.api.TaskType;
 import no.nav.vedtak.felles.prosesstask.impl.BasicCdiProsessTaskDispatcher;
 import no.nav.vedtak.felles.prosesstask.impl.ProsessTaskHandlerRef;
-import no.nav.vedtak.felles.prosesstask.impl.TaskType;
 import no.nav.vedtak.felles.prosesstask.log.TaskAuditlogger;
 import no.nav.vedtak.log.mdc.MdcExtendedLogContext;
 import no.nav.vedtak.sikkerhet.loginmodule.ContainerLogin;
@@ -34,11 +34,15 @@ public class AuthenticatedCdiProsessTaskDispatcher extends BasicCdiProsessTaskDi
     @Override
     public void dispatch(ProsessTaskHandlerRef taskHandler, ProsessTaskData task) {
 
-        if (task.getFagsakId() != null) {
+        if (task.getSaksnummer() != null) {
+            LOG_CONTEXT.add("fagsak", task.getSaksnummer()); // NOSONAR //$NON-NLS-1$
+        } else if (task.getFagsakId() != null) {
             LOG_CONTEXT.add("fagsak", task.getFagsakId()); // NOSONAR //$NON-NLS-1$
         }
         if (task.getBehandlingId() != null) {
             LOG_CONTEXT.add("behandling", task.getBehandlingId()); // NOSONAR //$NON-NLS-1$
+        } else if (task.getBehandlingUuid() != null) {
+            LOG_CONTEXT.add("behandling", task.getBehandlingUuid()); // NOSONAR //$NON-NLS-1$
         }
 
         taskHandler.doTask(task);
@@ -49,9 +53,8 @@ public class AuthenticatedCdiProsessTaskDispatcher extends BasicCdiProsessTaskDi
 
     @SuppressWarnings("resource")
     @Override
-    public ProsessTaskHandlerRef findHandlerRef(TaskType taskType) {
-        var prosessTaskHandler = super.findHandler(taskType);
-        return new AuthenticatedProsessTaskHandlerRef(prosessTaskHandler);
+    public ProsessTaskHandlerRef taskHandler(TaskType taskType) {
+        return AuthenticatedProsessTaskHandlerRef.lookup(taskType);
     }
 
     private static class AuthenticatedProsessTaskHandlerRef extends ProsessTaskHandlerRef {
@@ -59,7 +62,7 @@ public class AuthenticatedCdiProsessTaskDispatcher extends BasicCdiProsessTaskDi
         private ContainerLogin containerLogin;
         private boolean successFullLogin = false;
 
-        AuthenticatedProsessTaskHandlerRef(ProsessTaskHandler bean) {
+        private AuthenticatedProsessTaskHandlerRef(ProsessTaskHandler bean) {
             super(bean);
             containerLogin = new ContainerLogin();
         }
@@ -78,6 +81,11 @@ public class AuthenticatedCdiProsessTaskDispatcher extends BasicCdiProsessTaskDi
             containerLogin.login();
             successFullLogin = true;
             super.doTask(prosessTaskData);
+        }
+
+        public static AuthenticatedProsessTaskHandlerRef lookup(TaskType taskType) {
+            var bean = ProsessTaskHandlerRef.lookupHandler(taskType);
+            return new AuthenticatedProsessTaskHandlerRef(bean);
         }
 
     }

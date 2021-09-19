@@ -6,7 +6,7 @@ import org.junit.jupiter.api.Test;
 
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskHandler;
-import no.nav.vedtak.felles.prosesstask.impl.ProsessTaskDefaultRetryPolicy;
+import no.nav.vedtak.felles.prosesstask.spi.ProsessTaskDefaultRetryPolicy;
 import no.nav.vedtak.felles.prosesstask.spi.ProsessTaskRetryPolicy;
 
 public class DefaultForsinkelseStrategiTest {

@@ -6,7 +6,6 @@ import java.sql.SQLTransientException;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-import javax.enterprise.inject.spi.CDI;
 import javax.persistence.QueryTimeoutException;
 
 import org.hibernate.exception.JDBCConnectionException;
@@ -15,7 +14,7 @@ import org.slf4j.LoggerFactory;
 
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskDispatcher;
-import no.nav.vedtak.felles.prosesstask.api.ProsessTaskHandler;
+import no.nav.vedtak.felles.prosesstask.api.TaskType;
 import no.nav.vedtak.log.metrics.MetricsUtil;
 
 /**
@@ -65,14 +64,6 @@ public class BasicCdiProsessTaskDispatcher implements ProsessTaskDispatcher {
 
     @Override
     public ProsessTaskHandlerRef taskHandler(TaskType taskType) {
-        return findHandlerRef(taskType);
-    }
-
-    public ProsessTaskHandlerRef findHandlerRef(TaskType taskType) {
-        return new ProsessTaskHandlerRef(findHandler(taskType));
-    }
-
-    public ProsessTaskHandler findHandler(TaskType taskType) {
-        return CDI.current().select(ProsessTaskHandler.class, new ProsessTaskHandlerRef.ProsessTaskLiteral(taskType.value())).get();
+        return ProsessTaskHandlerRef.lookup(taskType);
     }
 }

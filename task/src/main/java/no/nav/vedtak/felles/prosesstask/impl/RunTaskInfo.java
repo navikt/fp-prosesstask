@@ -5,6 +5,7 @@ import java.util.Objects;
 
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskDispatcher;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskInfo;
+import no.nav.vedtak.felles.prosesstask.api.TaskType;
 
 /**
  * Info knyttet til en enkelt kjøring av en task.

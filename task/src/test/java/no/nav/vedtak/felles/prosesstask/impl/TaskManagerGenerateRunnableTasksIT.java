@@ -14,6 +14,7 @@ import org.mockito.Mockito;
 import ch.qos.logback.classic.Level;
 import no.nav.vedtak.felles.prosesstask.JpaExtension;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
+import no.nav.vedtak.felles.prosesstask.api.TaskType;
 
 public class TaskManagerGenerateRunnableTasksIT {
 

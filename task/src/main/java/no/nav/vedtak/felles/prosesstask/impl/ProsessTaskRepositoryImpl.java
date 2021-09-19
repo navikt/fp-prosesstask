@@ -34,6 +34,7 @@ import no.nav.vedtak.felles.prosesstask.api.ProsessTaskGruppe.Entry;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskRepository;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskStatus;
 import no.nav.vedtak.felles.prosesstask.api.TaskStatus;
+import no.nav.vedtak.felles.prosesstask.api.TaskType;
 import no.nav.vedtak.felles.prosesstask.impl.util.DatabaseUtil;
 
 /**

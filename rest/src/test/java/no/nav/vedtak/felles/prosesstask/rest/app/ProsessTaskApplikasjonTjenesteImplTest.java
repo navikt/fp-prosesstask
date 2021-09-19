@@ -1,6 +1,5 @@
 package no.nav.vedtak.felles.prosesstask.rest.app;
 
-import static no.nav.vedtak.felles.prosesstask.api.ProsessTaskData.AKTØR_ID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
@@ -24,19 +23,21 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
 import no.nav.vedtak.exception.TekniskException;
+import no.nav.vedtak.felles.prosesstask.api.CommonTaskProperties;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskRepository;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskStatus;
-import no.nav.vedtak.felles.prosesstask.impl.TaskType;
+import no.nav.vedtak.felles.prosesstask.api.TaskType;
+import no.nav.vedtak.felles.prosesstask.impl.ProsessTaskTjenesteImpl;
 import no.nav.vedtak.felles.prosesstask.rest.dto.FeiletProsessTaskDataDto;
 import no.nav.vedtak.felles.prosesstask.rest.dto.ProsessTaskDataDto;
-import no.nav.vedtak.felles.prosesstask.rest.dto.ProsessTaskOpprettInputDto;
 import no.nav.vedtak.felles.prosesstask.rest.dto.ProsessTaskRestartInputDto;
 import no.nav.vedtak.felles.prosesstask.rest.dto.ProsessTaskRestartResultatDto;
 import no.nav.vedtak.felles.prosesstask.rest.dto.ProsessTaskRetryAllResultatDto;
 import no.nav.vedtak.felles.prosesstask.rest.dto.SokeFilterDto;
 
 public class ProsessTaskApplikasjonTjenesteImplTest {
+
 
     private static final String TASK_TYPE_NAME = "random-string-uten-mening";
     private static final String TASK_TYPE_NAME_EXT = "random-string-uten-meningaa";
@@ -50,7 +51,8 @@ public class ProsessTaskApplikasjonTjenesteImplTest {
     @BeforeEach
     public void setUp() throws Exception {
         prosessTaskRepositoryMock = mock(ProsessTaskRepository.class);
-        prosessTaskApplikasjonTjeneste = new ProsessTaskApplikasjonTjeneste(prosessTaskRepositoryMock);
+        var prosessTaskTjeneste = new ProsessTaskTjenesteImpl(prosessTaskRepositoryMock);
+        prosessTaskApplikasjonTjeneste = new ProsessTaskApplikasjonTjeneste(prosessTaskTjeneste, prosessTaskRepositoryMock);
 
     }
 
@@ -76,16 +78,6 @@ public class ProsessTaskApplikasjonTjenesteImplTest {
 
         // Neste kjøring setes til LocalDateTime.now(), så tester på en enkel måte.
         assertThat(dataTilPersistering.getNesteKjøringEtter()).isAfter(LocalDateTime.now().minusSeconds(5));
-    }
-
-    @Test
-    public void skal_opprette_task() {
-        ProsessTaskOpprettInputDto dto = new ProsessTaskOpprettInputDto();
-        dto.setTaskType("asdf.asdf");
-
-        ProsessTaskDataDto prosessTaskDataDto = prosessTaskApplikasjonTjeneste.opprettTask(dto);
-        assertThat(prosessTaskDataDto.getTaskType()).isEqualTo(dto.getTaskType());
-        assertThat(prosessTaskDataDto.getTaskParametre()).isEmpty();
     }
 
     @Test
@@ -119,7 +111,7 @@ public class ProsessTaskApplikasjonTjenesteImplTest {
             prosessTaskApplikasjonTjeneste.flaggProsessTaskForRestart(lagProsessTaskRestartInputDto(10L, "VENTER_SVAR"));
             verify(prosessTaskRepositoryMock, never()).lagre(any(ProsessTaskData.class));
         });
-        assertThat(message).hasMessageContaining(ProsessTaskApplikasjonTjeneste.MAA_ANGI_NAVARENDE_STATUS_FEIL_ID);
+        assertThat(message).hasMessageContaining(ProsessTaskTjenesteImpl.MAA_ANGI_NAVARENDE_STATUS_FEIL_ID);
     }
 
     @Test
@@ -130,7 +122,7 @@ public class ProsessTaskApplikasjonTjenesteImplTest {
             prosessTaskApplikasjonTjeneste.flaggProsessTaskForRestart(lagProsessTaskRestartInputDto(10L, null));
             verify(prosessTaskRepositoryMock, never()).lagre(any(ProsessTaskData.class));
         });
-        assertThat(message).hasMessageContaining(ProsessTaskApplikasjonTjeneste.MAA_ANGI_NAVARENDE_STATUS_FEIL_ID);
+        assertThat(message).hasMessageContaining(ProsessTaskTjenesteImpl.MAA_ANGI_NAVARENDE_STATUS_FEIL_ID);
     }
 
     @Test
@@ -140,7 +132,7 @@ public class ProsessTaskApplikasjonTjenesteImplTest {
 
             prosessTaskApplikasjonTjeneste.flaggProsessTaskForRestart(lagProsessTaskRestartInputDto(10L, "FERDIG"));
         });
-        assertThat(message).hasMessageContaining(ProsessTaskApplikasjonTjeneste.KAN_IKKE_RESTARTE_FERDIG_TASK_FEIL_ID);
+        assertThat(message).hasMessageContaining(ProsessTaskTjenesteImpl.KAN_IKKE_RESTARTE_FERDIG_TASK_FEIL_ID);
     }
 
     @Test
@@ -151,7 +143,7 @@ public class ProsessTaskApplikasjonTjenesteImplTest {
             ProsessTaskRestartInputDto inputDto = lagProsessTaskRestartInputDto(10L, "VENTER_SVAR");
             prosessTaskApplikasjonTjeneste.flaggProsessTaskForRestart(inputDto);
         });
-        assertThat(message).hasMessageContaining(ProsessTaskApplikasjonTjeneste.UKJENT_TASK_FEIL_ID);
+        assertThat(message).hasMessageContaining(ProsessTaskTjenesteImpl.UKJENT_TASK_FEIL_ID);
     }
 
     private ProsessTaskRestartInputDto lagProsessTaskRestartInputDto(Long id, String status) {
@@ -205,7 +197,7 @@ public class ProsessTaskApplikasjonTjenesteImplTest {
     public void skal_filtrere_ut_prosesstask_med_status_feilet() {
         final Long taskId = 10L;
         var uuid = UUID.randomUUID();
-        Map<String, String> parameters = Map.of(AKTØR_ID, "1111111111111",
+        Map<String, String> parameters = Map.of(CommonTaskProperties.AKTØR_ID, "1111111111111",
                 "behandlingUUId", uuid.toString(),
                 "localProp", String.valueOf(123L));
         when(prosessTaskRepositoryMock.finn(anyLong())).thenReturn(lagMedStatusPlussParameters(ProsessTaskStatus.FEILET, parameters));

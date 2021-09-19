@@ -1,7 +1,6 @@
 package no.nav.vedtak.felles.prosesstask.api;
 
 import no.nav.vedtak.felles.prosesstask.impl.ProsessTaskHandlerRef;
-import no.nav.vedtak.felles.prosesstask.impl.TaskType;
 
 /**
  * Interface som må implementers for å håndtere implementasjoner av oppgaver. Dersom det er flere mulige

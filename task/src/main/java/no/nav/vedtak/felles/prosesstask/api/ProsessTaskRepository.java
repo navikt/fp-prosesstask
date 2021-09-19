@@ -4,8 +4,6 @@ import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
 
-import no.nav.vedtak.felles.prosesstask.impl.TaskType;
-
 public interface ProsessTaskRepository {
 
     /** Lagre tasks, returner gruppe id. */

@@ -68,16 +68,16 @@ Eksempelkode for å definere en prosesstask som kan opprettes og så kjøres av 
 
 Prosesstasks som defineres må oppfylle følgende krav:
 * implementere ProsessTaskHandler og metoden doTask + eventuel custom retrylogikk
-* annoteres med @ProsessTask der value er påkrevd og må være samme tekst som brukes når det opprettes/lagres en task. Annoteringen kan også inneholde en cronExpression som angir et cron-uttrykk for kjeding og kjøring av neste instans, samt en beskrivende tekst i description
+* annoteres med @ProsessTask der value er påkrevd og må være samme tekst som brukes når det opprettes/lagres en task. Annoteringen kan også inneholde en cronExpression som angir et cron-uttrykk for kjeding og kjøring av neste instans
 * annoteres så den kan oppdages av CDI (Normalt ApplicationScoped eller Dependent)
 
+Man kan gjerne legge på en annoterting @ProsessTaskDocumentation med beskrivelse av funksjon
+
 ```
-@ProsessTask(value = HelloWorldTask.TASK_NAME, 
-    description = "Eksempeltasktype for illustrasjon")
+@ProsessTask("hello.world") 
+@ProsessTaskDocumentation("Eksempeltasktype for illustrasjon")
 @ApplicationScoped
 public class HelloWorldTask implements ProsessTaskHandler {
-
-    static final String TASK_NAME = "hello.world";
 
     @Override
     public void doTask(ProsessTaskData taskData) {

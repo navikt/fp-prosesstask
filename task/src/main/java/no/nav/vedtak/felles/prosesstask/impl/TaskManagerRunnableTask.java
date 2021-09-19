@@ -8,6 +8,7 @@ import javax.persistence.PersistenceException;
 import org.slf4j.MDC;
 
 import no.nav.vedtak.felles.prosesstask.api.CallId;
+import no.nav.vedtak.felles.prosesstask.api.TaskType;
 
 class TaskManagerRunnableTask implements Runnable {
     private final TaskType taskType;

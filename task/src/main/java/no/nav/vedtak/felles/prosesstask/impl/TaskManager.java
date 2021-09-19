@@ -39,6 +39,7 @@ import no.nav.vedtak.exception.TekniskException;
 import no.nav.vedtak.felles.jpa.TransactionHandler;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskDispatcher;
+import no.nav.vedtak.felles.prosesstask.api.TaskType;
 
 /**
  * Main class handling polling tasks and dispatching these.

@@ -12,6 +12,7 @@ import no.nav.vedtak.felles.prosesstask.JpaExtension;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskGruppe;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskStatus;
+import no.nav.vedtak.felles.prosesstask.api.TaskType;
 
 public class TaskManagerRekkefølgeIT {
 

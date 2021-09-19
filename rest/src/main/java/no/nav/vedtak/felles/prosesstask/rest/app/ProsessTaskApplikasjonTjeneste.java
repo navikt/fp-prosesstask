@@ -9,11 +9,11 @@ import java.util.stream.Collectors;
 import javax.enterprise.context.Dependent;
 import javax.inject.Inject;
 
-import no.nav.vedtak.exception.TekniskException;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskRepository;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskStatus;
-import no.nav.vedtak.felles.prosesstask.impl.TaskType;
+import no.nav.vedtak.felles.prosesstask.api.ProsessTaskTjeneste;
+import no.nav.vedtak.felles.prosesstask.api.TaskType;
 import no.nav.vedtak.felles.prosesstask.rest.dto.FeiletProsessTaskDataDto;
 import no.nav.vedtak.felles.prosesstask.rest.dto.ProsessTaskDataDto;
 import no.nav.vedtak.felles.prosesstask.rest.dto.ProsessTaskDataKonverter;
@@ -27,18 +27,16 @@ import no.nav.vedtak.felles.prosesstask.rest.dto.SokeFilterDto;
 @Dependent
 public class ProsessTaskApplikasjonTjeneste {
 
-    static String KAN_IKKE_RESTARTE_FERDIG_TASK_FEIL_ID = "PT-711948";
-    static String MAA_ANGI_NAVARENDE_STATUS_FEIL_ID = "PT-306456";
-    static String STATUS_IKKE_FEILET = "PT-507456";
-    static String UKJENT_TASK_FEIL_ID = "PT-752429";
-
+    private ProsessTaskTjeneste prosessTaskTjeneste;
     private ProsessTaskRepository prosessTaskRepository;
 
-    public ProsessTaskApplikasjonTjeneste() {
+    ProsessTaskApplikasjonTjeneste() {
     }
 
     @Inject
-    public ProsessTaskApplikasjonTjeneste(ProsessTaskRepository prosessTaskRepository) {
+    public ProsessTaskApplikasjonTjeneste(ProsessTaskTjeneste prosessTaskTjeneste,
+                                          ProsessTaskRepository prosessTaskRepository) {
+        this.prosessTaskTjeneste = prosessTaskTjeneste;
         this.prosessTaskRepository = prosessTaskRepository;
     }
 
@@ -56,44 +54,26 @@ public class ProsessTaskApplikasjonTjeneste {
 
         List<ProsessTaskStatus> statuser = sokeFilterDto.getProsessTaskStatuser().stream().map(e -> ProsessTaskStatus.valueOf(e.getProsessTaskStatusName())).collect(Collectors.toList());
         List<ProsessTaskData> prosessTaskData = prosessTaskRepository.finnAlle(statuser, sokeFilterDto.getSisteKjoeretidspunktFraOgMed(), sokeFilterDto.getSisteKjoeretidspunktTilOgMed());
-        prosessTaskData.addAll(prosessTaskRepository.finnIkkeStartet());
         return prosessTaskData.stream().map(ProsessTaskDataKonverter::tilProsessTaskDataDto).collect(Collectors.toList());
     }
 
     public Optional<FeiletProsessTaskDataDto> finnFeiletProsessTask(Long prosessTaskId) {
-        ProsessTaskData taskData = prosessTaskRepository.finn(prosessTaskId);
-        if (taskData != null && taskData.getStatus().equals(ProsessTaskStatus.FEILET)) {
+        ProsessTaskData taskData = prosessTaskTjeneste.finn(prosessTaskId);
+        if (taskData != null && ProsessTaskStatus.FEILET.equals(taskData.getStatus())) {
             return Optional.of(ProsessTaskDataKonverter.tilFeiletProsessTaskDataDto(taskData));
         }
         return Optional.empty();
     }
 
     public void setProsessTaskFerdig(Long prosessTaskId, ProsessTaskStatus status) {
-        ProsessTaskData taskData = prosessTaskRepository.finn(prosessTaskId);
-        if (taskData == null) {
-            throw new TekniskException(UKJENT_TASK_FEIL_ID,
-                    String.format("Ingen prosesstask med id %s eksisterer", prosessTaskId));
-        }
-        if (!status.equals(taskData.getStatus())) {
-            throw new TekniskException(STATUS_IKKE_FEILET,
-                    String.format("Prosesstasken %s har ikke status %s og kan ikke settes FERDIG", prosessTaskId, status));
-        }
-        taskData.setStatus(ProsessTaskStatus.KJOERT);
-        taskData.setSisteFeil(null);
-        taskData.setSisteFeilKode(null);
-        prosessTaskRepository.lagre(taskData);
+        prosessTaskTjeneste.setProsessTaskFerdig(prosessTaskId, status);
     }
 
     public ProsessTaskRestartResultatDto flaggProsessTaskForRestart(ProsessTaskRestartInputDto prosessTaskRestartInputDto) {
-        ProsessTaskData ptd = prosessTaskRepository.finn(prosessTaskRestartInputDto.getProsessTaskId());
-
-        validerBetingelserForRestart(prosessTaskRestartInputDto.getProsessTaskId(), prosessTaskRestartInputDto.getNaaVaaerendeStatus(), ptd);
-
-        oppdaterProsessTaskDataMedKjoerbarStatus(ptd);
-        prosessTaskRepository.lagre(ptd);
+        prosessTaskTjeneste.flaggProsessTaskForRestart(prosessTaskRestartInputDto.getProsessTaskId(), prosessTaskRestartInputDto.getNaaVaaerendeStatus());
 
         ProsessTaskRestartResultatDto restartResultatDto = new ProsessTaskRestartResultatDto();
-        restartResultatDto.setNesteKjoeretidspunkt(ptd.getNesteKjøringEtter());
+        restartResultatDto.setNesteKjoeretidspunkt(LocalDateTime.now());
         restartResultatDto.setProsessTaskId(prosessTaskRestartInputDto.getProsessTaskId());
         restartResultatDto.setProsessTaskStatus(ProsessTaskStatus.KLAR.getDbKode());
         return restartResultatDto;
@@ -102,59 +82,17 @@ public class ProsessTaskApplikasjonTjeneste {
     public ProsessTaskRetryAllResultatDto flaggAlleFeileteProsessTasksForRestart() {
         ProsessTaskRetryAllResultatDto retryAllResultatDto = new ProsessTaskRetryAllResultatDto();
 
-        LocalDateTime now = LocalDateTime.now();
-        prosessTaskRepository.finnAlle(ProsessTaskStatus.FEILET).forEach(ptd -> {
-            ptd.setStatus(ProsessTaskStatus.KLAR);
-            ptd.setNesteKjøringEtter(now);
-            ptd.setSisteFeilKode(null);
-            ptd.setSisteFeil(null);
-            if (ptd.getAntallFeiledeForsøk() > 0) { // NOSONAR
-                ptd.setAntallFeiledeForsøk(ptd.getAntallFeiledeForsøk() - 1);
-            }
-            prosessTaskRepository.lagre(ptd);
-            retryAllResultatDto.addProsessTaskId(ptd.getId());
-        });
+        prosessTaskTjeneste.flaggAlleFeileteProsessTasksForRestart().forEach(retryAllResultatDto::addProsessTaskId);
+
         return retryAllResultatDto;
     }
 
     public ProsessTaskDataDto opprettTask(ProsessTaskOpprettInputDto inputDto) {
         ProsessTaskData taskData = new ProsessTaskData(new TaskType(inputDto.getTaskType()));
         taskData.setProperties(inputDto.getTaskParametre());
-        prosessTaskRepository.lagre(taskData);
+        prosessTaskTjeneste.lagre(taskData);
 
         return ProsessTaskDataKonverter.tilProsessTaskDataDto(taskData);
-    }
-
-    private void oppdaterProsessTaskDataMedKjoerbarStatus(ProsessTaskData eksisterendeProsessTaskData) {
-
-        eksisterendeProsessTaskData.setStatus(ProsessTaskStatus.KLAR);
-        eksisterendeProsessTaskData.setNesteKjøringEtter(LocalDateTime.now());
-        eksisterendeProsessTaskData.setSisteFeilKode(null);
-        eksisterendeProsessTaskData.setSisteFeil(null);
-
-        /**
-         * Tvungen kjøring: reduserer anall feilede kjøring med 1 slik at {@link no.nav.foreldrepenger.felles.prosesstask.impl.TaskManager}
-         * kan plukke den opp og kjøre.
-         */
-        if (eksisterendeProsessTaskData.getAntallFeiledeForsøk() > 0) { // NOSONAR
-            eksisterendeProsessTaskData.setAntallFeiledeForsøk(eksisterendeProsessTaskData.getAntallFeiledeForsøk() - 1);
-        }
-    }
-
-    private void validerBetingelserForRestart(Long prosessTaskId, String nåværendeStatus, ProsessTaskData ptd) {
-        if (ptd != null) {
-            if (ptd.getStatus().equals(ProsessTaskStatus.FERDIG) || ptd.getStatus().equals(ProsessTaskStatus.KJOERT)) {
-                throw new TekniskException(KAN_IKKE_RESTARTE_FERDIG_TASK_FEIL_ID,
-                        String.format("Prosesstasken %s har allerede kjørt ferdig, og kan ikke kjøres på nytt", prosessTaskId));
-            }
-            if (!ProsessTaskStatus.KLAR.equals(ptd.getStatus()) && (nåværendeStatus == null || !ptd.getStatus().equals(ProsessTaskStatus.valueOf(nåværendeStatus)))) {
-                throw new TekniskException(MAA_ANGI_NAVARENDE_STATUS_FEIL_ID,
-                        String.format("Prosesstasken %s har ikke status KLAR. For restart må nåværende status angis.", prosessTaskId));
-            }
-        } else {
-            throw new TekniskException(UKJENT_TASK_FEIL_ID,
-                    String.format("Ingen prosesstask med id %s eksisterer", prosessTaskId));
-        }
     }
 
 }

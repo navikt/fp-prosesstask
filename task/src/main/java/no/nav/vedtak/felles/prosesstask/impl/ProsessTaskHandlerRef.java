@@ -11,6 +11,8 @@ import io.micrometer.core.instrument.Metrics;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTask;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskHandler;
+import no.nav.vedtak.felles.prosesstask.api.TaskType;
+import no.nav.vedtak.felles.prosesstask.impl.cron.CronExpression;
 import no.nav.vedtak.log.metrics.MetricsUtil;
 
 /**
@@ -32,9 +34,9 @@ public class ProsessTaskHandlerRef implements AutoCloseable {
         this.bean = bean;
     }
 
-    public String cronExpression() {
+    public CronExpression cronExpression() {
         var annotatedCronExpression = bean.getClass().getAnnotation(ProsessTask.class).cronExpression();
-        return annotatedCronExpression.isBlank() ? null : annotatedCronExpression;
+        return annotatedCronExpression.isBlank() ? null : new CronExpression(annotatedCronExpression);
     }
 
     public boolean retryTask(int numFailedRuns, Throwable t) {
@@ -43,6 +45,14 @@ public class ProsessTaskHandlerRef implements AutoCloseable {
 
     public int secondsToNextRun(int numFailedRuns) {
         return bean.retryPolicy().secondsToNextRun(numFailedRuns);
+    }
+
+    public static ProsessTaskHandlerRef lookup(TaskType taskType) {
+        return new ProsessTaskHandlerRef(lookupHandler(taskType));
+    }
+
+    protected static ProsessTaskHandler lookupHandler(TaskType taskType) {
+        return CDI.current().select(ProsessTaskHandler.class, new ProsessTaskLiteral(taskType.value())).get();
     }
 
     @Override
@@ -80,11 +90,6 @@ public class ProsessTaskHandlerRef implements AutoCloseable {
 
         @Override
         public String cronExpression() {
-            return "";
-        }
-
-        @Override
-        public String description() {
             return "";
         }
 

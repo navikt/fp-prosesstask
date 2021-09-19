@@ -29,9 +29,10 @@ import org.slf4j.LoggerFactory;
 
 import no.nav.vedtak.felles.jpa.savepoint.SavepointRolledbackException;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
+import no.nav.vedtak.felles.prosesstask.api.ProsessTaskDataBuilder;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskMidlertidigException;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskStatus;
-import no.nav.vedtak.felles.prosesstask.impl.cron.CronExpression;
+import no.nav.vedtak.felles.prosesstask.api.TaskType;
 
 /**
  * Kjører en task. Flere JVM'er kan kjøre tasks i parallell
@@ -237,18 +238,17 @@ public class RunTask {
 
         // regner ut neste kjøretid for tasks som kan repeteres (har CronExpression)
         void planleggNesteKjøring(ProsessTaskEntitet pte) throws SQLException {
-            String gruppe = ProsessTaskRepositoryImpl.getUniktProsessTaskGruppeNavn(taskManagerRepository.getEntityManager());
             var cronExpression = taskHandler.cronExpression();
             if (cronExpression != null) {
-                ProsessTaskData data = new ProsessTaskData(pte.getTaskType());
-                data.setStatus(ProsessTaskStatus.KLAR);
+                String gruppe = ProsessTaskRepositoryImpl.getUniktProsessTaskGruppeNavn(taskManagerRepository.getEntityManager());
                 LocalDateTime now = LocalDateTime.now();
-                LocalDateTime nesteKjøring = new CronExpression(cronExpression).nextLocalDateTimeAfter(now);
-                data.setNesteKjøringEtter(nesteKjøring);
-                data.setGruppe(gruppe); // <- ny gruppe
-                data.setSekvens(pte.getSekvens());
-                data.setProperties(pte.getProperties());
-                ProsessTaskEntitet nyPte = new ProsessTaskEntitet().kopierFraNy(data);
+                LocalDateTime nesteKjøring = cronExpression.nextLocalDateTimeAfter(now);
+                var data = ProsessTaskDataBuilder.forTaskType(pte.getTaskType())
+                        .medNesteKjøringEtter(nesteKjøring)
+                        .medProperties(pte.getProperties())
+                        .medGruppe(gruppe)
+                        .medSekvens(pte.getSekvens());
+                ProsessTaskEntitet nyPte = new ProsessTaskEntitet().kopierFraNy(data.build());
 
                 getEntityManager().persist(nyPte);
                 getEntityManager().flush();

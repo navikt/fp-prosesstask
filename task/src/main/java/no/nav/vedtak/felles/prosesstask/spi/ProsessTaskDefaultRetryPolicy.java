@@ -1,6 +1,4 @@
-package no.nav.vedtak.felles.prosesstask.impl;
-
-import no.nav.vedtak.felles.prosesstask.spi.ProsessTaskRetryPolicy;
+package no.nav.vedtak.felles.prosesstask.spi;
 
 public class ProsessTaskDefaultRetryPolicy implements ProsessTaskRetryPolicy {
 

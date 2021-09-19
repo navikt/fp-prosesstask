@@ -4,6 +4,8 @@ import java.time.LocalDateTime;
 
 import org.slf4j.event.Level;
 
+import no.nav.vedtak.felles.prosesstask.api.TaskType;
+
 /**
  * Feilkoder knyttet til kjøring av TaskManager.
  */

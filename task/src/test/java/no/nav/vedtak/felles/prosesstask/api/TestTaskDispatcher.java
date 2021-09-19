@@ -3,7 +3,6 @@ package no.nav.vedtak.felles.prosesstask.api;
 import javax.enterprise.context.ApplicationScoped;
 
 import no.nav.vedtak.felles.prosesstask.impl.ProsessTaskHandlerRef;
-import no.nav.vedtak.felles.prosesstask.impl.TaskType;
 
 @ApplicationScoped
 public class TestTaskDispatcher implements ProsessTaskDispatcher {

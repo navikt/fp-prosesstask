@@ -52,11 +52,15 @@ public class TaskAuditlogger {
         if (data.getAktørId() != null) {
             fields.add(new CefField(CefFieldName.BERORT_BRUKER_ID, data.getAktørId()));
         }
-        if (data.getFagsakId() != null) {
+        if (data.getSaksnummer() != null) {
+            fields.addAll(CefFields.forSaksnummer(data.getSaksnummer()));
+        } else if (data.getFagsakId() != null) {
             fields.addAll(CefFields.forSaksnummer(data.getFagsakId()));
         }
         if (data.getBehandlingId() != null) {
             fields.addAll(CefFields.forBehandling(data.getBehandlingId()));
+        } else if (data.getBehandlingUuid() != null) {
+            fields.addAll(CefFields.forBehandling(data.getBehandlingUuid().toString()));
         }
         return fields;
     }

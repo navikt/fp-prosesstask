@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Test;
 
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskFeil;
+import no.nav.vedtak.felles.prosesstask.api.TaskType;
 
 public class ProsessTaskFeilTest {
 

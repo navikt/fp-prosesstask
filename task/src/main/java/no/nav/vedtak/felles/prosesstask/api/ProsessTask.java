@@ -56,10 +56,4 @@ public @interface ProsessTask {
     @Nonbinding
     String cronExpression() default "";
 
-    /**
-     * Beskrivelse av prosesstask
-     */
-    @Nonbinding
-    String description() default "";
-
 }

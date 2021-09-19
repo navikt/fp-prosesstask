@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 import no.nav.vedtak.felles.prosesstask.api.CallId;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskDispatcher;
+import no.nav.vedtak.felles.prosesstask.api.TaskType;
 import no.nav.vedtak.felles.prosesstask.impl.TaskManager.ReadTaskFunksjon;
 
 /** Poller for tilgjengelige tasks og omsetter disse til Runnable som kan kjøres på andre tråder. */
