@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskFeil;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskStatus;
+import no.nav.vedtak.felles.prosesstask.spi.ProsessTaskRetryPolicy;
 
 /**
  * Samler feilhåndtering og status publisering som skjer på vanlige prosess
@@ -59,9 +60,9 @@ public class RunTaskFeilOgStatusEventHåndterer {
         var taskType = pte.getTaskType();
 
         int failureAttempt = pte.getFeiledeForsøk() + 1;
-
-        if (sjekkOmSkalKjøresPåNytt(e, taskHandler, failureAttempt)) {
-            LocalDateTime nyTid = getNesteKjøringForNyKjøring(taskHandler, failureAttempt);
+        var retryPolicy = taskHandler.retryPolicy();
+        if (sjekkOmSkalKjøresPåNytt(e, retryPolicy, failureAttempt)) {
+            LocalDateTime nyTid = getNesteKjøringForNyKjøring(retryPolicy, failureAttempt);
             var feil = kunneIkkeProsessereTaskVilPrøveIgjenEnkelFeilmelding(taskInfo.getId(), taskType, failureAttempt, nyTid, e);
             String feiltekst = getFeiltekstOgLoggEventueltHvisEndret(pte, feil, e, false);
             taskManagerRepository.oppdaterStatusOgNesteKjøring(pte.getId(), ProsessTaskStatus.KLAR, nyTid, feil.kode(), feiltekst, failureAttempt);
@@ -97,18 +98,18 @@ public class RunTaskFeilOgStatusEventHåndterer {
                 taskInfo.getId(), taskInfo.getTaskType(), e);
     }
 
-    private LocalDateTime getNesteKjøringForNyKjøring(ProsessTaskHandlerRef taskHandler, int failureAttempt) {
-        int secsBetweenAttempts = taskHandler.secondsToNextRun(failureAttempt);
+    private LocalDateTime getNesteKjøringForNyKjøring(ProsessTaskRetryPolicy retryPolicy, int failureAttempt) {
+        int secsBetweenAttempts = retryPolicy.secondsToNextRun(failureAttempt);
 
         LocalDateTime nyTid = LocalDateTime.now().plusSeconds(secsBetweenAttempts);
         return nyTid;
     }
 
-    private boolean sjekkOmSkalKjøresPåNytt(Exception e, ProsessTaskHandlerRef taskHandler, int failureAttempt) {
+    private boolean sjekkOmSkalKjøresPåNytt(Exception e, ProsessTaskRetryPolicy retryPolicy, int failureAttempt) {
 
         // Prøv på nytt hvis kjent exception og feilhåndteringsalgoritmen tilsier nytt forsøk. Ellers fail-fast
         if (feilhåndteringExceptions(e) || (e.getCause() != null && feilhåndteringExceptions(e.getCause()))) {
-            return taskHandler.retryTask(failureAttempt, e);
+            return retryPolicy.retryTask(failureAttempt, e);
         }
         return false;
     }

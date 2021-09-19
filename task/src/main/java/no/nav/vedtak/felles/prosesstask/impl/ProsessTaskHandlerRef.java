@@ -15,6 +15,7 @@ import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskHandler;
 import no.nav.vedtak.felles.prosesstask.api.TaskType;
 import no.nav.vedtak.felles.prosesstask.impl.cron.CronExpression;
+import no.nav.vedtak.felles.prosesstask.spi.ProsessTaskRetryPolicy;
 import no.nav.vedtak.log.metrics.MetricsUtil;
 
 /**
@@ -45,12 +46,8 @@ public class ProsessTaskHandlerRef implements AutoCloseable {
         return bean.requiredProperties();
     }
 
-    public boolean retryTask(int numFailedRuns, Throwable t) {
-        return bean.retryPolicy().retryTask(numFailedRuns, t);
-    }
-
-    public int secondsToNextRun(int numFailedRuns) {
-        return bean.retryPolicy().secondsToNextRun(numFailedRuns);
+    public ProsessTaskRetryPolicy retryPolicy() {
+        return bean.retryPolicy();
     }
 
     public static ProsessTaskHandlerRef lookup(TaskType taskType) {
