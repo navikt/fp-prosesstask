@@ -6,16 +6,21 @@ import java.time.LocalDateTime;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Properties;
+import java.util.Set;
 import java.util.UUID;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import org.slf4j.MDC;
+
+import no.nav.vedtak.exception.TekniskException;
 
 /**
  * Task info describing the task to run, including error handling.
  */
 public class ProsessTaskData implements ProsessTaskInfo {
 
+    public static String MANGLER_PROPS = "PT-492717";
     public static final Pattern VALID_KEY_PATTERN = Pattern.compile("[a-zA-Z0-9_\\.]+$"); //$NON-NLS-1$
     private final Properties props = new Properties();
     private final TaskType taskType;
@@ -51,6 +56,16 @@ public class ProsessTaskData implements ProsessTaskInfo {
 
     public static ProsessTaskData forProsessTaskHandler(Class<? extends ProsessTaskHandler> clazz) {
         return new ProsessTaskData(TaskType.forProsessTaskHandler(clazz));
+    }
+
+    public void validerProperties(Set<String> requiredProperties) {
+        var validert = requiredProperties.stream().allMatch(p -> getPropertyValue(p) != null);
+        if (!validert) {
+            var mangler = requiredProperties.stream()
+                    .filter(p -> getPropertyValue(p) == null)
+                    .collect(Collectors.toList());
+            throw new TekniskException(MANGLER_PROPS, "Mangler properties " + mangler);
+        }
     }
 
     @Override

@@ -2,6 +2,7 @@ package no.nav.vedtak.felles.prosesstask.api;
 
 import java.time.LocalDateTime;
 import java.util.Properties;
+import java.util.Set;
 
 import org.slf4j.MDC;
 
@@ -68,6 +69,11 @@ public class ProsessTaskDataBuilder {
     }
 
     public ProsessTaskData build() {
+        return taskData;
+    }
+
+    public ProsessTaskData buildValidert(Set<String> requiredProperties) {
+        taskData.validerProperties(requiredProperties);
         return taskData;
     }
 

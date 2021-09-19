@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Properties;
-import java.util.stream.Collectors;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.InjectionException;
@@ -30,7 +29,6 @@ public class ProsessTaskTjenesteImpl implements ProsessTaskTjeneste {
     public static String MAA_ANGI_NAVARENDE_STATUS_FEIL_ID = "PT-306456";
     public static String STATUS_IKKE_FEILET = "PT-507456";
     public static String UKJENT_TASK_FEIL_ID = "PT-752429";
-    public static String MANGLER_PROPS = "PT-492717";
     public static String MANGLER_IMPL = "PT-492729";
 
     private ProsessTaskRepository prosessTaskRepository;
@@ -49,30 +47,34 @@ public class ProsessTaskTjenesteImpl implements ProsessTaskTjeneste {
     @Override
     public String lagre(ProsessTaskGruppe sammensattTask) {
         for (Entry entry : sammensattTask.getTasks()) {
-            ProsessTaskData task = entry.task();
-            validerProsessTask(task);
+            validerProsessTask(entry.task());
         }
         return prosessTaskRepository.lagre(sammensattTask);
     }
 
     @Override
-    public String lagre(ProsessTaskData task) {
+    public String lagreValidert(ProsessTaskGruppe sammensattTask) {
+        return prosessTaskRepository.lagre(sammensattTask);
+    }
+
+    @Override
+    public String lagreValidert(ProsessTaskData task) {
         // prosesserer enkelt task som en gruppe av 1
         validerProsessTask(task);
         ProsessTaskGruppe gruppe = new ProsessTaskGruppe(task);
         return prosessTaskRepository.lagre(gruppe);
     }
 
+    @Override
+    public String lagre(ProsessTaskData task) {
+        // prosesserer enkelt task som en gruppe av 1
+        ProsessTaskGruppe gruppe = new ProsessTaskGruppe(task);
+        return prosessTaskRepository.lagre(gruppe);
+    }
+
     private void validerProsessTask(ProsessTaskData task) {
         try (var ref = ProsessTaskHandlerRef.lookup(task.taskType())) {
-            var validert = ref.requiredProperties().stream()
-                    .allMatch(p -> task.getPropertyValue(p) != null);
-            if (!validert) {
-                var mangler = ref.requiredProperties().stream()
-                        .filter(p -> task.getPropertyValue(p) == null)
-                        .collect(Collectors.toList());
-                throw new TekniskException(MANGLER_PROPS, "Mangler attributter " + mangler);
-            }
+            task.validerProperties(ref.requiredProperties());
         } catch (InjectionException e) {
             throw new TekniskException(MANGLER_IMPL, "Mangler implementasjon av " + task.getTaskType());
         }

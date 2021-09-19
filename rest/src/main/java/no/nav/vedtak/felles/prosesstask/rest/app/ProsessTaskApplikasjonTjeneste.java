@@ -90,7 +90,7 @@ public class ProsessTaskApplikasjonTjeneste {
     public ProsessTaskDataDto opprettTask(ProsessTaskOpprettInputDto inputDto) {
         ProsessTaskData taskData = new ProsessTaskData(new TaskType(inputDto.getTaskType()));
         taskData.setProperties(inputDto.getTaskParametre());
-        prosessTaskTjeneste.lagre(taskData);
+        prosessTaskTjeneste.lagreValidert(taskData);
 
         return ProsessTaskDataKonverter.tilProsessTaskDataDto(taskData);
     }

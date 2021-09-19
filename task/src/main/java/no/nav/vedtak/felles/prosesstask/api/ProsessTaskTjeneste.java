@@ -6,10 +6,12 @@ import java.util.Properties;
 public interface ProsessTaskTjeneste {
 
     /** Validerer at det finnes implementasjon, at properties er satt, lagrer tasksgruppe og returner gruppe id. */
-    String lagre(ProsessTaskGruppe tasks);
+    String lagreValidert(ProsessTaskGruppe tasks);
+    String lagre(ProsessTaskGruppe tasks); // Skipper validering - OK hvis opprettet fra classe
 
     /** Validerer at det finnes implementasjon, påkrevde properties er satt, lagrer task og returner gruppe id . */
-    String lagre(ProsessTaskData enkeltTask);
+    String lagreValidert(ProsessTaskData enkeltTask);
+    String lagre(ProsessTaskData enkeltTask); // Skipper validering - OK hvis opprettet fra classe
 
     ProsessTaskData finn(Long prosessTaskId);
 

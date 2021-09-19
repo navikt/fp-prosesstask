@@ -64,7 +64,7 @@ public class ProsessTaskTjenesteImplTest {
 
         when(prosessTaskRepositoryMock.lagre(any(ProsessTaskData.class))).thenReturn("gruppe-id");
 
-        var gid = prosessTaskTjeneste.lagre(ptd);
+        var gid = prosessTaskTjeneste.lagreValidert(ptd);
 
         var argumentCaptor = ArgumentCaptor.forClass(ProsessTaskGruppe.class);
         verify(prosessTaskRepositoryMock).lagre(argumentCaptor.capture());
@@ -82,10 +82,10 @@ public class ProsessTaskTjenesteImplTest {
                     .medProperty("ikkepaakrevd", "Verdi")
                     .build();
 
-            prosessTaskTjeneste.lagre(ptd);
+            prosessTaskTjeneste.lagreValidert(ptd);
             verify(prosessTaskRepositoryMock, never()).lagre(any(ProsessTaskData.class));
         });
-        assertThat(message).hasMessageContaining(ProsessTaskTjenesteImpl.MANGLER_PROPS);
+        assertThat(message).hasMessageContaining(ProsessTaskData.MANGLER_PROPS);
         assertThat(message).hasMessageContaining(REQUIRED_PROPERTY);
     }
 
@@ -96,7 +96,7 @@ public class ProsessTaskTjenesteImplTest {
                     .medProperty("ikkepaakrevd", "Verdi")
                     .build();
 
-            prosessTaskTjeneste.lagre(ptd);
+            prosessTaskTjeneste.lagreValidert(ptd);
             verify(prosessTaskRepositoryMock, never()).lagre(any(ProsessTaskData.class));
         });
         assertThat(message).hasMessageContaining(ProsessTaskTjenesteImpl.MANGLER_IMPL);
