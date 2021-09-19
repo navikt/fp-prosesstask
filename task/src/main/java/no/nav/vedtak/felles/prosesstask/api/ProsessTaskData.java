@@ -41,12 +41,15 @@ public class ProsessTaskData implements ProsessTaskInfo {
 
     @Deprecated // Vil bli pck-private. Bruk forProsessTaskHandler
     public ProsessTaskData(TaskType taskType) {
+        if (taskType == null || taskType.value().isBlank()) {
+            throw new IllegalArgumentException("Ugyldig tasknavn");
+        }
         this.taskType = taskType;
     }
 
     // TODO - evaluer behov. Gir enkel migrering
     public ProsessTaskData(Class<? extends ProsessTaskHandler> clazz) {
-        this.taskType = TaskType.forProsessTaskHandler(clazz);
+        this(TaskType.forProsessTaskHandler(clazz));
     }
 
     public static ProsessTaskData forProsessTaskHandler(Class<? extends ProsessTaskHandler> clazz) {
