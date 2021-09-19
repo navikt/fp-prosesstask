@@ -64,8 +64,7 @@ public class ProsessTaskTjenesteImpl implements ProsessTaskTjeneste {
     }
 
     private void validerProsessTask(ProsessTaskData task) {
-        try {
-            var ref = ProsessTaskHandlerRef.lookupHandler(task.taskType());
+        try (var ref = ProsessTaskHandlerRef.lookup(task.taskType())) {
             var validert = ref.requiredProperties().stream()
                     .allMatch(p -> task.getPropertyValue(p) != null);
             if (!validert) {

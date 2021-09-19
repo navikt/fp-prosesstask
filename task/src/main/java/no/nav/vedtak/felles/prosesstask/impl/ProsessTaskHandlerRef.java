@@ -1,5 +1,7 @@
 package no.nav.vedtak.felles.prosesstask.impl;
 
+import java.util.Set;
+
 import javax.enterprise.context.Dependent;
 import javax.enterprise.inject.spi.CDI;
 import javax.enterprise.util.AnnotationLiteral;
@@ -39,6 +41,10 @@ public class ProsessTaskHandlerRef implements AutoCloseable {
         return annotatedCronExpression.isBlank() ? null : new CronExpression(annotatedCronExpression);
     }
 
+    public Set<String> requiredProperties() {
+        return bean.requiredProperties();
+    }
+
     public boolean retryTask(int numFailedRuns, Throwable t) {
         return bean.retryPolicy().retryTask(numFailedRuns, t);
     }
@@ -51,6 +57,7 @@ public class ProsessTaskHandlerRef implements AutoCloseable {
         return new ProsessTaskHandlerRef(lookupHandler(taskType));
     }
 
+    // Brukes i subklasse -
     protected static ProsessTaskHandler lookupHandler(TaskType taskType) {
         return CDI.current().select(ProsessTaskHandler.class, new ProsessTaskLiteral(taskType.value())).get();
     }
