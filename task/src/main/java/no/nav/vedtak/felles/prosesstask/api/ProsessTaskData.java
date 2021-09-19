@@ -41,9 +41,6 @@ public class ProsessTaskData implements ProsessTaskInfo {
 
     @Deprecated // Vil bli pck-private. Bruk forProsessTaskHandler
     public ProsessTaskData(TaskType taskType) {
-        if (taskType == null || taskType.value().isBlank()) {
-            throw new IllegalArgumentException("Ugyldig tasknavn");
-        }
         this.taskType = taskType;
     }
 
