@@ -36,7 +36,7 @@ public class ProsessTaskData implements ProsessTaskInfo {
 
     @Deprecated(forRemoval = true) // Bruk forProsessTaskHandler
     public ProsessTaskData(String taskType) {
-        this.taskType = new TaskType(taskType);
+        this(new TaskType(taskType));
     }
 
     @Deprecated // Vil bli pck-private. Bruk forProsessTaskHandler
