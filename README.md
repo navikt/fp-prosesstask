@@ -85,6 +85,16 @@ public class HelloWorldTask implements ProsessTaskHandler {
     }
 
 } 
+
+public class BrukProsessTask {
+
+   public void opprettHelloWorld() {
+       ProsessTaskData task = ProsessTaskData
+          .forProsessTaskHandler(HelloWorldTask.class);
+       // Lagrer task i eksisterende Tx. Etter commit blir task utført i egen tråd/tx.
+       prosessTaskTjeneste.lagre(task); 
+   }
+}
 ```
 
 ## ProsesstaskGruppe - for Sekvensielle og Parallelle Prosesstasks
