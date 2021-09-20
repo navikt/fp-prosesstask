@@ -56,4 +56,19 @@ public @interface ProsessTask {
     @Nonbinding
     String cronExpression() default "";
 
+    /**
+     * Parameters to configure default retry policy
+     * - Maximum number of failed runs before giving up = initial + n retries.
+     * - Delay in seconds between initial run and first retry.
+     * - Delay in seconds between first retry and later retries = retryNo * thenDelay.
+     */
+    @Nonbinding
+    int maxFailedRuns() default 3;
+
+    @Nonbinding
+    int firstDelay() default 30;
+
+    @Nonbinding
+    int thenDelay() default 60;
+
 }

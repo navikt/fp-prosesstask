@@ -1,8 +1,8 @@
 package no.nav.vedtak.felles.prosesstask.api;
 
+import java.util.Optional;
 import java.util.Set;
 
-import no.nav.vedtak.felles.prosesstask.spi.ProsessTaskDefaultRetryPolicy;
 import no.nav.vedtak.felles.prosesstask.spi.ProsessTaskRetryPolicy;
 
 /**
@@ -15,14 +15,13 @@ public interface ProsessTaskHandler {
     void doTask(ProsessTaskData prosessTaskData);
 
     /*
-     * Default policy is to retry 2 times with an increasing delay, first after 30s
+     * The default errer handling policy is to retry 2 times with an increasing delay, first after 30s.
+     * This policy can be configured in the ProsessTask annotation
      *
-     * Local policies can be provided by implementing retryPolicy
-     * - The default policy can be used with other settings for maxFailedRuns and delay.
-     * - Other retry strategies.
+     * Other policies can be provided by implementing the method retryPolicy()
      */
-    default ProsessTaskRetryPolicy retryPolicy() {
-        return new ProsessTaskDefaultRetryPolicy(3, 30);
+    default Optional<ProsessTaskRetryPolicy> retryPolicy() {
+        return Optional.empty();
     }
 
     /*

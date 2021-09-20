@@ -32,14 +32,23 @@ public class ProsessTaskHandlerRef implements AutoCloseable {
     private static final Logger LOG = LoggerFactory.getLogger(ProsessTaskHandlerRef.class);
 
     private final ProsessTaskHandler bean;
+    private final CronExpression cronExpression;
+    private final int maxFailedRuns;
+    private final int firstDelay;
+    private final int thenDelay;
 
     protected ProsessTaskHandlerRef(ProsessTaskHandler bean) {
+        var prosessTask = bean.getClass().getAnnotation(ProsessTask.class);
         this.bean = bean;
+        this.cronExpression = prosessTask.cronExpression().isBlank() ?
+                null : new CronExpression(prosessTask.cronExpression());
+        this.maxFailedRuns = prosessTask.maxFailedRuns();
+        this.firstDelay = prosessTask.firstDelay();
+        this.thenDelay = prosessTask.thenDelay();
     }
 
     public CronExpression cronExpression() {
-        var annotatedCronExpression = bean.getClass().getAnnotation(ProsessTask.class).cronExpression();
-        return annotatedCronExpression.isBlank() ? null : new CronExpression(annotatedCronExpression);
+        return cronExpression;
     }
 
     public Set<String> requiredProperties() {
@@ -47,7 +56,8 @@ public class ProsessTaskHandlerRef implements AutoCloseable {
     }
 
     public ProsessTaskRetryPolicy retryPolicy() {
-        return bean.retryPolicy();
+        return bean.retryPolicy()
+                .orElseGet(() -> new ProsessTaskDefaultRetryPolicy(maxFailedRuns, firstDelay, thenDelay));
     }
 
     public static ProsessTaskHandlerRef lookup(TaskType taskType) {
@@ -97,6 +107,20 @@ public class ProsessTaskHandlerRef implements AutoCloseable {
             return "";
         }
 
+        @Override
+        public int maxFailedRuns() {
+            return 3;
+        }
+
+        @Override
+        public int firstDelay() {
+            return 30;
+        }
+
+        @Override
+        public int thenDelay() {
+            return 60;
+        }
     }
 
 
