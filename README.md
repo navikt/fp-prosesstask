@@ -68,10 +68,12 @@ Eksempelkode for å definere en prosesstask som kan opprettes og så kjøres av 
 
 Prosesstasks som defineres må oppfylle følgende krav:
 * implementere ProsessTaskHandler og metoden doTask + eventuel custom retrylogikk
-* annoteres med @ProsessTask der value er påkrevd og må være samme tekst som brukes når det opprettes/lagres en task. Annoteringen kan også inneholde en cronExpression som angir et cron-uttrykk for kjeding og kjøring av neste instans
+* annoteres med @ProsessTask der value er påkrevd og må være samme tekst som brukes når det opprettes/lagres en task.
 * annoteres så den kan oppdages av CDI (Normalt ApplicationScoped eller Dependent)
 
 Man kan gjerne legge på en annoterting @ProsessTaskDocumentation med beskrivelse av funksjon
+Dessuten kan @ProsessTask også inneholde  en cronExpression som angir et cron-uttrykk for kjeding og kjøring av neste instans og konfigurasjon av feilhåndteringen. 
+Default feilhåndtering er retry et antall ganger med økende pause - standard er å gi opp etter maxRuns = 3 med pauser (sekunder) firstDelay = 30 og thenDelay = 60
 
 ```
 @ProsessTask("hello.world") 
