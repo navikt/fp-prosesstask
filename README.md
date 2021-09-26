@@ -73,7 +73,7 @@ Prosesstasks som defineres må oppfylle følgende krav:
 
 Man kan gjerne legge på en annoterting @ProsessTaskDocumentation med beskrivelse av funksjon
 Dessuten kan @ProsessTask også inneholde  en cronExpression som angir et cron-uttrykk for kjeding og kjøring av neste instans og konfigurasjon av feilhåndteringen. 
-Default feilhåndtering er retry et antall ganger med økende pause - standard er å gi opp etter maxRuns = 3 med pauser (sekunder) firstDelay = 30 og thenDelay = 60
+Default feilhåndtering er retry et antall ganger med økende pause - standard er å gi opp etter maxRuns = 3 med pauser firstDelay = 30 (sekunder) og thenDelay = 60
 
 ```
 @ProsessTask("hello.world") 
