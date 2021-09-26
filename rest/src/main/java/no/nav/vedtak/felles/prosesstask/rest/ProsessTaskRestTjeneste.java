@@ -75,7 +75,6 @@ public class ProsessTaskRestTjeneste {
     public ProsessTaskDataDto createProsessTask(@Parameter(description = "Informasjon for restart en eksisterende prosesstask") @TilpassetAbacAttributt(supplierClass = AbacEmptySupplier.class) @Valid ProsessTaskOpprettInputDto inputDto) {
         // kjøres manuelt for å avhjelpe feilsituasjon, da er det veldig greit at det blir logget!
         logger.info("Oppretter prossess task av type {}", inputDto.getTaskType());
-
         return prosessTaskApplikasjonTjeneste.opprettTask(inputDto);
     }
 
@@ -92,7 +91,6 @@ public class ProsessTaskRestTjeneste {
     public ProsessTaskRestartResultatDto restartProsessTask(@Parameter(description = "Informasjon for restart en eksisterende prosesstask") @TilpassetAbacAttributt(supplierClass = AbacEmptySupplier.class) @Valid ProsessTaskRestartInputDto restartInputDto) {
         // kjøres manuelt for å avhjelpe feilsituasjon, da er det veldig greit at det blir logget!
         logger.info("Restarter prossess task {}", restartInputDto.getProsessTaskId());
-
         return prosessTaskApplikasjonTjeneste.flaggProsessTaskForRestart(restartInputDto);
     }
 
@@ -107,7 +105,6 @@ public class ProsessTaskRestTjeneste {
     public ProsessTaskRetryAllResultatDto retryAllProsessTask() {
         // kjøres manuelt for å avhjelpe feilsituasjon, da er det veldig greit at det blir logget!
         logger.info("Restarter alle prossess task i status FEILET");
-
         return prosessTaskApplikasjonTjeneste.flaggAlleFeileteProsessTasksForRestart();
     }
 
@@ -120,7 +117,6 @@ public class ProsessTaskRestTjeneste {
     @BeskyttetRessurs(action = READ, property = ABAC_DRIFT_ATTRIBUTT)
     public List<ProsessTaskDataDto> finnProsessTasks(@Parameter(description = "Søkefilter for å begrense resultatet av returnerte prosesstask.") @TilpassetAbacAttributt(supplierClass = AbacEmptySupplier.class) @Valid SokeFilterDto sokeFilterDto) {
         List<ProsessTaskDataDto> resultat = prosessTaskApplikasjonTjeneste.finnAlle(sokeFilterDto);
-
         return resultat;
     }
 
