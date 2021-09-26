@@ -51,7 +51,7 @@
 		<dependency>
 			<groupId>org.postgresql</groupId>
 			<artifactId>postgresql</artifactId>
-			<version>42.2.23</version>
+			<version>42.2.24</version>
 			<scope>test</scope>
 		</dependency>
 
@@ -64,7 +64,7 @@
 		<dependency>
 		    <groupId>io.micrometer</groupId>
 		    <artifactId>micrometer-core</artifactId>
-		    <version>1.7.3</version>
+		    <version>1.7.4</version>
 		</dependency>
 	</dependencies>
 
