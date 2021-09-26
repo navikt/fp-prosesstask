@@ -91,7 +91,7 @@ public class ProsessTaskFeil {
             this.feilmelding = feil.feilmelding();
         }
 
-        this.taskName = taskInfo.getTaskType();
+        this.taskName = taskInfo.taskType().value();
         this.taskId = taskInfo.getId() == null ? null : taskInfo.getId().toString();
         this.callId = taskInfo.getPropertyValue(CallId.CALL_ID);
     }

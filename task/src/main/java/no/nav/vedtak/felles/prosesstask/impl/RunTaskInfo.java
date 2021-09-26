@@ -5,9 +5,11 @@ import java.util.Objects;
 
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskDispatcher;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskInfo;
+import no.nav.vedtak.felles.prosesstask.api.TaskType;
 
 /**
  * Info knyttet til en enkelt kjøring av en task.
+ * Denne opprettes ved polling, køes og kjøres i tråd som kaller metoden
  */
 class RunTaskInfo {
 
@@ -15,14 +17,14 @@ class RunTaskInfo {
 
     private final ProsessTaskDispatcher taskDispatcher;
     private final Long id;
-    private final String taskType;
+    private final TaskType taskType;
     private final LocalDateTime timestampLowWatermark;
 
     RunTaskInfo(ProsessTaskDispatcher dispatcher, ProsessTaskInfo task) {
-        this(dispatcher, task.getId(), task.getTaskType(), task.getSistKjørt());
+        this(dispatcher, task.getId(), task.taskType(), task.getSistKjørt());
     }
 
-    RunTaskInfo(ProsessTaskDispatcher dispatcher, Long id, String taskType, LocalDateTime timestampLowWatermark) {
+    RunTaskInfo(ProsessTaskDispatcher dispatcher, Long id, TaskType taskType, LocalDateTime timestampLowWatermark) {
         Objects.requireNonNull(id, "id"); //$NON-NLS-1$
         Objects.requireNonNull(taskType, "taskName"); //$NON-NLS-1$
 
@@ -44,7 +46,7 @@ class RunTaskInfo {
         return id;
     }
 
-    String getTaskType() {
+    TaskType getTaskType() {
         return taskType;
     }
 
@@ -54,6 +56,6 @@ class RunTaskInfo {
 
     /** Skal benytte feilhåndtering algoritme for angitt exception. */
     public boolean feilhåndterException(Throwable e) {
-        return taskDispatcher.feilhåndterException(this.taskType, e);
+        return taskDispatcher.feilhåndterException(e);
     }
 }

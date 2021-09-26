@@ -6,11 +6,7 @@ import static no.nav.vedtak.felles.prosesstask.impl.TaskManagerFeil.kunneIkkePro
 
 import java.io.IOException;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Objects;
-
-import javax.enterprise.inject.Instance;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,7 +14,7 @@ import org.slf4j.LoggerFactory;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskFeil;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskStatus;
-import no.nav.vedtak.felles.prosesstask.spi.ProsessTaskFeilhåndteringAlgoritme;
+import no.nav.vedtak.felles.prosesstask.spi.ProsessTaskRetryPolicy;
 
 /**
  * Samler feilhåndtering og status publisering som skjer på vanlige prosess
@@ -36,17 +32,14 @@ public class RunTaskFeilOgStatusEventHåndterer {
 
     private final ProsessTaskEventPubliserer eventPubliserer;
     private final TaskManagerRepositoryImpl taskManagerRepository;
-    private final Instance<ProsessTaskFeilhåndteringAlgoritme> feilhåndteringsalgoritmer;
 
     private final RunTaskInfo taskInfo;
 
     public RunTaskFeilOgStatusEventHåndterer(RunTaskInfo taskInfo, ProsessTaskEventPubliserer eventPubliserer,
-            TaskManagerRepositoryImpl taskManagerRepository,
-            Instance<ProsessTaskFeilhåndteringAlgoritme> feilhåndteringsalgoritmer) {
+            TaskManagerRepositoryImpl taskManagerRepository) {
         this.taskInfo = taskInfo;
         this.eventPubliserer = eventPubliserer;
         this.taskManagerRepository = taskManagerRepository;
-        this.feilhåndteringsalgoritmer = feilhåndteringsalgoritmer;
     }
 
     protected void publiserNyStatusEvent(ProsessTaskData data, ProsessTaskStatus gammelStatus, ProsessTaskStatus nyStatus) {
@@ -63,26 +56,20 @@ public class RunTaskFeilOgStatusEventHåndterer {
      * handle exception on task. Update failure count if less than max. NB:
      * Exception may be null if a lifecycle observer vetoed it (veto==true)
      */
-    protected void handleTaskFeil(ProsessTaskEntitet pte, Exception e) {
-        String taskName = pte.getTaskName();
-        var taskType = taskManagerRepository.getTaskType(taskName);
-        var feilhåndteringsData = taskType.getFeilhåndteringAlgoritme();
-        var feilhåndteringsalgoritme = getFeilhåndteringsalgoritme(feilhåndteringsData.getKode());
+    protected void handleTaskFeil(ProsessTaskHandlerRef taskHandler, ProsessTaskEntitet pte, Exception e) {
+        var taskType = pte.getTaskType();
 
         int failureAttempt = pte.getFeiledeForsøk() + 1;
-
-        if (sjekkOmSkalKjøresPåNytt(e, taskType, feilhåndteringsalgoritme, failureAttempt)) {
-            LocalDateTime nyTid = getNesteKjøringForNyKjøring(taskType, feilhåndteringsData, feilhåndteringsalgoritme, failureAttempt);
-            var feil = kunneIkkeProsessereTaskVilPrøveIgjenEnkelFeilmelding(taskInfo.getId(), taskName, failureAttempt, nyTid, e);
+        var retryPolicy = taskHandler.retryPolicy();
+        if (sjekkOmSkalKjøresPåNytt(e, retryPolicy, failureAttempt)) {
+            LocalDateTime nyTid = getNesteKjøringForNyKjøring(retryPolicy, failureAttempt);
+            var feil = kunneIkkeProsessereTaskVilPrøveIgjenEnkelFeilmelding(taskInfo.getId(), taskType, failureAttempt, nyTid, e);
             String feiltekst = getFeiltekstOgLoggEventueltHvisEndret(pte, feil, e, false);
             taskManagerRepository.oppdaterStatusOgNesteKjøring(pte.getId(), ProsessTaskStatus.KLAR, nyTid, feil.kode(), feiltekst, failureAttempt);
             count("retryable");
             // endrer ikke status ved nytt forsøk eller publiserer event p.t.
         } else {
-            var feil = feilhåndteringsalgoritme.hendelserNårIkkeKjøresPåNytt(e, pte.tilProsessTask());
-            if (feil == null) {
-                feil = kunneIkkeProsessereTaskVilIkkePrøveIgjenEnkelFeilmelding(taskInfo.getId(), taskName, failureAttempt, e);
-            }
+            var feil = kunneIkkeProsessereTaskVilIkkePrøveIgjenEnkelFeilmelding(taskInfo.getId(), taskType, failureAttempt, e);
             handleFatalTaskFeil(pte, feil, e);
         }
     }
@@ -111,24 +98,18 @@ public class RunTaskFeilOgStatusEventHåndterer {
                 taskInfo.getId(), taskInfo.getTaskType(), e);
     }
 
-    private LocalDateTime getNesteKjøringForNyKjøring(ProsessTaskType taskType,
-            ProsessTaskFeilhand feilhåndteringsData,
-            ProsessTaskFeilhåndteringAlgoritme feilhåndteringsalgoritme,
-            int failureAttempt) {
-        int secsBetweenAttempts = feilhåndteringsalgoritme.getForsinkelseStrategi().sekunderTilNesteForsøk(taskType, failureAttempt,
-                feilhåndteringsData);
+    private LocalDateTime getNesteKjøringForNyKjøring(ProsessTaskRetryPolicy retryPolicy, int failureAttempt) {
+        int secsBetweenAttempts = retryPolicy.secondsToNextRun(failureAttempt);
 
         LocalDateTime nyTid = LocalDateTime.now().plusSeconds(secsBetweenAttempts);
         return nyTid;
     }
 
-    private boolean sjekkOmSkalKjøresPåNytt(Exception e, ProsessTaskType taskType, ProsessTaskFeilhåndteringAlgoritme feilhåndteringsalgoritme,
-            int failureAttempt) {
+    private boolean sjekkOmSkalKjøresPåNytt(Exception e, ProsessTaskRetryPolicy retryPolicy, int failureAttempt) {
 
-        // Prøv på nytt hvis kjent exception og feilhåndteringsalgoritmen tilsier nytt
-        // forsøk. Ellers fail-fast
+        // Prøv på nytt hvis kjent exception og feilhåndteringsalgoritmen tilsier nytt forsøk. Ellers fail-fast
         if (feilhåndteringExceptions(e) || (e.getCause() != null && feilhåndteringExceptions(e.getCause()))) {
-            return feilhåndteringsalgoritme.skalKjørePåNytt(taskType.tilProsessTaskTypeInfo(), failureAttempt, e);
+            return retryPolicy.retryTask(failureAttempt, e);
         }
         return false;
     }
@@ -162,20 +143,8 @@ public class RunTaskFeilOgStatusEventHåndterer {
         return feiltekst;
     }
 
-    protected ProsessTaskFeilhåndteringAlgoritme getFeilhåndteringsalgoritme(String kode) {
-        List<ProsessTaskFeilhåndteringAlgoritme> kandidater = new ArrayList<>(1);
-        for (var algoritme : feilhåndteringsalgoritmer) {
-            if (algoritme.kode().equals(kode)) {
-                kandidater.add(algoritme);
-            }
-        }
-        if (kandidater.size() == 1) {
-            return kandidater.get(0);
-        }
-        throw new IllegalStateException("Forventet å finne 1 feilhåndteringsalgoritme for '" + kode + "', men fant " + kandidater); //$NON-NLS-1$ //$NON-NLS-2$
-    }
 
     private void count(String severity) {
-        counter(TASK_FEIL, SEVERITY, severity, TYPE, taskInfo.getTaskType()).increment();
+        counter(TASK_FEIL, SEVERITY, severity, TYPE, taskInfo.getTaskType().value()).increment();
     }
 }

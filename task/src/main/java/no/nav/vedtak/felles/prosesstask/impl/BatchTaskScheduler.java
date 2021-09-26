@@ -34,10 +34,19 @@ public class BatchTaskScheduler implements AppServiceHandler {
 
     @Override
     public void start() {
-        taskRepository.finnStatusForBatchTasks()
+        taskRepository.finnFeiletTasks()
             .stream()
-            .filter(entry -> ProsessTaskStatus.FEILET.equals(entry.getStatus()))
+            .filter(this::erBatchTask)
             .forEach(this::restartTask);
+    }
+
+    private boolean erBatchTask(ProsessTaskEntitet pte) {
+        try {
+            var annotatedCronExpression = ProsessTaskHandlerRef.lookup(pte.getTaskType()).cronExpression();
+            return annotatedCronExpression != null;
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     private void restartTask(ProsessTaskEntitet pte) {

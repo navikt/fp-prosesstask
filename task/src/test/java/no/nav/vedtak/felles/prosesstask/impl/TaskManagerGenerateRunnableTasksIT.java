@@ -14,6 +14,7 @@ import org.mockito.Mockito;
 import ch.qos.logback.classic.Level;
 import no.nav.vedtak.felles.prosesstask.JpaExtension;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
+import no.nav.vedtak.felles.prosesstask.api.TaskType;
 
 public class TaskManagerGenerateRunnableTasksIT {
 
@@ -30,7 +31,7 @@ public class TaskManagerGenerateRunnableTasksIT {
 
     @Test
     public void skal_fange_PersistenceException_og_legge_til_errorCallback() throws Exception {
-        ProsessTaskData data = new ProsessTaskData("hello.world");
+        ProsessTaskData data = new ProsessTaskData(new TaskType("hello.world"));
         data.setId(99L);
         ProsessTaskEntitet pte = new ProsessTaskEntitet();
         pte.kopierFraEksisterende(data);
@@ -40,8 +41,8 @@ public class TaskManagerGenerateRunnableTasksIT {
         TaskManagerGenerateRunnableTasks generateRunnableTasks = new TaskManagerGenerateRunnableTasks(null, null, null) {
 
             @Override
-            TaskManagerRunnableTask createTaskManagerRunnableTask(final RunTaskInfo taskInfo, final String callId, String taskName) {
-                return new TaskManagerRunnableTask(taskName, taskInfo, callId, null) {
+            TaskManagerRunnableTask createTaskManagerRunnableTask(final RunTaskInfo taskInfo, final String callId, TaskType taskType) {
+                return new TaskManagerRunnableTask(taskType, taskInfo, callId, null) {
 
                     @Override
                     IdentRunnable lagErrorCallback(RunTaskInfo taskInfo, String callId, Throwable t) {
@@ -53,7 +54,7 @@ public class TaskManagerGenerateRunnableTasksIT {
                     @Override
                     RunTask newRunTaskInstance() {
                         // TEST override for å kaste exception
-                        return new RunTask(Mockito.mock(TaskManagerRepositoryImpl.class), null, null) {
+                        return new RunTask(Mockito.mock(TaskManagerRepositoryImpl.class), null) {
                             @Override
                             public void doRun(RunTaskInfo taskInfo) {
                                 throw new PersistenceException("howdy!");

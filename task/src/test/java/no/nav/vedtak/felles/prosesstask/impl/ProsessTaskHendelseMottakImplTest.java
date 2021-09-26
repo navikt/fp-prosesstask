@@ -6,6 +6,7 @@ import static org.mockito.Mockito.when;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Properties;
 
 import javax.inject.Inject;
 
@@ -25,9 +26,8 @@ import org.slf4j.LoggerFactory;
 import ch.qos.logback.classic.Logger;
 import no.nav.vedtak.felles.prosesstask.JpaExtension;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
-import no.nav.vedtak.felles.prosesstask.api.ProsessTaskHendelse;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskStatus;
-import no.nav.vedtak.felles.prosesstask.impl.TaskManager.PollAvailableTasks;
+import no.nav.vedtak.felles.prosesstask.api.ProsessTaskTjeneste;
 import no.nav.vedtak.felles.testutilities.cdi.CdiAwareExtension;
 import no.nav.vedtak.log.util.MemoryAppender;
 
@@ -36,15 +36,14 @@ import no.nav.vedtak.log.util.MemoryAppender;
 @MockitoSettings(strictness = Strictness.LENIENT)
 public class ProsessTaskHendelseMottakImplTest {
 
+    private static final String HENDELSE_KEY = "ØKONOMI_OPPDRAG_KVITTERING";
+
     @RegisterExtension
     public static final JpaExtension repoRule = new JpaExtension();
     
     private MemoryAppender logSniffer = MemoryAppender.sniff(TaskManager.class);
 
-    private static final Long UKJENT_TASK_ID = 999L;
-    private static final Long TASK_ID = 111L;
-    private static final Long TASK_ID_SOM_IKKE_VENTER = 666L;
-    private ProsessTaskHendelseMottakImpl prosessTaskHendelseMottak;
+    private ProsessTaskTjeneste prosessTaskTjeneste;
 
     @Mock
     private ProsessTaskRepositoryImpl repo;
@@ -66,55 +65,42 @@ public class ProsessTaskHendelseMottakImplTest {
     
     @BeforeEach
     public void setUp() throws Exception {
-        prosessTaskHendelseMottak = new ProsessTaskHendelseMottakImpl(repo);
-        when(taskSomVenterØkonomiKvittering.getHendelse()).thenReturn(Optional.of(ProsessTaskHendelse.ØKONOMI_OPPDRAG_KVITTERING));
-        when(taskSomIkkeVenter.getHendelse()).thenReturn(Optional.empty());
+        prosessTaskTjeneste = new ProsessTaskTjenesteImpl(repo);
+        when(taskSomVenterØkonomiKvittering.getVentetHendelse()).thenReturn(Optional.of(HENDELSE_KEY));
+        when(taskSomIkkeVenter.getVentetHendelse()).thenReturn(Optional.empty());
     }
 
     @Test
     public void testMottaHendelseHappyDay() {
         // Arrange
         when(taskSomVenterØkonomiKvittering.getStatus()).thenReturn(ProsessTaskStatus.VENTER_SVAR);
-        when(repo.finn(TASK_ID)).thenReturn(taskSomVenterØkonomiKvittering);
         // Act
-        prosessTaskHendelseMottak.mottaHendelse(TASK_ID, ProsessTaskHendelse.ØKONOMI_OPPDRAG_KVITTERING);
+        prosessTaskTjeneste.mottaHendelse(taskSomVenterØkonomiKvittering, HENDELSE_KEY, new Properties());
         // Assert
         verify(taskSomVenterØkonomiKvittering).setStatus(ProsessTaskStatus.KLAR);
         verify(repo).lagre(taskSomVenterØkonomiKvittering);
     }
-
+    @Test
     public void testMottaHendelseUkjentTask() {
-
-        assertThrows(IllegalStateException.class, () -> {
-            // Arrange
-            when(repo.finn(UKJENT_TASK_ID)).thenReturn(null);
-            // Act
-            prosessTaskHendelseMottak.mottaHendelse(UKJENT_TASK_ID, ProsessTaskHendelse.ØKONOMI_OPPDRAG_KVITTERING);
-            // Assert
+        assertThrows(NullPointerException.class, () -> {
+            prosessTaskTjeneste.mottaHendelse(null, HENDELSE_KEY);
         });
     }
 
+    @Test
     public void testMottaUventetHendelse() {
         assertThrows(IllegalStateException.class, () -> {
-            // Arrange
-            when(repo.finn(TASK_ID)).thenReturn(taskSomVenterØkonomiKvittering);
-            // Act
-            prosessTaskHendelseMottak.mottaHendelse(TASK_ID, ProsessTaskHendelse.UKJENT_HENDELSE);
-            // Assert
+            prosessTaskTjeneste.mottaHendelse(taskSomVenterØkonomiKvittering, "UKJENT");
         });
     }
 
+    @Test
     public void testMottaHendelseITaskSomIkkeVenter() {
         assertThrows(IllegalStateException.class, () -> {
-            // Arrange
-            when(repo.finn(TASK_ID_SOM_IKKE_VENTER)).thenReturn(taskSomIkkeVenter);
-            // Act
-            prosessTaskHendelseMottak.mottaHendelse(TASK_ID_SOM_IKKE_VENTER, ProsessTaskHendelse.ØKONOMI_OPPDRAG_KVITTERING);
-            // Assert
+            prosessTaskTjeneste.mottaHendelse(taskSomIkkeVenter, HENDELSE_KEY);
         });
     }
-    
-    
+
     @Test
     public void skal_logge_transient_feil_under_polling() throws Exception {
         TaskManager taskManager = new TaskManager(taskManagerRepo, null) {

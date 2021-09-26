@@ -8,11 +8,8 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -36,8 +33,8 @@ import no.nav.vedtak.felles.prosesstask.api.ProsessTaskGruppe;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskGruppe.Entry;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskRepository;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskStatus;
-import no.nav.vedtak.felles.prosesstask.api.ProsessTaskTypeInfo;
 import no.nav.vedtak.felles.prosesstask.api.TaskStatus;
+import no.nav.vedtak.felles.prosesstask.api.TaskType;
 import no.nav.vedtak.felles.prosesstask.impl.util.DatabaseUtil;
 
 /**
@@ -269,41 +266,12 @@ public class ProsessTaskRepositoryImpl implements ProsessTaskRepository {
     }
 
     @Override
-    public List<ProsessTaskData> finnUferdigeBatchTasks(String task) {
+    public List<ProsessTaskData> finnUferdigeBatchTasks(TaskType task) {
         TypedQuery<ProsessTaskEntitet> query = entityManager
             .createQuery("from ProsessTaskEntitet pt where pt.status NOT IN ('FERDIG', 'KJOERT') and pt.taskType = :task", ProsessTaskEntitet.class)
-            .setParameter("task", task); // NOSONAR $NON-NLS-1$
+            .setParameter("task", task.value()); // NOSONAR $NON-NLS-1$
 
         return tilProsessTask(query.getResultList());
-    }
-
-    @Override
-    public Map<ProsessTaskType, ProsessTaskEntitet> finnStatusForBatchTasks() {
-        TypedQuery<ProsessTaskType> query = entityManager
-            .createQuery("SELECT ptt from ProsessTaskType ptt " +
-                "where ptt.cronExpression is not null", ProsessTaskType.class); // NOSONAR $NON-NLS-1$
-
-        List<ProsessTaskType> resultList = query.getResultList();
-        Map<ProsessTaskType, ProsessTaskEntitet> result = new HashMap<>();
-        for (ProsessTaskType prosessTaskType : resultList) {
-            result.put(prosessTaskType, finnStatusForTaskType(prosessTaskType));
-        }
-        return result;
-    }
-
-    private ProsessTaskEntitet finnStatusForTaskType(ProsessTaskType taskType) {
-        TypedQuery<ProsessTaskEntitet> query = entityManager
-            .createQuery("SELECT pt " +
-                "from ProsessTaskEntitet pt " +
-                "where pt.taskType = :task " +
-                "AND pt.status in ('KLAR', 'FEILET')" +
-                "ORDER BY pt.nesteKjøringEtter DESC", ProsessTaskEntitet.class)
-            .setParameter("task", taskType.getKode())
-            .setHint(QueryHints.HINT_READONLY, true)
-            .setMaxResults(1); // NOSONAR $NON-NLS-1$
-        return query.getResultList().stream()
-            .findFirst()
-            .orElse(null);
     }
 
     @Override
@@ -346,11 +314,11 @@ public class ProsessTaskRepositoryImpl implements ProsessTaskRepository {
     }
 
     @Override
-    public List<TaskStatus> finnStatusForTaskIGruppe(String task, String gruppe) {
+    public List<TaskStatus> finnStatusForTaskIGruppe(TaskType task, String gruppe) {
 
         final Query query = entityManager
             .createNativeQuery("SELECT pt.status, count(*) FROM PROSESS_TASK pt WHERE pt.task_type = :task AND pt.TASK_GRUPPE = :gruppe GROUP BY pt.status")
-            .setParameter("task", task)
+            .setParameter("task", task.value())
             .setParameter("gruppe", gruppe);
 
         List<TaskStatus> statuser = new ArrayList<>();
@@ -361,15 +329,6 @@ public class ProsessTaskRepositoryImpl implements ProsessTaskRepository {
             statuser.add(new TaskStatus(ProsessTaskStatus.valueOf((String) objects[0]), (BigDecimal) objects[1])); // NOSONAR
         }
         return statuser;
-    }
-
-    @Override
-    public Optional<ProsessTaskTypeInfo> finnProsessTaskType(String kode) {
-        ProsessTaskType prosessTaskType = entityManager.find(ProsessTaskType.class, kode);
-        if (prosessTaskType != null) {
-            return Optional.of(prosessTaskType.tilProsessTaskTypeInfo());
-        }
-        return Optional.empty();
     }
 
     private List<ProsessTaskData> tilProsessTask(List<ProsessTaskEntitet> resultList) {

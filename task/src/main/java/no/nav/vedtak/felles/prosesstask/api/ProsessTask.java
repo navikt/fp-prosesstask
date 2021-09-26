@@ -8,6 +8,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 import javax.enterprise.inject.Stereotype;
+import javax.enterprise.util.Nonbinding;
 import javax.inject.Qualifier;
 
 /**
@@ -32,10 +33,6 @@ import javax.inject.Qualifier;
  *
  * }
  * </pre>
- * <p>
- * Denne må matche ett innslag i <code>PROSESS_TASK_TYPE</code> tabell for å kunne kjøres. <br/>
- * En konkret kjøring utføres
- * ved å registrere typen i tillegg i <code>PROSESS_TASK</code> tabellen.
  */
 @Qualifier
 @Stereotype
@@ -46,11 +43,32 @@ import javax.inject.Qualifier;
 public @interface ProsessTask {
 
     /**
-     * Settes til task type, slik det er definert i PROSESS_TASK_TYPE tabell.
+     * Settes til task type og må mathe task_type i prosesstasktabellen.
      * Markerer implementasjonen slik at det kan oppdages runtime.
      * <p>
      * Må spesifiseres.
      */
     String value();
+
+    /**
+     * Cron-expression to schedule next instance of a repeating task.
+     */
+    @Nonbinding
+    String cronExpression() default "";
+
+    /**
+     * Parameters to configure default retry policy
+     * - Maximum number of failed runs before giving up = initial + n retries.
+     * - Delay in seconds between initial run and first retry.
+     * - Delay in seconds between first retry and later retries = retryNo * thenDelay.
+     */
+    @Nonbinding
+    int maxFailedRuns() default 3;
+
+    @Nonbinding
+    int firstDelay() default 30;
+
+    @Nonbinding
+    int thenDelay() default 60;
 
 }

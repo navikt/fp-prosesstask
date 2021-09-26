@@ -7,14 +7,14 @@
 
 CREATE TABLE PROSESS_TASK
 (
-    ID                        NUMERIC,
-    TASK_TYPE                 VARCHAR(50),
-    PRIORITET                 NUMERIC(3, 0) DEFAULT 0,
-    STATUS                    VARCHAR(20)   DEFAULT 'KLAR',
+    ID                        NUMERIC NOT NULL ,
+    TASK_TYPE                 VARCHAR(50) NOT NULL ,
+    PRIORITET                 NUMERIC(3, 0) DEFAULT 0 NOT NULL ,
+    STATUS                    VARCHAR(20)   DEFAULT 'KLAR' NOT NULL ,
     TASK_PARAMETERE           VARCHAR(4000),
     TASK_PAYLOAD              TEXT,
     TASK_GRUPPE               VARCHAR(250),
-    TASK_SEKVENS              VARCHAR(100)  DEFAULT '1',
+    TASK_SEKVENS              VARCHAR(100)  DEFAULT '1' NOT NULL,
     PARTITION_KEY             VARCHAR(4)    DEFAULT to_char(current_date, 'MM'),
     NESTE_KJOERING_ETTER      TIMESTAMP(0)  DEFAULT current_timestamp,
     FEILEDE_FORSOEK           NUMERIC(5, 0) DEFAULT 0,
@@ -25,8 +25,11 @@ CREATE TABLE PROSESS_TASK
     OPPRETTET_AV              VARCHAR(20)   DEFAULT 'VL',
     OPPRETTET_TID             TIMESTAMP(6)  DEFAULT current_timestamp NOT NULL,
     BLOKKERT_AV               NUMERIC                                 NULL,
-    VERSJON                   NUMERIC       DEFAULT 0
+    VERSJON                   NUMERIC       DEFAULT 0 NOT NULL,
+    SISTE_KJOERING_SLUTT_TS   TIMESTAMP(6),
+    SISTE_KJOERING_PLUKK_TS   TIMESTAMP(6)
 ) PARTITION BY LIST (STATUS);
+
 
 COMMENT ON COLUMN PROSESS_TASK.ID IS 'Primary Key';
 COMMENT ON COLUMN PROSESS_TASK.TASK_TYPE IS 'navn på task. Brukes til å matche riktig implementasjon';
@@ -44,57 +47,9 @@ COMMENT ON COLUMN PROSESS_TASK.SISTE_KJOERING_FEIL_TEKST IS 'siste feil tasken f
 COMMENT ON COLUMN PROSESS_TASK.SISTE_KJOERING_SERVER IS 'navn på node som sist kjørte en task (server@pid)';
 COMMENT ON COLUMN PROSESS_TASK.VERSJON IS 'angir versjon for optimistisk låsing';
 COMMENT ON COLUMN PROSESS_TASK.BLOKKERT_AV IS 'Id til ProsessTask som blokkerer kjøring av denne (når status=VETO)';
+COMMENT ON COLUMN PROSESS_TASK.SISTE_KJOERING_TS IS 'siste gang tasken ble forsøkt kjørt (før kjøring)';
+COMMENT ON COLUMN PROSESS_TASK.SISTE_KJOERING_SLUTT_TS IS 'tidsstempel siste gang tasken ble kjørt (etter kjøring)';
 COMMENT ON TABLE PROSESS_TASK IS 'Inneholder tasks som skal kjøres i bakgrunnen';
-
---------------------------------------------------------
---  DDL for Table PROSESS_TASK_FEILHAND
---------------------------------------------------------
-
-CREATE TABLE PROSESS_TASK_FEILHAND
-(
-    KODE            VARCHAR(50),
-    NAVN            VARCHAR(50),
-    BESKRIVELSE     VARCHAR(2000),
-    OPPRETTET_AV    VARCHAR(20)  DEFAULT 'VL',
-    OPPRETTET_TID   TIMESTAMP(3) DEFAULT current_timestamp,
-    ENDRET_AV       VARCHAR(20),
-    ENDRET_TID      TIMESTAMP(3),
-    INPUT_VARIABEL1 NUMERIC,
-    INPUT_VARIABEL2 NUMERIC
-);
-
-COMMENT ON COLUMN PROSESS_TASK_FEILHAND.KODE IS 'Kodeverk Primary Key';
-COMMENT ON COLUMN PROSESS_TASK_FEILHAND.NAVN IS 'Lesbart navn på type feilhåndtering brukt i prosesstask';
-COMMENT ON COLUMN PROSESS_TASK_FEILHAND.BESKRIVELSE IS 'Utdypende beskrivelse av koden';
-COMMENT ON COLUMN PROSESS_TASK_FEILHAND.INPUT_VARIABEL1 IS 'Variabel til algorithmen';
-COMMENT ON COLUMN PROSESS_TASK_FEILHAND.INPUT_VARIABEL2 IS 'Variabel til algorithmen';
-COMMENT ON TABLE PROSESS_TASK_FEILHAND IS 'Kodetabell for feilhåndterings-metoder. For eksempel antall ganger å prøve på nytt og til hvilke tidspunkt';
-
---------------------------------------------------------
---  DDL for Table PROSESS_TASK_TYPE
---------------------------------------------------------
-
-CREATE TABLE PROSESS_TASK_TYPE
-(
-    KODE                     VARCHAR(50),
-    NAVN                     VARCHAR(50),
-    FEIL_MAKS_FORSOEK        NUMERIC(10, 0) DEFAULT 1,
-    FEIL_SEK_MELLOM_FORSOEK  NUMERIC(10, 0) DEFAULT 30,
-    FEILHANDTERING_ALGORITME VARCHAR(50)    DEFAULT 'DEFAULT',
-    BESKRIVELSE              VARCHAR(2000),
-    OPPRETTET_AV             VARCHAR(20)    DEFAULT 'VL',
-    OPPRETTET_TID            TIMESTAMP(3)   DEFAULT current_timestamp,
-    ENDRET_AV                VARCHAR(20),
-    ENDRET_TID               TIMESTAMP(3)
-);
-
-COMMENT ON COLUMN PROSESS_TASK_TYPE.KODE IS 'Kodeverk Primary Key';
-COMMENT ON COLUMN PROSESS_TASK_TYPE.NAVN IS 'Lesbart navn på prosesstasktype';
-COMMENT ON COLUMN PROSESS_TASK_TYPE.FEIL_MAKS_FORSOEK IS 'MISSING COLUMN COMMENT';
-COMMENT ON COLUMN PROSESS_TASK_TYPE.FEIL_SEK_MELLOM_FORSOEK IS 'MISSING COLUMN COMMENT';
-COMMENT ON COLUMN PROSESS_TASK_TYPE.FEILHANDTERING_ALGORITME IS 'FK: PROSESS_TASK_FEILHAND';
-COMMENT ON COLUMN PROSESS_TASK_TYPE.BESKRIVELSE IS 'Utdypende beskrivelse av koden';
-COMMENT ON TABLE PROSESS_TASK_TYPE IS 'Kodetabell for typer prosesser med beskrivelse og informasjon om hvilken feilhåndteringen som skal benyttes';
 
 CREATE INDEX IDX_PROSESS_TASK_2
     ON PROSESS_TASK (TASK_TYPE);
@@ -110,12 +65,6 @@ CREATE INDEX IDX_PROSESS_TASK_7
     ON PROSESS_TASK (PARTITION_KEY);
 CREATE UNIQUE INDEX UIDX_PROSESS_TASK
     ON PROSESS_TASK (ID, STATUS, PARTITION_KEY);
-CREATE UNIQUE INDEX UIDX_PROSESS_TASK_FEILHAND
-    ON PROSESS_TASK_FEILHAND (KODE);
-CREATE UNIQUE INDEX UIDX_PROSESS_TASK_TYPE
-    ON PROSESS_TASK_TYPE (KODE);
-CREATE INDEX IDX_PROSESS_TASK_TYPE_1
-    ON PROSESS_TASK_TYPE (FEILHANDTERING_ALGORITME);
 CREATE INDEX IDX_PROSESS_TASK_6 ON PROSESS_TASK (BLOKKERT_AV);
 
 
@@ -124,82 +73,17 @@ CREATE INDEX IDX_PROSESS_TASK_6 ON PROSESS_TASK (BLOKKERT_AV);
 --------------------------------------------------------
 ALTER TABLE PROSESS_TASK
     ADD CONSTRAINT PK_PROSESS_TASK PRIMARY KEY (ID, STATUS, PARTITION_KEY);
-ALTER TABLE PROSESS_TASK
-    ADD CONSTRAINT CHK_PROSESS_TASK_STATUS CHECK (STATUS IN
-                                                  ('KLAR', 'FEILET', 'VENTER_SVAR', 'SUSPENDERT', 'FERDIG'));
-ALTER TABLE PROSESS_TASK
-    ALTER COLUMN VERSJON SET NOT NULL;
-ALTER TABLE PROSESS_TASK
-    ALTER COLUMN TASK_SEKVENS SET NOT NULL;
-ALTER TABLE PROSESS_TASK
-    ALTER COLUMN STATUS SET NOT NULL;
-ALTER TABLE PROSESS_TASK
-    ALTER COLUMN PRIORITET SET NOT NULL;
-ALTER TABLE PROSESS_TASK
-    ALTER COLUMN TASK_TYPE SET NOT NULL;
-ALTER TABLE PROSESS_TASK
-    ALTER COLUMN ID SET NOT NULL;
 
 --------------------------------------------------------
---  Constraints for Table PROSESS_TASK_FEILHAND
+--  Sequences
 --------------------------------------------------------
-ALTER TABLE PROSESS_TASK_FEILHAND
-    ADD CONSTRAINT PK_PROSESS_TASK_FEILHAND PRIMARY KEY (KODE);
-ALTER TABLE PROSESS_TASK_FEILHAND
-    ALTER COLUMN OPPRETTET_TID SET NOT NULL;
-ALTER TABLE PROSESS_TASK_FEILHAND
-    ALTER COLUMN OPPRETTET_AV SET NOT NULL;
-ALTER TABLE PROSESS_TASK_FEILHAND
-    ALTER COLUMN NAVN SET NOT NULL;
-ALTER TABLE PROSESS_TASK_FEILHAND
-    ALTER COLUMN KODE SET NOT NULL;
-
---------------------------------------------------------
---  Constraints for Table PROSESS_TASK_TYPE
---------------------------------------------------------
-
-ALTER TABLE PROSESS_TASK_TYPE
-    ADD CONSTRAINT PK_PROSESS_TASK_TYPE PRIMARY KEY (KODE);
-ALTER TABLE PROSESS_TASK_TYPE
-    ALTER COLUMN OPPRETTET_TID SET NOT NULL;
-ALTER TABLE PROSESS_TASK_TYPE
-    ALTER COLUMN OPPRETTET_AV SET NOT NULL;
-ALTER TABLE PROSESS_TASK_TYPE
-    ALTER COLUMN FEIL_SEK_MELLOM_FORSOEK SET NOT NULL;
-ALTER TABLE PROSESS_TASK_TYPE
-    ALTER COLUMN FEIL_MAKS_FORSOEK SET NOT NULL;
-ALTER TABLE PROSESS_TASK_TYPE
-    ALTER COLUMN KODE SET NOT NULL;
-
---------------------------------------------------------
---  Ref Constraints for Table PROSESS_TASK
---------------------------------------------------------
-
-ALTER TABLE PROSESS_TASK
-    ADD CONSTRAINT FK_PROSESS_TASK_1 FOREIGN KEY (TASK_TYPE)
-        REFERENCES PROSESS_TASK_TYPE (KODE);
-
---------------------------------------------------------
---  Ref Constraints for Table PROSESS_TASK_TYPE
---------------------------------------------------------
-
-ALTER TABLE PROSESS_TASK_TYPE
-    ADD CONSTRAINT FK_PROSESS_TASK_TYPE_1 FOREIGN KEY (FEILHANDTERING_ALGORITME)
-        REFERENCES PROSESS_TASK_FEILHAND (KODE);
-
-
 CREATE SEQUENCE SEQ_PROSESS_TASK MINVALUE 1000000 START WITH 1000000 INCREMENT BY 50 NO CYCLE;
 CREATE SEQUENCE SEQ_PROSESS_TASK_GRUPPE MINVALUE 10000000 START WITH 10000000 INCREMENT BY 1000000 NO CYCLE;
 
-
-alter table prosess_task
-    add column SISTE_KJOERING_SLUTT_TS timestamp(6);
-
-COMMENT ON COLUMN PROSESS_TASK.SISTE_KJOERING_TS IS 'siste gang tasken ble forsøkt kjørt (før kjøring)';
-COMMENT ON COLUMN PROSESS_TASK.SISTE_KJOERING_SLUTT_TS IS 'tidsstempel siste gang tasken ble kjørt (etter kjøring)';
-
+--------------------------------------------------------
 -- Etablerer et sett med bøtter som ferdig tasks kan legge seg i avhengig av hvilken måned de er opprettet i.
 -- Legger opp til at disse bøttene kan prunes etter kontinuerlig for å bevare ytelsen
+--------------------------------------------------------
 CREATE TABLE PROSESS_TASK_PARTITION_DEFAULT PARTITION OF PROSESS_TASK
     DEFAULT;
 

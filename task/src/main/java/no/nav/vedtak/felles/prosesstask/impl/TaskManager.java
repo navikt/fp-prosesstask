@@ -39,6 +39,7 @@ import no.nav.vedtak.exception.TekniskException;
 import no.nav.vedtak.felles.jpa.TransactionHandler;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskDispatcher;
+import no.nav.vedtak.felles.prosesstask.api.TaskType;
 
 /**
  * Main class handling polling tasks and dispatching these.
@@ -129,18 +130,23 @@ public class TaskManager implements AppServiceHandler {
                 ProsessTaskDispatcher delegate = selectProsessTaskDispatcher(dispatcher);
 
                 @Override
-                public boolean feilhåndterException(String taskType, Throwable e) {
-                    return delegate.feilhåndterException(taskType, e);
+                public boolean feilhåndterException(Throwable e) {
+                    return delegate.feilhåndterException(e);
                 }
 
                 @Override
-                public void dispatch(ProsessTaskData task) throws Exception {
+                public void dispatch(ProsessTaskHandlerRef taskHandler, ProsessTaskData task) throws Exception {
                     try {
                         currentTask.set(task);
-                        delegate.dispatch(task);
+                        delegate.dispatch(taskHandler, task);
                     } finally {
                         currentTask.remove();
                     }
+                }
+
+                @Override
+                public ProsessTaskHandlerRef taskHandler(TaskType taskType)  {
+                    return delegate.taskHandler(taskType);
                 }
             }
 

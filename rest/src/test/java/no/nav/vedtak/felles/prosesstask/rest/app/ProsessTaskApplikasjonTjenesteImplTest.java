@@ -1,11 +1,9 @@
 package no.nav.vedtak.felles.prosesstask.rest.app;
 
-import static no.nav.vedtak.felles.prosesstask.api.ProsessTaskData.AKTØR_ID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -17,7 +15,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.UUID;
 
 import org.junit.jupiter.api.Assertions;
@@ -26,13 +23,14 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
 import no.nav.vedtak.exception.TekniskException;
+import no.nav.vedtak.felles.prosesstask.api.CommonTaskProperties;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskRepository;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskStatus;
-import no.nav.vedtak.felles.prosesstask.api.ProsessTaskTypeInfo;
+import no.nav.vedtak.felles.prosesstask.api.TaskType;
+import no.nav.vedtak.felles.prosesstask.impl.ProsessTaskTjenesteImpl;
 import no.nav.vedtak.felles.prosesstask.rest.dto.FeiletProsessTaskDataDto;
 import no.nav.vedtak.felles.prosesstask.rest.dto.ProsessTaskDataDto;
-import no.nav.vedtak.felles.prosesstask.rest.dto.ProsessTaskOpprettInputDto;
 import no.nav.vedtak.felles.prosesstask.rest.dto.ProsessTaskRestartInputDto;
 import no.nav.vedtak.felles.prosesstask.rest.dto.ProsessTaskRestartResultatDto;
 import no.nav.vedtak.felles.prosesstask.rest.dto.ProsessTaskRetryAllResultatDto;
@@ -40,8 +38,10 @@ import no.nav.vedtak.felles.prosesstask.rest.dto.SokeFilterDto;
 
 public class ProsessTaskApplikasjonTjenesteImplTest {
 
-    private static final String PAYLOAD_STRING = "payload-string";
-    private static final String TASK_TYPE = "random-string-uten-mening";
+
+    private static final String TASK_TYPE_NAME = "random-string-uten-mening";
+    private static final String TASK_TYPE_NAME_EXT = "random-string-uten-meningaa";
+    private static final TaskType TASK_TYPE = new TaskType(TASK_TYPE_NAME);
     private static final int DEFAULT_MAKS_ANTALL_FEIL_FORSØK = 3;
 
     private ProsessTaskRepository prosessTaskRepositoryMock;
@@ -51,13 +51,9 @@ public class ProsessTaskApplikasjonTjenesteImplTest {
     @BeforeEach
     public void setUp() throws Exception {
         prosessTaskRepositoryMock = mock(ProsessTaskRepository.class);
-        prosessTaskApplikasjonTjeneste = new ProsessTaskApplikasjonTjeneste(prosessTaskRepositoryMock);
+        var prosessTaskTjeneste = new ProsessTaskTjenesteImpl(prosessTaskRepositoryMock);
+        prosessTaskApplikasjonTjeneste = new ProsessTaskApplikasjonTjeneste(prosessTaskTjeneste, prosessTaskRepositoryMock);
 
-        when(prosessTaskRepositoryMock.finnProsessTaskType(anyString())).thenReturn(lagProsessTaskType());
-    }
-
-    private Optional<ProsessTaskTypeInfo> lagProsessTaskType() {
-        return Optional.of(new ProsessTaskTypeInfo(TASK_TYPE, DEFAULT_MAKS_ANTALL_FEIL_FORSØK));
     }
 
     @Test
@@ -82,16 +78,6 @@ public class ProsessTaskApplikasjonTjenesteImplTest {
 
         // Neste kjøring setes til LocalDateTime.now(), så tester på en enkel måte.
         assertThat(dataTilPersistering.getNesteKjøringEtter()).isAfter(LocalDateTime.now().minusSeconds(5));
-    }
-
-    @Test
-    public void skal_opprette_task() {
-        ProsessTaskOpprettInputDto dto = new ProsessTaskOpprettInputDto();
-        dto.setTaskType("asdf.asdf");
-
-        ProsessTaskDataDto prosessTaskDataDto = prosessTaskApplikasjonTjeneste.opprettTask(dto);
-        assertThat(prosessTaskDataDto.getTaskType()).isEqualTo(dto.getTaskType());
-        assertThat(prosessTaskDataDto.getTaskParametre()).isEmpty();
     }
 
     @Test
@@ -125,7 +111,7 @@ public class ProsessTaskApplikasjonTjenesteImplTest {
             prosessTaskApplikasjonTjeneste.flaggProsessTaskForRestart(lagProsessTaskRestartInputDto(10L, "VENTER_SVAR"));
             verify(prosessTaskRepositoryMock, never()).lagre(any(ProsessTaskData.class));
         });
-        assertThat(message).hasMessageContaining(ProsessTaskApplikasjonTjeneste.MAA_ANGI_NAVARENDE_STATUS_FEIL_ID);
+        assertThat(message).hasMessageContaining(ProsessTaskTjenesteImpl.MAA_ANGI_NAVARENDE_STATUS_FEIL_ID);
     }
 
     @Test
@@ -136,7 +122,7 @@ public class ProsessTaskApplikasjonTjenesteImplTest {
             prosessTaskApplikasjonTjeneste.flaggProsessTaskForRestart(lagProsessTaskRestartInputDto(10L, null));
             verify(prosessTaskRepositoryMock, never()).lagre(any(ProsessTaskData.class));
         });
-        assertThat(message).hasMessageContaining(ProsessTaskApplikasjonTjeneste.MAA_ANGI_NAVARENDE_STATUS_FEIL_ID);
+        assertThat(message).hasMessageContaining(ProsessTaskTjenesteImpl.MAA_ANGI_NAVARENDE_STATUS_FEIL_ID);
     }
 
     @Test
@@ -146,7 +132,7 @@ public class ProsessTaskApplikasjonTjenesteImplTest {
 
             prosessTaskApplikasjonTjeneste.flaggProsessTaskForRestart(lagProsessTaskRestartInputDto(10L, "FERDIG"));
         });
-        assertThat(message).hasMessageContaining(ProsessTaskApplikasjonTjeneste.KAN_IKKE_RESTARTE_FERDIG_TASK_FEIL_ID);
+        assertThat(message).hasMessageContaining(ProsessTaskTjenesteImpl.KAN_IKKE_RESTARTE_FERDIG_TASK_FEIL_ID);
     }
 
     @Test
@@ -157,7 +143,7 @@ public class ProsessTaskApplikasjonTjenesteImplTest {
             ProsessTaskRestartInputDto inputDto = lagProsessTaskRestartInputDto(10L, "VENTER_SVAR");
             prosessTaskApplikasjonTjeneste.flaggProsessTaskForRestart(inputDto);
         });
-        assertThat(message).hasMessageContaining(ProsessTaskApplikasjonTjeneste.UKJENT_TASK_FEIL_ID);
+        assertThat(message).hasMessageContaining(ProsessTaskTjenesteImpl.UKJENT_TASK_FEIL_ID);
     }
 
     private ProsessTaskRestartInputDto lagProsessTaskRestartInputDto(Long id, String status) {
@@ -197,7 +183,7 @@ public class ProsessTaskApplikasjonTjenesteImplTest {
         when(prosessTaskRepositoryMock.finnAlle(ProsessTaskStatus.FEILET)).thenReturn(Arrays.asList(
             lagMedStatusOgFeiledeForsøk(TASK_TYPE, ProsessTaskStatus.FEILET, DEFAULT_MAKS_ANTALL_FEIL_FORSØK, 10L),
             lagMedStatusOgFeiledeForsøk(TASK_TYPE, ProsessTaskStatus.FEILET, DEFAULT_MAKS_ANTALL_FEIL_FORSØK, 11L),
-            lagMedStatusOgFeiledeForsøk(TASK_TYPE + "aa", ProsessTaskStatus.FEILET, DEFAULT_MAKS_ANTALL_FEIL_FORSØK, 12L)));
+            lagMedStatusOgFeiledeForsøk(new TaskType(TASK_TYPE_NAME_EXT), ProsessTaskStatus.FEILET, DEFAULT_MAKS_ANTALL_FEIL_FORSØK, 12L)));
         when(prosessTaskRepositoryMock.lagre(any(ProsessTaskData.class))).thenReturn("gruppe-id");
 
         ProsessTaskRetryAllResultatDto result = prosessTaskApplikasjonTjeneste.flaggAlleFeileteProsessTasksForRestart();
@@ -211,7 +197,7 @@ public class ProsessTaskApplikasjonTjenesteImplTest {
     public void skal_filtrere_ut_prosesstask_med_status_feilet() {
         final Long taskId = 10L;
         var uuid = UUID.randomUUID();
-        Map<String, String> parameters = Map.of(AKTØR_ID, "1111111111111",
+        Map<String, String> parameters = Map.of(CommonTaskProperties.AKTØR_ID, "1111111111111",
                 "behandlingUUId", uuid.toString(),
                 "localProp", String.valueOf(123L));
         when(prosessTaskRepositoryMock.finn(anyLong())).thenReturn(lagMedStatusPlussParameters(ProsessTaskStatus.FEILET, parameters));
@@ -259,7 +245,7 @@ public class ProsessTaskApplikasjonTjenesteImplTest {
         return prosessTaskData;
     }
 
-    private ProsessTaskData lagMedStatusOgFeiledeForsøk(String taskType, ProsessTaskStatus status, int antallFeiledeForsøk, Long id) {
+    private ProsessTaskData lagMedStatusOgFeiledeForsøk(TaskType taskType, ProsessTaskStatus status, int antallFeiledeForsøk, Long id) {
         ProsessTaskData prosessTaskData = new ProsessTaskData(taskType);
         prosessTaskData.setId(id);
         prosessTaskData.setStatus(status);

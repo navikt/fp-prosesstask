@@ -2,60 +2,33 @@ package no.nav.vedtak.felles.prosesstask.api;
 
 import java.io.IOException;
 import java.io.StringWriter;
-import java.sql.Clob;
-import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Properties;
+import java.util.Set;
+import java.util.UUID;
 import java.util.regex.Pattern;
-
-import javax.sql.rowset.serial.SerialClob;
+import java.util.stream.Collectors;
 
 import org.slf4j.MDC;
+
+import no.nav.vedtak.exception.TekniskException;
 
 /**
  * Task info describing the task to run, including error handling.
  */
 public class ProsessTaskData implements ProsessTaskInfo {
-    /**
-     * Standard properties - aktoerId.
-     */
-    public static final String AKTØR_ID = "aktoerId"; // NOSONAR //$NON-NLS-1$
-    /**
-     * Standard properties - behandlingId.
-     */
-    public static final String BEHANDLING_ID = "behandlingId"; // NOSONAR //$NON-NLS-1$
-    /**
-     * Standard properties - fagsakId.
-     * 
-     * @deprecated foretrekk Saksnummer property i stedet
-     */
-    @Deprecated(forRemoval = true)
-    public static final String FAGSAK_ID = "fagsakId"; // NOSONAR //$NON-NLS-1$
 
-    /**
-     * Standard properties - saksnummer.
-     */
-    public static final String SAKSNUMMER = "saksnummer"; // NOSONAR //$NON-NLS-1$
-
-    /**
-     * Standard properties - hendelse som tasken venter på eller har behandlet.
-     */
-    public static final String HENDELSE_PROPERTY = "hendelse"; // NOSONAR //$NON-NLS-1$
-    /**
-     * Standard properties - hendelse som tasken venter på eller har behandlet.
-     */
-    public static final String OPPGAVE_ID = "oppgaveId";
-
+    public static String MANGLER_PROPS = "PT-492717";
     public static final Pattern VALID_KEY_PATTERN = Pattern.compile("[a-zA-Z0-9_\\.]+$"); //$NON-NLS-1$
     private final Properties props = new Properties();
-    private final String taskType;
+    private final TaskType taskType;
     private int antallFeiledeForsøk;
     private String gruppe;
     private Long id;
     private LocalDateTime nesteKjøringEtter = LocalDateTime.now();
-    private Clob payload;
+    private String payload;
     private int prioritet = 1;
     private String sekvens;
     private String sisteFeil;
@@ -66,8 +39,33 @@ public class ProsessTaskData implements ProsessTaskInfo {
     private Long blokkertAvProsessTaskId;
     private LocalDateTime opprettetTid;
 
+    @Deprecated(forRemoval = true) // Bruk forProsessTaskHandler
     public ProsessTaskData(String taskType) {
+        this(new TaskType(taskType));
+    }
+
+    @Deprecated // Vil bli pck-private. Bruk forProsessTaskHandler
+    public ProsessTaskData(TaskType taskType) {
         this.taskType = taskType;
+    }
+
+    // TODO - evaluer behov. Gir enkel migrering
+    public ProsessTaskData(Class<? extends ProsessTaskHandler> clazz) {
+        this(TaskType.forProsessTaskHandler(clazz));
+    }
+
+    public static ProsessTaskData forProsessTaskHandler(Class<? extends ProsessTaskHandler> clazz) {
+        return new ProsessTaskData(TaskType.forProsessTaskHandler(clazz));
+    }
+
+    public void validerProperties(Set<String> requiredProperties) {
+        var validert = requiredProperties.stream().allMatch(p -> getPropertyValue(p) != null);
+        if (!validert) {
+            var mangler = requiredProperties.stream()
+                    .filter(p -> getPropertyValue(p) == null)
+                    .collect(Collectors.toList());
+            throw new TekniskException(MANGLER_PROPS, "Mangler properties " + mangler);
+        }
     }
 
     @Override
@@ -84,44 +82,12 @@ public class ProsessTaskData implements ProsessTaskInfo {
     }
 
     @Override
-    public String getAktørId() {
-        return getPropertyValue(AKTØR_ID);
-    }
-
-    public void setAktørId(String id) {
-        setProperty(AKTØR_ID, id);
-    }
-
-    @Override
     public int getAntallFeiledeForsøk() {
         return antallFeiledeForsøk;
     }
 
     public void setAntallFeiledeForsøk(int antallForsøk) {
         this.antallFeiledeForsøk = antallForsøk;
-    }
-
-    @Override
-    public String getBehandlingId() {
-        return getPropertyValue(BEHANDLING_ID);
-    }
-
-    protected void setBehandlingId(String id) {
-        setProperty(BEHANDLING_ID, id.toString());
-    }
-
-    @Override
-    public Long getFagsakId() {
-        return getPropertyValue(FAGSAK_ID) != null ? Long.valueOf(getPropertyValue(FAGSAK_ID)) : null;
-    }
-
-    @Override
-    public String getSaksnummer() {
-        return getPropertyValue(SAKSNUMMER);
-    }
-
-    public void setFagsakId(Long id) {
-        setProperty(FAGSAK_ID, id.toString());
     }
 
     @Override
@@ -148,17 +114,12 @@ public class ProsessTaskData implements ProsessTaskInfo {
     }
 
     @Override
-    public Optional<ProsessTaskHendelse> getHendelse() {
-        String hendelse = getPropertyValue(HENDELSE_PROPERTY);
-        if (hendelse == null) {
-            return Optional.empty();
-        } else {
-            return Optional.of(ProsessTaskHendelse.valueOf(hendelse));
-        }
+    public Optional<String> getVentetHendelse() {
+        return Optional.ofNullable(getPropertyValue(CommonTaskProperties.HENDELSE_PROPERTY));
     }
 
-    private void setHendelse(ProsessTaskHendelse hendelse) {
-        setProperty(HENDELSE_PROPERTY, hendelse.name());
+    void setVentetHendelse(String hendelse) {
+        setProperty(CommonTaskProperties.HENDELSE_PROPERTY, hendelse);
     }
 
     @Override
@@ -179,40 +140,13 @@ public class ProsessTaskData implements ProsessTaskInfo {
         this.nesteKjøringEtter = nesteKjøringEtter;
     }
 
-    public Clob getPayload() {
-        return payload;
-    }
-
-    public void setPayload(Clob payload) {
-        this.payload = payload;
-    }
-
     public void setPayload(String payload) {
-        try {
-            this.payload = (payload != null ? new SerialClob(payload.toCharArray()) : null);
-        } catch (SQLException e) {
-            // Catcher exception her da constructoren til SerialClob aldri kaster SQLException
-            // per d.d. 15.05.2017 og java version "1.8.0_101"
-            //
-            // Quote fra "SerialClob(char[])"
-            // %%% JMB. Agreed. Add code here to throw a SQLException if no
-            // support is available for locatorsUpdateCopy=false
-            // Serializing locators is not supported.
-
-            throw new IllegalArgumentException("Kan ikke opprette CLOB for håndtering av payload", e); //$NON-NLS-1$
-        }
+        this.payload = payload;
     }
 
     @Override
     public String getPayloadAsString() {
-        if (payload == null) {
-            return null;
-        }
-        try {
-            return payload.getSubString(1, (int) payload.length());
-        } catch (SQLException e) {
-            throw new IllegalArgumentException("Kan ikke hente ut CLOB for håndtering av payload", e); //$NON-NLS-1$
-        }
+        return payload;
     }
 
     @Override
@@ -297,26 +231,17 @@ public class ProsessTaskData implements ProsessTaskInfo {
 
     @Override
     public String getTaskType() {
+        return taskType != null ? taskType.value() : null;
+    }
+
+    @Override
+    public TaskType taskType() {
         return taskType;
     }
 
-    public Optional<String> getOppgaveId() {
-        String value = getPropertyValue(OPPGAVE_ID);
-        if (value == null) {
-            return Optional.empty();
-        } else {
-            return Optional.of(value);
-        }
-    }
-    
     @Override
     public LocalDateTime getOpprettetTid() {
         return opprettetTid;
-    }
-
-    public void setOppgaveId(String oppgaveId) {
-        Objects.requireNonNull(oppgaveId);
-        setProperty(OPPGAVE_ID, oppgaveId);
     }
 
     public void setBlokkertAvProsessTaskId(Long blokkertAvProsessTaskId) {
@@ -338,6 +263,66 @@ public class ProsessTaskData implements ProsessTaskInfo {
         return this;
     }
 
+    /*
+     * Hele denne seksjons flyttes til applikasjon så man kan mappe t/f lokale valueobjects
+     */
+
+    @Override
+    public String getAktørId() {
+        return getPropertyValue(CommonTaskProperties.AKTØR_ID);
+    }
+
+    public void setAktørId(String id) {
+        setProperty(CommonTaskProperties.AKTØR_ID, id);
+    }
+
+    @Override
+    public String getBehandlingId() {
+        return getPropertyValue(CommonTaskProperties.BEHANDLING_ID);
+    }
+
+    protected void setBehandlingId(String id) {
+        setProperty(CommonTaskProperties.BEHANDLING_ID, id);
+    }
+
+    @Override
+    public UUID getBehandlingUuid() {
+        var uuidString = getPropertyValue(CommonTaskProperties.BEHANDLING_UUID);
+        return uuidString != null ? UUID.fromString(uuidString) : null;
+    }
+
+    protected void setBehandlingUUid(UUID uuid) {
+        setProperty(CommonTaskProperties.BEHANDLING_UUID, uuid.toString());
+    }
+
+    @Deprecated(forRemoval = true)
+    @Override
+    public Long getFagsakId() {
+        return getPropertyValue(CommonTaskProperties.FAGSAK_ID) != null ? Long.valueOf(getPropertyValue(CommonTaskProperties.FAGSAK_ID)) : null;
+    }
+
+    @Deprecated(forRemoval = true)
+    public void setFagsakId(Long id) {
+        setProperty(CommonTaskProperties.FAGSAK_ID, id.toString());
+    }
+
+    @Override
+    public String getSaksnummer() {
+        return getPropertyValue(CommonTaskProperties.SAKSNUMMER);
+    }
+
+    public void setSaksnummer(String saksnummer) {
+        setProperty(CommonTaskProperties.SAKSNUMMER, Objects.requireNonNull(saksnummer, "saksnummer"));
+    }
+
+    public void setBehandling(Long fagsakId, Long behandlingId) {
+        Objects.requireNonNull(fagsakId, "fagsakId"); // NOSONAR //$NON-NLS-1$
+        Objects.requireNonNull(behandlingId, "behandlingId"); // NOSONAR //$NON-NLS-1$
+
+        setFagsakId(fagsakId);
+        setBehandlingId(behandlingId.toString());
+    }
+
     public void setBehandling(Long fagsakId, Long behandlingId, String aktørId) {
         Objects.requireNonNull(fagsakId, "fagsakId"); // NOSONAR //$NON-NLS-1$
         Objects.requireNonNull(behandlingId, "behandlingId"); // NOSONAR //$NON-NLS-1$
@@ -346,6 +331,14 @@ public class ProsessTaskData implements ProsessTaskInfo {
         setFagsakId(fagsakId);
         setBehandlingId(behandlingId.toString());
         setAktørId(aktørId);
+    }
+
+    public void setBehandling(String saksnummer, String behandlingId) {
+        Objects.requireNonNull(saksnummer, "saksnummer"); // NOSONAR //$NON-NLS-1$
+        Objects.requireNonNull(behandlingId, "behandlingId"); // NOSONAR //$NON-NLS-1$
+
+        setSaksnummer(saksnummer);
+        setBehandlingId(behandlingId);
     }
 
     /**
@@ -363,10 +356,6 @@ public class ProsessTaskData implements ProsessTaskInfo {
         setSaksnummer(saksnummer);
         setBehandlingId(behandlingId);
         setAktørId(aktørId);
-    }
-
-    public void setSaksnummer(String saksnummer) {
-        setProperty(SAKSNUMMER, Objects.requireNonNull(saksnummer, "saksnummer"));
     }
 
     public void setFagsak(Long fagsakId, String aktørId) {
@@ -406,8 +395,8 @@ public class ProsessTaskData implements ProsessTaskInfo {
             + ">"; //$NON-NLS-1$
     }
 
-    public void venterPåHendelse(ProsessTaskHendelse hendelse) {
-        setHendelse(hendelse);
+    public void venterPåHendelse(String hendelse) {
+        setVentetHendelse(hendelse);
         setStatus(ProsessTaskStatus.VENTER_SVAR);
     }
 

@@ -13,8 +13,6 @@ Denne modulen implementerer rammeverk for å kjøre og fordele Prosess Tasks.  E
 
 Prosesstasks er asynkrone bakgrunnsjobber som kjøres fordelt utover tilgjengelig podder.  Muliggjør prosessering av transaksjoner og arbeidsflyt som paralle og sekvensielle oppgaver og kan spres utover 1 eller flere jvmer på ulike podder.
 
-Ytterligere bakgrunnsinformasjon finnes her: [Automasjon](https://confluence.adeo.no/display/SVF/10.5+Tema+-+Automasjon).
-
 ProsessTasks kan enten kjøres med en gang, i en definert rekkefølge, eller på angitt tid (eks. cron uttrykk).
 
 ## Use Cases
@@ -63,6 +61,43 @@ Denne kommer med avhengighet til felles-sikkerhet, og autentiserer bruker ved hv
 
 
 # Anvendelse
+
+## Definere en Prosesstask
+
+Eksempelkode for å definere en prosesstask som kan opprettes og så kjøres av rammeverket
+
+Prosesstasks som defineres må oppfylle følgende krav:
+* implementere ProsessTaskHandler og metoden doTask + eventuel custom retrylogikk
+* annoteres med @ProsessTask der value er påkrevd og må være samme tekst som brukes når det opprettes/lagres en task.
+* annoteres så den kan oppdages av CDI (Normalt ApplicationScoped eller Dependent)
+
+Man kan gjerne legge på en annoterting @ProsessTaskDocumentation med beskrivelse av funksjon
+Dessuten kan @ProsessTask også inneholde  en cronExpression som angir et cron-uttrykk for kjeding og kjøring av neste instans og konfigurasjon av feilhåndteringen. 
+Default feilhåndtering er retry et antall ganger med økende pause - standard er å gi opp etter maxRuns = 3 med pauser (sekunder) firstDelay = 30 og thenDelay = 60
+
+```
+@ProsessTask("hello.world") 
+@ProsessTaskDocumentation("Eksempeltasktype for illustrasjon")
+@ApplicationScoped
+public class HelloWorldTask implements ProsessTaskHandler {
+
+    @Override
+    public void doTask(ProsessTaskData taskData) {
+        System.out.println("Hello world fra task " + taskData.taskType().value());
+    }
+
+} 
+
+public class BrukProsessTask {
+
+   public void opprettHelloWorld() {
+       ProsessTaskData task = ProsessTaskData
+          .forProsessTaskHandler(HelloWorldTask.class);
+       // Lagrer task i eksisterende Tx. Etter commit blir task utført i egen tråd/tx.
+       prosessTaskTjeneste.lagre(task); 
+   }
+}
+```
 
 ## ProsesstaskGruppe - for Sekvensielle og Parallelle Prosesstasks
 
@@ -136,7 +171,7 @@ public class MinTaskDispatcher implements ProsessTaskDispatcher {
 
 	public void dispatch(ProsessTaskData task) throws Exception {
 		
-		String taskType = task.getTaskType();
+		TaskType taskType = task.getTaskType();
 		switch(taskType){
 			case "innhent.inntektsopplysninger.task":
 			    new InnhentInntektsOpplysningerTask().doRun(task.getAktørId());
@@ -145,6 +180,14 @@ public class MinTaskDispatcher implements ProsessTaskDispatcher {
 			    throw new UnsupportedOperationException("Ukjent task type " + taskType);
 		}
 	}
+	
+	public boolean feilhåndterException(Throwable e) {
+	    return <OurRetryableException>.isAssignableFrom(e.getClass())
+	}
+
+    public ProsessTaskHandlerRef taskHandler(TaskType taskType) {
+        return new ProsessTaskHandlerRef(<bean lookup taskType>);
+    }
 }
 ```
 

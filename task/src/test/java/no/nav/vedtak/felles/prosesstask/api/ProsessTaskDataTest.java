@@ -2,8 +2,6 @@ package no.nav.vedtak.felles.prosesstask.api;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.util.Optional;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -15,7 +13,9 @@ import org.mockito.quality.Strictness;
 @MockitoSettings(strictness = Strictness.LENIENT)
 public class ProsessTaskDataTest {
 
-    private static final String ORIGINALTYPE = "ORIGINALTYPE";
+    private static final TaskType ORIGINALTYPE = new TaskType("ORIGINALTYPE");
+
+    private static final String HENDELSE_KEY = "ØKONOMI_OPPDRAG_KVITTERING";
 
     private ProsessTaskData original;
 
@@ -28,12 +28,12 @@ public class ProsessTaskDataTest {
     public void testVenterPåHendelse() {
         // Arrange
         // Act
-        original.venterPåHendelse(ProsessTaskHendelse.ØKONOMI_OPPDRAG_KVITTERING);
+        original.venterPåHendelse(HENDELSE_KEY);
         // Assert
         assertThat(original.getStatus()).isEqualTo(ProsessTaskStatus.VENTER_SVAR);
-        Optional<ProsessTaskHendelse> venterPå = original.getHendelse();
-        assertThat(venterPå.isPresent()).isEqualTo(true);
-        assertThat(venterPå.get()).isEqualTo(ProsessTaskHendelse.ØKONOMI_OPPDRAG_KVITTERING);
+        var venterPå = original.getVentetHendelse();
+        assertThat(venterPå).isPresent();
+        assertThat(venterPå).hasValue(HENDELSE_KEY);
     }
 
     @Test
@@ -41,8 +41,8 @@ public class ProsessTaskDataTest {
         // Arrange
         // Act
         // Assert
-        Optional<ProsessTaskHendelse> venterPå = original.getHendelse();
-        assertThat(venterPå.isPresent()).isEqualTo(false);
+        var venterPå = original.getVentetHendelse();
+        assertThat(venterPå).isEmpty();
     }
 
 }

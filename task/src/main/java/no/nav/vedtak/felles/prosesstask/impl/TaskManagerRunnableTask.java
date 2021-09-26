@@ -8,15 +8,16 @@ import javax.persistence.PersistenceException;
 import org.slf4j.MDC;
 
 import no.nav.vedtak.felles.prosesstask.api.CallId;
+import no.nav.vedtak.felles.prosesstask.api.TaskType;
 
 class TaskManagerRunnableTask implements Runnable {
-    private final String taskName;
+    private final TaskType taskType;
     private final RunTaskInfo taskInfo;
     private final String callId;
     private Consumer<IdentRunnable> fatalErrorSubmitFunc;
 
-    TaskManagerRunnableTask(String taskName, RunTaskInfo taskInfo, String callId, Consumer<IdentRunnable> fatalErrorSubmitFunc) {
-        this.taskName = taskName;
+    TaskManagerRunnableTask(TaskType taskType, RunTaskInfo taskInfo, String callId, Consumer<IdentRunnable> fatalErrorSubmitFunc) {
+        this.taskType = taskType;
         this.taskInfo = taskInfo;
         this.callId = callId;
         this.fatalErrorSubmitFunc = fatalErrorSubmitFunc;
@@ -29,7 +30,7 @@ class TaskManagerRunnableTask implements Runnable {
         RunTask runSingleTask = newRunTaskInstance();
         IdentRunnable errorCallback = null;
         try {
-            initLogContext(callId, taskName, taskInfo.getId());
+            initLogContext(callId, taskType, taskInfo.getId());
 
             runSingleTask.doRun(taskInfo);
 
@@ -81,13 +82,13 @@ class TaskManagerRunnableTask implements Runnable {
         MDC.clear();
     }
 
-    static void initLogContext(final String callId, String taskName, Long taskId) {
+    static void initLogContext(final String callId, TaskType taskType, Long taskId) {
         if (callId != null) {
             MDC.put(CallId.CALL_ID, callId);
         } else {
             MDC.put(CallId.CALL_ID, CallId.generateCallId());
         }
-        MDC.put(TaskManager.TASK_PROP, taskName);
+        MDC.put(TaskManager.TASK_PROP, taskType.value());
         MDC.put(TaskManager.TASK_ID_PROP, taskId.toString());
     }
     

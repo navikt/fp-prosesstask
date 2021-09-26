@@ -79,7 +79,7 @@ public class FatalErrorTask {
                         // NB: her fyrer p.t. ikke events hvis feilet. Logger derfor bare her til logg
                         // og database. Antar alle feil fanget her er fatale.
                         int feiledeForsøk = pte.getFeiledeForsøk() + 1;
-                        String taskName = pte.getTaskName();
+                        var taskName = pte.getTaskType();
                         Long taskId = pte.getId();
                         Feil feil = TaskManagerFeil.kunneIkkeProsessereTaskPgaFatalFeilVilIkkePrøveIgjen(taskId, taskName, feiledeForsøk, t);
                         String feilMelding = RunTaskFeilOgStatusEventHåndterer.getFeiltekstOgLoggEventueltHvisEndret(pte, feil, t, true);
