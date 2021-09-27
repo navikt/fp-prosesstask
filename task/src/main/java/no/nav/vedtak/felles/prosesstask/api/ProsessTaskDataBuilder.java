@@ -14,13 +14,13 @@ public class ProsessTaskDataBuilder {
     private ProsessTaskData taskData;
 
 
-    ProsessTaskDataBuilder(TaskType taskType) {
+    private ProsessTaskDataBuilder(TaskType taskType) {
         this.taskData = new ProsessTaskData(taskType);
         this.taskData.setStatus(ProsessTaskStatus.KLAR);
     }
 
-    public static ProsessTaskDataBuilder forProsessTaskHandler(Class<? extends ProsessTaskHandler> clazz) {
-        return new ProsessTaskDataBuilder(TaskType.forProsessTaskHandler(clazz));
+    public static ProsessTaskDataBuilder forProsessTask(Class<? extends ProsessTaskHandler> clazz) {
+        return new ProsessTaskDataBuilder(TaskType.forProsessTask(clazz));
     }
 
     public static ProsessTaskDataBuilder forTaskType(TaskType taskType) {

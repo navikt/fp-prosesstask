@@ -31,7 +31,7 @@ public class TaskManagerGenerateRunnableTasksIT {
 
     @Test
     public void skal_fange_PersistenceException_og_legge_til_errorCallback() throws Exception {
-        ProsessTaskData data = new ProsessTaskData(new TaskType("hello.world"));
+        ProsessTaskData data = ProsessTaskData.forTaskType(new TaskType("hello.world"));
         data.setId(99L);
         ProsessTaskEntitet pte = new ProsessTaskEntitet();
         pte.kopierFraEksisterende(data);

@@ -9,7 +9,6 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.UUID;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 import org.slf4j.MDC;
 
@@ -39,23 +38,26 @@ public class ProsessTaskData implements ProsessTaskInfo {
     private Long blokkertAvProsessTaskId;
     private LocalDateTime opprettetTid;
 
-    @Deprecated(forRemoval = true) // Bruk forProsessTaskHandler
+    @Deprecated(forRemoval = true) // Bruk forProsessTask eller forTaskType
     public ProsessTaskData(String taskType) {
         this(new TaskType(taskType));
     }
 
-    @Deprecated // Vil bli pck-private. Bruk forProsessTaskHandler
-    public ProsessTaskData(TaskType taskType) {
+    ProsessTaskData(TaskType taskType) {
         this.taskType = taskType;
     }
 
     // TODO - evaluer behov. Gir enkel migrering
     public ProsessTaskData(Class<? extends ProsessTaskHandler> clazz) {
-        this(TaskType.forProsessTaskHandler(clazz));
+        this(TaskType.forProsessTask(clazz));
     }
 
-    public static ProsessTaskData forProsessTaskHandler(Class<? extends ProsessTaskHandler> clazz) {
-        return new ProsessTaskData(TaskType.forProsessTaskHandler(clazz));
+    public static ProsessTaskData forProsessTask(Class<? extends ProsessTaskHandler> clazz) {
+        return new ProsessTaskData(TaskType.forProsessTask(clazz));
+    }
+
+    public static ProsessTaskData forTaskType(TaskType taskType) {
+        return new ProsessTaskData(taskType);
     }
 
     public void validerProperties(Set<String> requiredProperties) {
@@ -63,7 +65,7 @@ public class ProsessTaskData implements ProsessTaskInfo {
         if (!validert) {
             var mangler = requiredProperties.stream()
                     .filter(p -> getPropertyValue(p) == null)
-                    .collect(Collectors.toList());
+                    .toList();
             throw new TekniskException(MANGLER_PROPS, "Mangler properties " + mangler);
         }
     }

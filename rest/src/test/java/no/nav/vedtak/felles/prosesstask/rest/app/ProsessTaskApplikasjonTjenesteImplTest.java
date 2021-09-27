@@ -231,14 +231,14 @@ public class ProsessTaskApplikasjonTjenesteImplTest {
     }
 
     private ProsessTaskData lagMedStatus(ProsessTaskStatus status) {
-        ProsessTaskData prosessTaskData = new ProsessTaskData(TASK_TYPE);
+        ProsessTaskData prosessTaskData = ProsessTaskData.forTaskType(TASK_TYPE);
         prosessTaskData.setStatus(status);
         prosessTaskData.setAntallFeiledeForsøk(0);
         return prosessTaskData;
     }
 
     private ProsessTaskData lagMedStatusPlussParameters(ProsessTaskStatus status, Map<String, String> parameters) {
-        ProsessTaskData prosessTaskData = new ProsessTaskData(TASK_TYPE);
+        ProsessTaskData prosessTaskData = ProsessTaskData.forTaskType(TASK_TYPE);
         prosessTaskData.setStatus(status);
         prosessTaskData.setAntallFeiledeForsøk(0);
         parameters.forEach(prosessTaskData::setProperty);
@@ -246,7 +246,7 @@ public class ProsessTaskApplikasjonTjenesteImplTest {
     }
 
     private ProsessTaskData lagMedStatusOgFeiledeForsøk(TaskType taskType, ProsessTaskStatus status, int antallFeiledeForsøk, Long id) {
-        ProsessTaskData prosessTaskData = new ProsessTaskData(taskType);
+        ProsessTaskData prosessTaskData = ProsessTaskData.forTaskType(taskType);
         prosessTaskData.setId(id);
         prosessTaskData.setStatus(status);
         prosessTaskData.setAntallFeiledeForsøk(antallFeiledeForsøk);

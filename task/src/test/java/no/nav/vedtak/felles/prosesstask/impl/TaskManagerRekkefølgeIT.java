@@ -167,7 +167,7 @@ public class TaskManagerRekkefølgeIT {
     }
 
     private ProsessTaskData nyTask(String taskNavn, int nesteKjøringRelativt) {
-        ProsessTaskData task = new ProsessTaskData(new TaskType(taskNavn));
+        ProsessTaskData task = ProsessTaskData.forTaskType(new TaskType(taskNavn));
         task.setNesteKjøringEtter(now.plusSeconds(nesteKjøringRelativt));
         return task;
     }

@@ -112,8 +112,8 @@ public class RunProsessTaskTestIT {
         testData.slettAlleProssessTask();
         LocalDateTime kjørEtter = LocalDateTime.now().minusSeconds(50);
         testData
-            .opprettTask(new ProsessTaskData(TASK1).medNesteKjøringEtter(kjørEtter).medSekvens("a"))
-            .opprettTask(new ProsessTaskData(TASK2).medNesteKjøringEtter(kjørEtter).medSekvens("a"));
+            .opprettTask(ProsessTaskData.forTaskType(TASK1).medNesteKjøringEtter(kjørEtter).medSekvens("a"))
+            .opprettTask(ProsessTaskData.forTaskType(TASK2).medNesteKjøringEtter(kjørEtter).medSekvens("a"));
 
         return null;
     }
@@ -141,7 +141,7 @@ public class RunProsessTaskTestIT {
 
         @Override
         public void doTask(ProsessTaskData data) {
-            ProsessTaskData nyProsessTask = new ProsessTaskData(TASK3);
+            ProsessTaskData nyProsessTask = ProsessTaskData.forTaskType(TASK3);
             repo.lagre(nyProsessTask);
 
             getBean().invoked(this, nyProsessTask);

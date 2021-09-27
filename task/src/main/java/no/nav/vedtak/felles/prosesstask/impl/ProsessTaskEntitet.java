@@ -22,6 +22,7 @@ import javax.persistence.Version;
 import org.hibernate.annotations.Type;
 
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
+import no.nav.vedtak.felles.prosesstask.api.ProsessTaskDataBuilder;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskInfo;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskStatus;
 import no.nav.vedtak.felles.prosesstask.api.TaskType;
@@ -213,23 +214,24 @@ public class ProsessTaskEntitet {
     }
 
     public ProsessTaskData tilProsessTask() {
-        ProsessTaskData task = new ProsessTaskData(getTaskType());
-        task.setId(getId());
-
-        task.setNesteKjøringEtter(getNesteKjøringEtter());
+        var task = ProsessTaskDataBuilder.forTaskType(getTaskType())
+                .medNesteKjøringEtter(getNesteKjøringEtter())
+                .medGruppe(getGruppe())
+                .medSekvens(getSekvens())
+                .medPrioritet(getPrioritet())
+                .medPayload(getPayload())
+                .medProperties(getProperties())
+                .build();
         task.setSistKjørt(getSisteKjøring());
-        task.setPrioritet(getPrioritet());
         task.setSisteFeil(getSisteFeilTekst());
         task.setSisteFeilKode(getSisteFeilKode());
         task.setAntallFeiledeForsøk(getFeiledeForsøk());
-        task.setProperties(getProperties());
         task.setStatus(getStatus());
-        task.setGruppe(getGruppe());
-        task.setSekvens(getSekvens());
-        task.setPayload(getPayload());
         task.setSisteKjøringServerProsess(getSisteKjøringServerProsess());
         task.setBlokkertAvProsessTaskId(getBlokkertAvProsessTaskId());
         task.setOpprettetTid(getOpprettetTid());
+        task.setId(getId());
+
         return task;
     }
 

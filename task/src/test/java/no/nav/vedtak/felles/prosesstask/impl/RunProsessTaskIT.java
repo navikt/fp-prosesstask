@@ -62,8 +62,8 @@ public class RunProsessTaskIT {
     @Test
     public void skal_kjøre_en_task_og_planlegge_ny() throws Exception {
         // Arrange
-        var taskType = TaskType.forProsessTaskHandler(LocalDummyProsessTask.class);
-        var pt1 = ProsessTaskData.forProsessTaskHandler(LocalDummyProsessTask.class);
+        var taskType = TaskType.forProsessTask(LocalDummyProsessTask.class);
+        var pt1 = ProsessTaskData.forTaskType(taskType);
         pt1.setNesteKjøringEtter(now.minusSeconds(10));
         repo.lagre(pt1);
         repo.flushAndClear();
@@ -199,7 +199,7 @@ public class RunProsessTaskIT {
     }
 
     private ProsessTaskData nyTask(TaskType taskType, int nesteKjøringRelativt) {
-        ProsessTaskData task = new ProsessTaskData(taskType);
+        ProsessTaskData task = ProsessTaskData.forTaskType(taskType);
         task.setNesteKjøringEtter(now.plusSeconds(nesteKjøringRelativt));
         return task;
     }

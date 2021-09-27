@@ -58,7 +58,7 @@ public class ProsessTaskTjenesteImplTest {
 
     @Test
     public void skal_opprette_task() {
-        var ptd = ProsessTaskDataBuilder.forProsessTaskHandler(DummyHandlerOpprett.class)
+        var ptd = ProsessTaskDataBuilder.forProsessTask(DummyHandlerOpprett.class)
                 .medProperty(REQUIRED_PROPERTY, "Verdi")
                 .build();
 
@@ -72,13 +72,13 @@ public class ProsessTaskTjenesteImplTest {
         var dataTilPersistering = argumentCaptor.getValue();
 
         verify(prosessTaskRepositoryMock, times(1)).lagre(any(ProsessTaskGruppe.class));
-        assertThat(dataTilPersistering.getTasks().get(0).task().taskType()).isEqualTo(TaskType.forProsessTaskHandler(DummyHandlerOpprett.class));
+        assertThat(dataTilPersistering.getTasks().get(0).task().taskType()).isEqualTo(TaskType.forProsessTask(DummyHandlerOpprett.class));
     }
 
     @Test
     public void skal_feile_ved_manglende_property() {
         var message = Assertions.assertThrows(TekniskException.class, () -> {
-            var ptd = ProsessTaskDataBuilder.forProsessTaskHandler(DummyHandlerOpprett.class)
+            var ptd = ProsessTaskDataBuilder.forProsessTask(DummyHandlerOpprett.class)
                     .medProperty("ikkepaakrevd", "Verdi")
                     .build();
 
