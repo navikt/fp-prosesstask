@@ -14,7 +14,7 @@ public record TaskType(String value) {
         }
     }
 
-    public static TaskType forProsessTaskHandler(Class<? extends ProsessTaskHandler> clazz) {
+    public static TaskType forProsessTask(Class<? extends ProsessTaskHandler> clazz) {
         return new TaskType(clazz.getAnnotation(ProsessTask.class).value());
     }
 }

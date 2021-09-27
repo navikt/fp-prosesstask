@@ -100,7 +100,7 @@ public class ProsessTaskRepositoryImplIT {
     }
 
     private ProsessTaskEntitet lagTestEntitet(ProsessTaskStatus status, LocalDateTime sistKjørt, TaskType taskType) {
-        ProsessTaskData data = new ProsessTaskData(taskType);
+        ProsessTaskData data = ProsessTaskData.forTaskType(taskType);
         data.setPayload("payload");
         data.setStatus(status);
         data.setSisteKjøringServerProsess("prossess-123");

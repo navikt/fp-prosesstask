@@ -17,7 +17,7 @@ public class ProsessTaskFeilTest {
         // Arrange
         Exception exception = lagEnFeilFraEnMetode();
         Feil feil = TaskManagerFeil.kunneIkkeProsessereTaskVilPrøveIgjenEnkelFeilmelding(1L, new TaskType("hello.world"), 1, LocalDateTime.now(), exception);
-        ProsessTaskData prosessTaskData = new ProsessTaskData(new TaskType("hello.world"));
+        ProsessTaskData prosessTaskData = ProsessTaskData.forTaskType(new TaskType("hello.world"));
         prosessTaskData.setId(1L);
         
         // Act

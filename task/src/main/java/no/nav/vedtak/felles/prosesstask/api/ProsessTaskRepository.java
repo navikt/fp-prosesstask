@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
 
+@Deprecated(forRemoval = true) // Bruk ProsessTaskTjeneste
 public interface ProsessTaskRepository {
 
     /** Lagre tasks, returner gruppe id. */
