@@ -2,6 +2,7 @@ package no.nav.vedtak.felles.prosesstask.impl;
 
 import java.math.BigDecimal;
 import java.sql.SQLException;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
@@ -329,6 +330,52 @@ public class ProsessTaskRepositoryImpl implements ProsessTaskRepository {
             statuser.add(new TaskStatus(ProsessTaskStatus.valueOf((String) objects[0]), (BigDecimal) objects[1])); // NOSONAR
         }
         return statuser;
+    }
+
+    @Override
+    public int settAlleFeiledeTasksKlar() {
+        Query query = entityManager.createNativeQuery("UPDATE PROSESS_TASK " +
+                "SET status = :status, " +
+                "feilede_forsoek = feilede_forsoek-1, " +
+                "neste_kjoering_etter = :naa " +
+                "WHERE STATUS = :feilet")
+                .setParameter("naa", LocalDateTime.now())
+                .setParameter("status", ProsessTaskStatus.KLAR.getDbKode())
+                .setParameter("feilet", ProsessTaskStatus.FEILET.getDbKode());
+        int updatedRows = query.executeUpdate();
+        entityManager.flush();
+
+        return updatedRows;
+    }
+
+    @Override
+    public int slettGamleFerdige() {
+        String partisjonsNr = utledPartisjonsNr(LocalDate.now());
+        Query query = entityManager.createNativeQuery("DELETE FROM PROSESS_TASK WHERE STATUS = :ferdig AND OPPRETTET_TID < :aar")
+                .setParameter("ferdig", ProsessTaskStatus.FERDIG.getDbKode())
+                .setParameter("aar", LocalDateTime.now().minusYears(1));
+        int deletedRows = query.executeUpdate();
+        entityManager.flush();
+
+        return deletedRows;
+    }
+
+    @Override
+    public int tømNestePartisjon() {
+        String partisjonsNr = utledPartisjonsNr(LocalDate.now());
+        Query query = entityManager.createNativeQuery("TRUNCATE prosess_task_partition_ferdig_" + partisjonsNr);
+        int updatedRows = query.executeUpdate();
+        entityManager.flush();
+
+        return updatedRows;
+    }
+
+    static String utledPartisjonsNr(LocalDate date) {
+        int måned = date.plusMonths(1).getMonth().getValue();
+        if (måned < 10) {
+            return "0" + måned;
+        }
+        return "" + måned;
     }
 
     private List<ProsessTaskData> tilProsessTask(List<ProsessTaskEntitet> resultList) {

@@ -130,6 +130,21 @@ public class ProsessTaskTjenesteImpl implements ProsessTaskTjeneste {
     }
 
     @Override
+    public int restartAlleFeiledeTasks() {
+        return prosessTaskRepository.settAlleFeiledeTasksKlar();
+    }
+
+    @Override
+    public int slettÅrsgamleFerdige() {
+        return prosessTaskRepository.slettGamleFerdige();
+    }
+
+    @Override
+    public int tømNestePartisjon() {
+        return prosessTaskRepository.tømNestePartisjon();
+    }
+
+    @Override
     public void mottaHendelse(ProsessTaskData task, String hendelse) {
         mottaHendelse(task, hendelse, null);
     }
