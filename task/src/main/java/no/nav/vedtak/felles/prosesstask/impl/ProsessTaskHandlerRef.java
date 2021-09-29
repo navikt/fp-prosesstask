@@ -6,7 +6,7 @@ import javax.enterprise.context.Dependent;
 import javax.enterprise.inject.spi.CDI;
 import javax.enterprise.util.AnnotationLiteral;
 
-import org.jboss.weld.proxy.WeldClientProxy;
+import org.jboss.weld.interceptor.util.proxy.TargetInstanceProxy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,8 +40,8 @@ public class ProsessTaskHandlerRef implements AutoCloseable {
 
     protected ProsessTaskHandlerRef(ProsessTaskHandler bean) {
         ProsessTask prosessTask;
-        if (bean instanceof WeldClientProxy wcp) {
-            prosessTask = wcp.getMetadata().getContextualInstance().getClass().getAnnotation(ProsessTask.class);
+        if (bean instanceof TargetInstanceProxy<?> tip) {
+            prosessTask = tip.weld_getTargetInstance().getClass().getAnnotation(ProsessTask.class);
         } else {
             prosessTask = bean.getClass().getAnnotation(ProsessTask.class);
         }
