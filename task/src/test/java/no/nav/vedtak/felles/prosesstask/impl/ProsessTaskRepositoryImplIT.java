@@ -76,6 +76,13 @@ public class ProsessTaskRepositoryImplIT {
         Assertions.assertThat(prosessTaskData).hasSize(1);
     }
 
+    @Test
+    public void test_restart_alle() throws Exception {
+        int restartet = prosessTaskRepository.settAlleFeiledeTasksKlar();
+
+        Assertions.assertThat(restartet).isEqualTo(1);
+    }
+
     private void lagTestData() {
 
         lagre(lagTestEntitet(ProsessTaskStatus.FERDIG, NÅ.minusHours(2), TASK_TYPE));

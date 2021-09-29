@@ -45,4 +45,11 @@ public interface ProsessTaskRepository {
      */
     boolean suspenderAlle(Collection<ProsessTaskData> tasks);
 
+    int settAlleFeiledeTasksKlar();
+
+    int slettGamleFerdige();
+
+
+    int tømNestePartisjon();
+
 }

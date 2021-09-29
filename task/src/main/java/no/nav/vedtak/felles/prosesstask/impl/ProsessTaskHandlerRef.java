@@ -6,6 +6,7 @@ import javax.enterprise.context.Dependent;
 import javax.enterprise.inject.spi.CDI;
 import javax.enterprise.util.AnnotationLiteral;
 
+import org.jboss.weld.proxy.WeldClientProxy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,7 +39,12 @@ public class ProsessTaskHandlerRef implements AutoCloseable {
     private final int thenDelay;
 
     protected ProsessTaskHandlerRef(ProsessTaskHandler bean) {
-        var prosessTask = bean.getClass().getAnnotation(ProsessTask.class);
+        ProsessTask prosessTask;
+        if (bean instanceof WeldClientProxy wcp) {
+            prosessTask = wcp.getMetadata().getContextualInstance().getClass().getAnnotation(ProsessTask.class);
+        } else {
+            prosessTask = bean.getClass().getAnnotation(ProsessTask.class);
+        }
         this.bean = bean;
         this.cronExpression = prosessTask.cronExpression().isBlank() ?
                 null : new CronExpression(prosessTask.cronExpression());

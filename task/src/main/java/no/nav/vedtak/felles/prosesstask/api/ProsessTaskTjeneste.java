@@ -21,6 +21,14 @@ public interface ProsessTaskTjeneste {
 
     List<Long> flaggAlleFeileteProsessTasksForRestart();
 
+    int restartAlleFeiledeTasks();
+
+    /*
+     * Slett ett år gamle tasks for hhv Oracle (slettÅrsgamleFerdige) og Postgres (tømNestePartisjon - antatt partisjoner)
+     */
+    int slettÅrsgamleFerdige();
+    int tømNestePartisjon();
+
     void setProsessTaskFerdig(Long prosessTaskId, ProsessTaskStatus status);
 
     /** Tar task av vent ved mottatt hendelse og setter properties */
