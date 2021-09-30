@@ -46,14 +46,14 @@ public class ProsessTaskTjenesteImpl implements ProsessTaskTjeneste {
 
     @Override
     public String lagre(ProsessTaskGruppe sammensattTask) {
-        for (Entry entry : sammensattTask.getTasks()) {
-            validerProsessTask(entry.task());
-        }
         return prosessTaskRepository.lagre(sammensattTask);
     }
 
     @Override
     public String lagreValidert(ProsessTaskGruppe sammensattTask) {
+        for (Entry entry : sammensattTask.getTasks()) {
+            validerProsessTask(entry.task());
+        }
         return prosessTaskRepository.lagre(sammensattTask);
     }
 
