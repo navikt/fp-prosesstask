@@ -1,5 +1,6 @@
 package no.nav.vedtak.felles.prosesstask.impl;
 
+import java.lang.annotation.Annotation;
 import java.util.Set;
 
 import javax.enterprise.context.Dependent;
@@ -69,21 +70,21 @@ public class ProsessTaskHandlerRef implements AutoCloseable {
         return bean;
     }
 
-    protected ProsessTask getProsessTaskAnnotation() {
-        Class<?> clazz;
-        if (!bean.getClass().isAnnotationPresent(ProsessTask.class) && bean instanceof TargetInstanceProxy<?> tip) {
-            clazz = tip.weld_getTargetInstance().getClass();
-        } else {
-            clazz = bean.getClass();
-        }
-        if (clazz == null) {
-            throw new IllegalStateException("ukjent klasse");
-        } else if (!clazz.isAnnotationPresent(ProsessTask.class)) {
+    private ProsessTask getProsessTaskAnnotation() {
+        Class<?> clazz = getTargetClassExpectingAnnotation(ProsessTask.class);
+        if (!clazz.isAnnotationPresent(ProsessTask.class)) {
             throw new IllegalStateException(clazz.getSimpleName()  + " mangler annotering @ProsesTask");
         }
         return clazz.getAnnotation(ProsessTask.class);
     }
 
+    protected Class<?> getTargetClassExpectingAnnotation(Class<? extends Annotation> annotationClass) {
+        if (!bean.getClass().isAnnotationPresent(annotationClass) && bean instanceof TargetInstanceProxy<?> tip) {
+            return tip.weld_getTargetInstance().getClass();
+        } else {
+            return bean.getClass();
+        }
+    }
 
     @Override
     public void close() {
