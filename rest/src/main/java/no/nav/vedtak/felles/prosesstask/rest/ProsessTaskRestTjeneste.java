@@ -40,6 +40,7 @@ import no.nav.vedtak.felles.prosesstask.rest.dto.ProsessTaskRestartResultatDto;
 import no.nav.vedtak.felles.prosesstask.rest.dto.ProsessTaskRetryAllResultatDto;
 import no.nav.vedtak.felles.prosesstask.rest.dto.ProsessTaskSetFerdigInputDto;
 import no.nav.vedtak.felles.prosesstask.rest.dto.SokeFilterDto;
+import no.nav.vedtak.felles.prosesstask.rest.dto.StatusFilterDto;
 import no.nav.vedtak.sikkerhet.abac.BeskyttetRessurs;
 import no.nav.vedtak.sikkerhet.abac.TilpassetAbacAttributt;
 
@@ -111,12 +112,24 @@ public class ProsessTaskRestTjeneste {
     @POST
     @Path("/list")
     @Consumes(MediaType.APPLICATION_JSON)
-    @Operation(description = "Søker etter prosesstask med mulighet for filtrert søk.", tags = "prosesstask", responses = {
+    @Operation(description = "Lister prosesstasker med angitt status.", tags = "prosesstask", responses = {
             @ApiResponse(responseCode = "200", description = "Liste over prosesstasker, eller tom liste når angitt/default søkefilter ikke finner noen prosesstasker", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ProsessTaskDataDto.class)))
     })
     @BeskyttetRessurs(action = READ, property = ABAC_DRIFT_ATTRIBUTT)
-    public List<ProsessTaskDataDto> finnProsessTasks(@Parameter(description = "Søkefilter for å begrense resultatet av returnerte prosesstask.") @TilpassetAbacAttributt(supplierClass = AbacEmptySupplier.class) @Valid SokeFilterDto sokeFilterDto) {
-        List<ProsessTaskDataDto> resultat = prosessTaskApplikasjonTjeneste.finnAlle(sokeFilterDto);
+    public List<ProsessTaskDataDto> finnProsessTasks(@Parameter(description = "Liste av statuser som skal hentes.") @TilpassetAbacAttributt(supplierClass = AbacEmptySupplier.class) @Valid StatusFilterDto statusFilterDto) {
+        List<ProsessTaskDataDto> resultat = prosessTaskApplikasjonTjeneste.finnAlle(statusFilterDto);
+        return resultat;
+    }
+
+    @POST
+    @Path("/search")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Operation(description = "Søker etter prosesstask med angitt tekst i properties.", tags = "prosesstask", responses = {
+            @ApiResponse(responseCode = "200", description = "Liste over prosesstasker, eller tom liste når angitt/default søkefilter ikke finner noen prosesstasker", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ProsessTaskDataDto.class)))
+    })
+    @BeskyttetRessurs(action = READ, property = ABAC_DRIFT_ATTRIBUTT)
+    public List<ProsessTaskDataDto> searchProsessTasks(@Parameter(description = "Søkefilter for å begrense resultatet av returnerte prosesstask.") @TilpassetAbacAttributt(supplierClass = AbacEmptySupplier.class) @Valid SokeFilterDto sokeFilterDto) {
+        List<ProsessTaskDataDto> resultat = prosessTaskApplikasjonTjeneste.søk(sokeFilterDto);
         return resultat;
     }
 

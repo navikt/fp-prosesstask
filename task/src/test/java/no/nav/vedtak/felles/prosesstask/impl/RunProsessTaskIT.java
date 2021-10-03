@@ -18,6 +18,7 @@ import no.nav.vedtak.felles.prosesstask.api.ProsessTask;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskDispatcher;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskHandler;
+import no.nav.vedtak.felles.prosesstask.api.ProsessTaskStatus;
 import no.nav.vedtak.felles.prosesstask.api.TaskType;
 import no.nav.vedtak.felles.testutilities.cdi.CdiAwareExtension;
 
@@ -27,7 +28,7 @@ public class RunProsessTaskIT {
     @RegisterExtension
     public static final JpaExtension repoRule = new JpaExtension();
     
-    private ProsessTaskRepositoryImpl repo = new ProsessTaskRepositoryImpl(repoRule.getEntityManager(), null, null);
+    private ProsessTaskRepository repo = new ProsessTaskRepository(repoRule.getEntityManager(), null, null);
 
     private TaskManagerRepositoryImpl taskManagerRepo = new TaskManagerRepositoryImpl(repoRule.getEntityManager());
 
@@ -86,7 +87,7 @@ public class RunProsessTaskIT {
         assertThat(prosessTask.getSistKjørt()).isNotNull();
         assertThat(prosessTask.getSisteFeil()).isNull();
 
-        List<ProsessTaskData> prosessTaskData = repo.finnIkkeStartet()
+        List<ProsessTaskData> prosessTaskData = repo.finnAlle(List.of(ProsessTaskStatus.KLAR))
                 .stream()
                 .filter(it -> it.taskType().equals(taskType))
                 .collect(Collectors.toList());

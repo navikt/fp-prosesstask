@@ -20,8 +20,9 @@ public class ProsessTaskStatusDto {
 
     @JsonProperty(value = "prosessTaskStatusName", required = true)
     @NotNull
-    @Pattern(regexp = "^[\\p{Alnum}_.\\-]*$")
-    @Size(min = 1, max = 100)
+    @Schema(description = "Status som slås opp.", allowableValues = "FEILET, VENTER_SVAR, SUSPENDERT, VETO, KLAR")
+    @Pattern(regexp = "FEILET|VENTER_SVAR|SUSPENDERT|VETO|KLAR")
+    @Size(min = 1, max = 15)
     private String prosessTaskStatusName;
 
     public ProsessTaskStatusDto() {

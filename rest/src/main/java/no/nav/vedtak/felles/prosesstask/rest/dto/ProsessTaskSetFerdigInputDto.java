@@ -29,9 +29,9 @@ public class ProsessTaskSetFerdigInputDto {
 
     @JsonAlias(value = { "naaVaarendeStatus" })
     @JsonProperty(value = "inneværendeStatus", required = true)
-    @Schema(description = "Nåværende status. Angis hviss prosessen som skal restartes har en annen status enn KLAR.", allowableValues = "VENTER_SVAR, SUSPENDERT, FEILET, VETO, KLAR")
+    @Schema(description = "Nåværende status. Angis hviss prosessen som skal restartes har en annen status enn KLAR.", allowableValues = "FEILET, VENTER_SVAR, SUSPENDERT, VETO, KLAR")
     @Size(max = 15)
-    @Pattern(regexp = "VENTER_SVAR|FEILET|SUSPENDERT|VETO|KLAR")
+    @Pattern(regexp = "FEILET|VENTER_SVAR|SUSPENDERT|VETO|KLAR")
     private String naaVaaerendeStatus;
 
     public ProsessTaskSetFerdigInputDto() { // NOSONAR Input-dto, ingen behov for initialisering
@@ -52,5 +52,4 @@ public class ProsessTaskSetFerdigInputDto {
     public void setNaaVaaerendeStatus(String naaVaaerendeStatus) {
         this.naaVaaerendeStatus = naaVaaerendeStatus;
     }
-
 }

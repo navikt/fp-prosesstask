@@ -29,4 +29,8 @@ public enum ProsessTaskStatus {
     public boolean erKjørt() {
         return this == FERDIG || this == KJOERT;
     }
+
+    public boolean erIkkeFerdig() {
+        return this != FERDIG;
+    }
 }

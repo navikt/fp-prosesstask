@@ -19,7 +19,7 @@ public class TaskManagerRekkefølgeIT {
     @RegisterExtension
     public static final JpaExtension repoRule = new JpaExtension();
 
-    private ProsessTaskRepositoryImpl repo = new ProsessTaskRepositoryImpl(repoRule.getEntityManager(), null, null);
+    private ProsessTaskRepository repo = new ProsessTaskRepository(repoRule.getEntityManager(), null, null);
 
     private TaskManagerRepositoryImpl taskManagerRepo = new TaskManagerRepositoryImpl(repoRule.getEntityManager());
 

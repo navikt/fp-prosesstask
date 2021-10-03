@@ -1,14 +1,9 @@
 package no.nav.vedtak.felles.prosesstask.impl;
 
-import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -19,43 +14,38 @@ import javax.enterprise.inject.Any;
 import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
-import javax.persistence.LockModeType;
 import javax.persistence.Query;
 import javax.persistence.TypedQuery;
 
 import org.hibernate.jpa.QueryHints;
 import org.hibernate.query.NativeQuery;
-import org.hibernate.type.StringType;
 import org.slf4j.MDC;
 
 import no.nav.vedtak.exception.TekniskException;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskGruppe;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskGruppe.Entry;
-import no.nav.vedtak.felles.prosesstask.api.ProsessTaskRepository;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskStatus;
-import no.nav.vedtak.felles.prosesstask.api.TaskStatus;
-import no.nav.vedtak.felles.prosesstask.api.TaskType;
 import no.nav.vedtak.felles.prosesstask.impl.util.DatabaseUtil;
 
 /**
  * Implementasjon av repository som er tilgjengelig for å lagre og opprette nye tasks.
  */
 @ApplicationScoped
-public class ProsessTaskRepositoryImpl implements ProsessTaskRepository {
+public class ProsessTaskRepository {
 
     private EntityManager entityManager;
     private ProsessTaskEventPubliserer eventPubliserer;
     private HandleProsessTaskLifecycleObserver handleLifecycleObserver;
     private SubjectProvider subjectProvider;
 
-    ProsessTaskRepositoryImpl() {
+    ProsessTaskRepository() {
         // for CDI proxying
     }
 
-    public ProsessTaskRepositoryImpl(EntityManager entityManager,
-                                     SubjectProvider subjectProvider,
-                                     ProsessTaskEventPubliserer eventPubliserer) {
+    public ProsessTaskRepository(EntityManager entityManager,
+                                 SubjectProvider subjectProvider,
+                                 ProsessTaskEventPubliserer eventPubliserer) {
         // for kompatibilitet og forenkling av tester
         Objects.requireNonNull(entityManager, "entityManager");
         this.entityManager = entityManager;
@@ -73,10 +63,10 @@ public class ProsessTaskRepositoryImpl implements ProsessTaskRepository {
      * @param handleLifecycleObserver
      */
     @Inject
-    public ProsessTaskRepositoryImpl(@Any Instance<EntityManager> entityManager,
-                                     @Any Instance<SubjectProvider> subjectProvider,
-                                     ProsessTaskEventPubliserer eventPubliserer,
-                                     HandleProsessTaskLifecycleObserver handleLifecycleObserver) {
+    public ProsessTaskRepository(@Any Instance<EntityManager> entityManager,
+                                 @Any Instance<SubjectProvider> subjectProvider,
+                                 ProsessTaskEventPubliserer eventPubliserer,
+                                 HandleProsessTaskLifecycleObserver handleLifecycleObserver) {
         Objects.requireNonNull(entityManager, "entityManager");
 
         if (subjectProvider.isAmbiguous()) {
@@ -102,7 +92,6 @@ public class ProsessTaskRepositoryImpl implements ProsessTaskRepository {
         return String.valueOf(query.getSingleResult());
     }
 
-    @Override
     public String lagre(ProsessTaskGruppe sammensattTask) {
         String unikGruppeId = null;
         boolean lifecycleOpprettet = true;
@@ -142,7 +131,6 @@ public class ProsessTaskRepositoryImpl implements ProsessTaskRepository {
         return unikGruppeId;
     }
 
-    @Override
     public String lagre(ProsessTaskData task) {
         // prosesserer enkelt task som en gruppe av 1
         ProsessTaskGruppe gruppe = new ProsessTaskGruppe(task);
@@ -184,7 +172,6 @@ public class ProsessTaskRepositoryImpl implements ProsessTaskRepository {
         return pte.getId();
     }
 
-    @Override
     public ProsessTaskData finn(Long id) {
         ProsessTaskEntitet prosessTaskEntitet = this.entityManager.createQuery("from ProsessTaskEntitet pt where pt.id=:id", ProsessTaskEntitet.class)
             .setParameter("id", id)
@@ -193,146 +180,63 @@ public class ProsessTaskRepositoryImpl implements ProsessTaskRepository {
         return prosessTaskEntitet == null ? null : prosessTaskEntitet.tilProsessTask();
     }
 
-    @Override
-    public List<ProsessTaskData> finnAlle(ProsessTaskStatus... statuses) {
-        List<String> statusNames = Arrays.stream(statuses).map(ProsessTaskStatus::getDbKode).collect(Collectors.toList());
+    public List<ProsessTaskData> finnAlle(List<ProsessTaskStatus> statuses) {
+        if (statuses == null || statuses.isEmpty() || statuses.contains(ProsessTaskStatus.FERDIG)) {
+            throw new IllegalArgumentException("Ugyldig søk etter tasks");
+        }
+        List<String> statusNames = statuses.stream().map(ProsessTaskStatus::getDbKode).toList();
         TypedQuery<ProsessTaskEntitet> query = entityManager
             .createQuery("from ProsessTaskEntitet pt where pt.status in(:statuses)", ProsessTaskEntitet.class)
             .setParameter("statuses", statusNames); // NOSONAR $NON-NLS-1$
         return tilProsessTask(query.getResultList());
     }
 
-    @Override
-    public List<ProsessTaskData> finnIkkeStartet() {
+    public List<ProsessTaskData> finnGruppeIkkeFerdig(String gruppe) {
+        if (gruppe == null) {
+            throw new IllegalArgumentException("Ugyldig søk etter tasks");
+        }
+        List<String> ikkeFerdigStatusNames = Arrays.stream(ProsessTaskStatus.values())
+                .filter(ProsessTaskStatus::erIkkeFerdig)
+                .map(ProsessTaskStatus::getDbKode)
+                .toList();
         TypedQuery<ProsessTaskEntitet> query = entityManager
-            .createQuery("from ProsessTaskEntitet pt where pt.status in(:statuses) and pt.sisteKjøring is NULL", ProsessTaskEntitet.class)
-            .setParameter("statuses", ProsessTaskStatus.KLAR.getDbKode()); // NOSONAR $NON-NLS-1$
-        return tilProsessTask(query.getResultList());
-
-    }
-
-    @Override
-    public List<ProsessTaskData> finnAlle(List<ProsessTaskStatus> statuser, LocalDateTime sisteKjoeringFraOgMed, LocalDateTime sisteKjoeringTilOgMed) {
-        // trunker til millis (<Java9 oppførsel) før sammenligning
-        sisteKjoeringFraOgMed = sisteKjoeringFraOgMed.truncatedTo(ChronoUnit.MILLIS);
-        sisteKjoeringTilOgMed = sisteKjoeringTilOgMed.truncatedTo(ChronoUnit.MILLIS);
-        List<String> statusNames = statuser.stream().map(ProsessTaskStatus::getDbKode).collect(Collectors.toList());
-        TypedQuery<ProsessTaskEntitet> query = entityManager
-            .createQuery(
-                "from ProsessTaskEntitet pt where pt.status in(:statuses) and pt.sisteKjøring >= (:sisteKjoeringFraOgMed) and pt.sisteKjøring <= (:sisteKjoeringTilOgMed)",
-                ProsessTaskEntitet.class)
-            .setParameter("statuses", statusNames) // NOSONAR $NON-NLS-1$
-            .setParameter("sisteKjoeringFraOgMed", sisteKjoeringFraOgMed) // NOSONAR $NON-NLS-1$
-            .setParameter("sisteKjoeringTilOgMed", sisteKjoeringTilOgMed); // NOSONAR $NON-NLS-1$
+                .createQuery("from ProsessTaskEntitet pt where pt pt.status in(:statuses) and pt.task_gruppe = :gruppe",
+                        ProsessTaskEntitet.class)
+                .setParameter("statuses", ikkeFerdigStatusNames)
+                .setParameter("gruppe", gruppe); // NOSONAR $NON-NLS-1$
         return tilProsessTask(query.getResultList());
     }
 
-    @Override
-    public List<ProsessTaskData> finnAlleForAngittSøk(List<ProsessTaskStatus> statuser,
-                                                      String gruppeId,
-                                                      LocalDateTime nesteKjoeringFraOgMed,
-                                                      LocalDateTime nesteKjoeringTilOgMed,
-                                                      String paramLikeSearch) {
-        List<String> statusNames = statuser.stream().map(ProsessTaskStatus::getDbKode).collect(Collectors.toList());
-        /*
-         * TODO (FC): task_parametere er ikke indeksert, hjelper uansett lite med LIKE search. Vurder å splitte til egen tabell og kolonner for
-         * bedre ytelse dersom yter dårlig med store mengder.
-         * en slik koblingstabell kan frikobles ved å lytte til ProsessTaskEvent for når tasks opprettes/ferdigstilles/feiles
-         */
-
+    public List<ProsessTaskData> finnAlleForAngittSøk(String paramSearchText,
+                                                      LocalDate opprettetFraOgMed,
+                                                      LocalDate opprettetTilOgMed) {
+        if (paramSearchText == null || paramSearchText.isBlank()) {
+            throw new IllegalArgumentException("Tom søkestreng");
+        }
         // native sql for å håndtere like search for task_parametere felt,
-        // samt cast til hibernate spesifikk håndtering av parametere som kan være NULL
         @SuppressWarnings("unchecked")
         NativeQuery<ProsessTaskEntitet> query = (NativeQuery<ProsessTaskEntitet>) entityManager
-            .createNativeQuery(
-                "SELECT pt.* FROM PROSESS_TASK pt"
-                    + " WHERE pt.status IN (:statuses)"
-                    + " AND pt.task_gruppe = coalesce(:gruppe, pt.task_gruppe)"
-                    + " AND (pt.neste_kjoering_etter IS NULL"
-                    + "      OR ("
-                    + "           pt.neste_kjoering_etter >= cast(:nesteKjoeringFraOgMed as timestamp(0)) AND pt.neste_kjoering_etter <= cast(:nesteKjoeringTilOgMed as timestamp(0))"
-                    + "      ))"
-                    + " AND pt.task_parametere like :likeSearch",
-                ProsessTaskEntitet.class);
-
-        query.setParameter("statuses", statusNames) // NOSONAR $NON-NLS-1$
-            .setParameter("gruppe", gruppeId, StringType.INSTANCE) // NOSONAR $NON-NLS-1$
-            .setParameter("nesteKjoeringFraOgMed", nesteKjoeringFraOgMed.atZone(ZoneId.systemDefault())) // max oppløsning på neste_kjoering_etter er sekunder
-            .setParameter("nesteKjoeringTilOgMed", nesteKjoeringTilOgMed.atZone(ZoneId.systemDefault())) // NOSONAR $NON-NLS-1$
-            .setParameter("likeSearch", paramLikeSearch) // NOSONAR $NON-NLS-1$
+            .createNativeQuery("""
+                    SELECT pt.* FROM PROSESS_TASK pt
+                    WHERE pt.opprettet_tid > :opprettetFraOgMed AND pt.opprettet_tid < :opprettetTilOgMed
+                      AND pt.task_parametere LIKE :likeSearch
+                    """, ProsessTaskEntitet.class)
+            .setParameter("opprettetFraOgMed", opprettetFraOgMed.minusDays(1))
+            .setParameter("opprettetTilOgMed", opprettetTilOgMed.plusDays(1)) // NOSONAR $NON-NLS-1$
+            .setParameter("likeSearch", "%"+paramSearchText+"%") // NOSONAR $NON-NLS-1$
             .setHint(QueryHints.HINT_READONLY, "true");
 
         List<ProsessTaskEntitet> resultList = query.getResultList();
         return tilProsessTask(resultList);
     }
 
-    @Override
-    public List<ProsessTaskData> finnUferdigeBatchTasks(TaskType task) {
+    public List<Long> hentIdForAlleFeilet() {
         TypedQuery<ProsessTaskEntitet> query = entityManager
-            .createQuery("from ProsessTaskEntitet pt where pt.status NOT IN ('FERDIG', 'KJOERT') and pt.taskType = :task", ProsessTaskEntitet.class)
-            .setParameter("task", task.value()); // NOSONAR $NON-NLS-1$
-
-        return tilProsessTask(query.getResultList());
+                .createQuery("from ProsessTaskEntitet pt where pt.status = :feilet", ProsessTaskEntitet.class)
+                .setParameter("feilet", ProsessTaskStatus.FEILET.getDbKode()); // NOSONAR $NON-NLS-1$
+        return query.getResultList().stream().map(ProsessTaskEntitet::getId).collect(Collectors.toList());
     }
 
-    @Override
-    public boolean suspenderAlle(Collection<ProsessTaskData> tasks) {
-        return oppdaterStatusForAlleEllerIngen(tasks, ProsessTaskStatus.SUSPENDERT);
-    }
-
-    // returnerer false dersom angitte tasks ikke kan settes til angitt status (typisk fordi de allerede har et sluttstatus som er likt.)
-    private boolean oppdaterStatusForAlleEllerIngen(Collection<ProsessTaskData> tasks, ProsessTaskStatus status) {
-        List<ProsessTaskEntitet> entiteter = new ArrayList<>();
-
-        for (ProsessTaskData pt : tasks) {
-            // lås alle først
-            TypedQuery<ProsessTaskEntitet> query = entityManager
-                .createQuery("from ProsessTaskEntitet pt where pt.status NOT IN (:status, 'FERDIG', 'KJOERT') and pt.taskType = :task AND pt.id=:id",
-                    ProsessTaskEntitet.class)
-                .setHint(org.hibernate.annotations.QueryHints.FETCH_SIZE, 1)
-                .setParameter("status", status.getDbKode()) // NOSONAR $NON-NLS-1$
-                .setParameter("task", pt.getTaskType()) // NOSONAR $NON-NLS-1$
-                .setParameter("id", pt.getId()) // NOSONAR $NON-NLS-1$
-                // viktig å låse alle entiter for å garantere at vi kan oppdatere de.
-                .setLockMode(LockModeType.PESSIMISTIC_FORCE_INCREMENT);
-
-            List<ProsessTaskEntitet> resultList = query.getResultList();
-            if (resultList.size() != 1) {
-                return false;
-            } else {
-                entiteter.add(resultList.get(0));
-            }
-        }
-
-        // oppdater status og lagre alle (når vi har klart å låse alle)
-        for (ProsessTaskEntitet entity : entiteter) {
-            entity.setStatus(status);
-            entityManager.persist(entity);
-        }
-        entityManager.flush();
-
-        return true;
-    }
-
-    @Override
-    public List<TaskStatus> finnStatusForTaskIGruppe(TaskType task, String gruppe) {
-
-        final Query query = entityManager
-            .createNativeQuery("SELECT pt.status, count(*) FROM PROSESS_TASK pt WHERE pt.task_type = :task AND pt.TASK_GRUPPE = :gruppe GROUP BY pt.status")
-            .setParameter("task", task.value())
-            .setParameter("gruppe", gruppe);
-
-        List<TaskStatus> statuser = new ArrayList<>();
-
-        @SuppressWarnings("unchecked")
-        List<Object[]> result = query.getResultList();
-        for (Object[] objects : result) {
-            statuser.add(new TaskStatus(ProsessTaskStatus.valueOf((String) objects[0]), (BigDecimal) objects[1])); // NOSONAR
-        }
-        return statuser;
-    }
-
-    @Override
     public int settAlleFeiledeTasksKlar() {
         Query query = entityManager.createNativeQuery("UPDATE PROSESS_TASK " +
                 "SET status = :status, " +
@@ -348,9 +252,8 @@ public class ProsessTaskRepositoryImpl implements ProsessTaskRepository {
         return updatedRows;
     }
 
-    @Override
+
     public int slettGamleFerdige() {
-        String partisjonsNr = utledPartisjonsNr(LocalDate.now());
         Query query = entityManager.createNativeQuery("DELETE FROM PROSESS_TASK WHERE STATUS = :ferdig AND OPPRETTET_TID < :aar")
                 .setParameter("ferdig", ProsessTaskStatus.FERDIG.getDbKode())
                 .setParameter("aar", LocalDateTime.now().minusYears(1));
@@ -360,7 +263,6 @@ public class ProsessTaskRepositoryImpl implements ProsessTaskRepository {
         return deletedRows;
     }
 
-    @Override
     public int tømNestePartisjon() {
         String partisjonsNr = utledPartisjonsNr(LocalDate.now());
         Query query = entityManager.createNativeQuery("TRUNCATE prosess_task_partition_ferdig_" + partisjonsNr);
@@ -385,10 +287,6 @@ public class ProsessTaskRepositoryImpl implements ProsessTaskRepository {
     void flushAndClear() {
         entityManager.flush();
         entityManager.clear();
-    }
-
-    public EntityManager getEntityManager() {
-        return entityManager;
     }
 
     private static void trackTaskLineage(String keyPrefix, ProsessTaskData task) {

@@ -46,7 +46,7 @@ public class ProsessTaskHendelseMottakImplTest {
     private ProsessTaskTjeneste prosessTaskTjeneste;
 
     @Mock
-    private ProsessTaskRepositoryImpl repo;
+    private ProsessTaskRepository repo;
 
     @Mock
     private ProsessTaskData taskSomVenterØkonomiKvittering;
@@ -83,21 +83,21 @@ public class ProsessTaskHendelseMottakImplTest {
     @Test
     public void testMottaHendelseUkjentTask() {
         assertThrows(NullPointerException.class, () -> {
-            prosessTaskTjeneste.mottaHendelse(null, HENDELSE_KEY);
+            prosessTaskTjeneste.mottaHendelse(null, HENDELSE_KEY, null);
         });
     }
 
     @Test
     public void testMottaUventetHendelse() {
         assertThrows(IllegalStateException.class, () -> {
-            prosessTaskTjeneste.mottaHendelse(taskSomVenterØkonomiKvittering, "UKJENT");
+            prosessTaskTjeneste.mottaHendelse(taskSomVenterØkonomiKvittering, "UKJENT", null);
         });
     }
 
     @Test
     public void testMottaHendelseITaskSomIkkeVenter() {
         assertThrows(IllegalStateException.class, () -> {
-            prosessTaskTjeneste.mottaHendelse(taskSomIkkeVenter, HENDELSE_KEY);
+            prosessTaskTjeneste.mottaHendelse(taskSomIkkeVenter, HENDELSE_KEY, null);
         });
     }
 
