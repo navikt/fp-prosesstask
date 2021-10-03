@@ -1,16 +1,13 @@
 package no.nav.vedtak.felles.prosesstask.rest.app;
 
 import java.time.LocalDateTime;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import javax.enterprise.context.Dependent;
 import javax.inject.Inject;
 
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
-import no.nav.vedtak.felles.prosesstask.api.ProsessTaskRepository;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskStatus;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskTjeneste;
 import no.nav.vedtak.felles.prosesstask.api.TaskType;
@@ -23,38 +20,39 @@ import no.nav.vedtak.felles.prosesstask.rest.dto.ProsessTaskRestartResultatDto;
 import no.nav.vedtak.felles.prosesstask.rest.dto.ProsessTaskRetryAllResultatDto;
 import no.nav.vedtak.felles.prosesstask.rest.dto.ProsessTaskStatusDto;
 import no.nav.vedtak.felles.prosesstask.rest.dto.SokeFilterDto;
+import no.nav.vedtak.felles.prosesstask.rest.dto.StatusFilterDto;
 
 @Dependent
 public class ProsessTaskApplikasjonTjeneste {
 
     private ProsessTaskTjeneste prosessTaskTjeneste;
-    private ProsessTaskRepository prosessTaskRepository;
 
     ProsessTaskApplikasjonTjeneste() {
     }
 
     @Inject
-    public ProsessTaskApplikasjonTjeneste(ProsessTaskTjeneste prosessTaskTjeneste,
-                                          ProsessTaskRepository prosessTaskRepository) {
+    public ProsessTaskApplikasjonTjeneste(ProsessTaskTjeneste prosessTaskTjeneste) {
         this.prosessTaskTjeneste = prosessTaskTjeneste;
-        this.prosessTaskRepository = prosessTaskRepository;
     }
 
-    public List<ProsessTaskDataDto> finnAlle(SokeFilterDto sokeFilterDto) {
+    public List<ProsessTaskDataDto> finnAlle(StatusFilterDto statusFilterDto) {
 
         // Hvis ikke spesifisert, søkes det default bare på ProsessTaskStatus.KLAR og ProsessTaskStatus.VENTER_SVAR
-        if (sokeFilterDto.getProsessTaskStatuser().isEmpty()) {
-            sokeFilterDto.getProsessTaskStatuser().add(new ProsessTaskStatusDto(ProsessTaskStatus.KLAR.getDbKode()));
-            sokeFilterDto.getProsessTaskStatuser().add(new ProsessTaskStatusDto(ProsessTaskStatus.VENTER_SVAR.getDbKode()));
+        if (statusFilterDto.getProsessTaskStatuser().isEmpty()) {
+            statusFilterDto.getProsessTaskStatuser().add(new ProsessTaskStatusDto(ProsessTaskStatus.KLAR.getDbKode()));
+            statusFilterDto.getProsessTaskStatuser().add(new ProsessTaskStatusDto(ProsessTaskStatus.VENTER_SVAR.getDbKode()));
         }
 
-        if (sokeFilterDto.getSisteKjoeretidspunktFraOgMed().isAfter(sokeFilterDto.getSisteKjoeretidspunktTilOgMed())) {
-            return Collections.emptyList();
-        }
+        List<ProsessTaskStatus> statuser = statusFilterDto.getProsessTaskStatuser().stream().map(e -> ProsessTaskStatus.valueOf(e.getProsessTaskStatusName())).toList();
+        List<ProsessTaskData> prosessTaskData = prosessTaskTjeneste.finnAlleStatuser(statuser);
+        return prosessTaskData.stream().map(ProsessTaskDataKonverter::tilProsessTaskDataDto).toList();
+    }
 
-        List<ProsessTaskStatus> statuser = sokeFilterDto.getProsessTaskStatuser().stream().map(e -> ProsessTaskStatus.valueOf(e.getProsessTaskStatusName())).collect(Collectors.toList());
-        List<ProsessTaskData> prosessTaskData = prosessTaskRepository.finnAlle(statuser, sokeFilterDto.getSisteKjoeretidspunktFraOgMed(), sokeFilterDto.getSisteKjoeretidspunktTilOgMed());
-        return prosessTaskData.stream().map(ProsessTaskDataKonverter::tilProsessTaskDataDto).collect(Collectors.toList());
+    public List<ProsessTaskDataDto> søk(SokeFilterDto sokeFilterDto) {
+
+        List<ProsessTaskData> prosessTaskData = prosessTaskTjeneste.finnAlleMedParameterTekst(sokeFilterDto.getTekst(),
+                sokeFilterDto.getOpprettetFraOgMed(), sokeFilterDto.getOpprettetTilOgMed());
+        return prosessTaskData.stream().map(ProsessTaskDataKonverter::tilProsessTaskDataDto).toList();
     }
 
     public Optional<FeiletProsessTaskDataDto> finnFeiletProsessTask(Long prosessTaskId) {

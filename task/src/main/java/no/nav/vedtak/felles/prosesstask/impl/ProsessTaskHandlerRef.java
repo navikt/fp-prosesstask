@@ -33,28 +33,14 @@ public class ProsessTaskHandlerRef implements AutoCloseable {
     private static final Logger LOG = LoggerFactory.getLogger(ProsessTaskHandlerRef.class);
 
     private final ProsessTaskHandler bean;
-    private final CronExpression cronExpression;
-    private final int maxFailedRuns;
-    private final int firstDelay;
-    private final int thenDelay;
 
     protected ProsessTaskHandlerRef(ProsessTaskHandler bean) {
-        ProsessTask prosessTask;
-        if (bean instanceof TargetInstanceProxy<?> tip) {
-            prosessTask = tip.weld_getTargetInstance().getClass().getAnnotation(ProsessTask.class);
-        } else {
-            prosessTask = bean.getClass().getAnnotation(ProsessTask.class);
-        }
         this.bean = bean;
-        this.cronExpression = prosessTask.cronExpression().isBlank() ?
-                null : new CronExpression(prosessTask.cronExpression());
-        this.maxFailedRuns = prosessTask.maxFailedRuns();
-        this.firstDelay = prosessTask.firstDelay();
-        this.thenDelay = prosessTask.thenDelay();
     }
 
     public CronExpression cronExpression() {
-        return cronExpression;
+        var task = getProsessTaskAnnotation();
+        return task.cronExpression().isBlank() ? null : new CronExpression(task.cronExpression());
     }
 
     public Set<String> requiredProperties() {
@@ -63,8 +49,12 @@ public class ProsessTaskHandlerRef implements AutoCloseable {
 
     public ProsessTaskRetryPolicy retryPolicy() {
         return bean.retryPolicy()
-                .orElseGet(() -> new ProsessTaskDefaultRetryPolicy(maxFailedRuns, firstDelay, thenDelay));
+                .orElseGet(() -> {
+                    var task = getProsessTaskAnnotation();
+                    return new ProsessTaskDefaultRetryPolicy(task.maxFailedRuns(), task.firstDelay(), task.thenDelay());
+                });
     }
+
 
     public static ProsessTaskHandlerRef lookup(TaskType taskType) {
         return new ProsessTaskHandlerRef(lookupHandler(taskType));
@@ -74,6 +64,26 @@ public class ProsessTaskHandlerRef implements AutoCloseable {
     protected static ProsessTaskHandler lookupHandler(TaskType taskType) {
         return CDI.current().select(ProsessTaskHandler.class, new ProsessTaskLiteral(taskType.value())).get();
     }
+
+    protected ProsessTaskHandler getBean() {
+        return bean;
+    }
+
+    protected ProsessTask getProsessTaskAnnotation() {
+        Class<?> clazz;
+        if (!bean.getClass().isAnnotationPresent(ProsessTask.class) && bean instanceof TargetInstanceProxy<?> tip) {
+            clazz = tip.weld_getTargetInstance().getClass();
+        } else {
+            clazz = bean.getClass();
+        }
+        if (clazz == null) {
+            throw new IllegalStateException("ukjent klasse");
+        } else if (!clazz.isAnnotationPresent(ProsessTask.class)) {
+            throw new IllegalStateException(clazz.getSimpleName()  + " mangler annotering @ProsesTask");
+        }
+        return clazz.getAnnotation(ProsessTask.class);
+    }
+
 
     @Override
     public void close() {

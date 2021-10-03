@@ -1,7 +1,7 @@
 package no.nav.vedtak.felles.prosesstask.impl;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -15,7 +15,6 @@ import no.nav.vedtak.exception.TekniskException;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskGruppe;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskGruppe.Entry;
-import no.nav.vedtak.felles.prosesstask.api.ProsessTaskRepository;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskStatus;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskTjeneste;
 
@@ -86,8 +85,23 @@ public class ProsessTaskTjenesteImpl implements ProsessTaskTjeneste {
     }
 
     @Override
-    public List<ProsessTaskData> finnAlle(ProsessTaskStatus... statuses) {
+    public List<ProsessTaskData> finnUferdigForGruppe(String gruppe) {
+        return prosessTaskRepository.finnGruppeIkkeFerdig(gruppe);
+    }
+
+    @Override
+    public List<ProsessTaskData> finnAlle(ProsessTaskStatus status) {
+        return prosessTaskRepository.finnAlle(List.of(status));
+    }
+
+    @Override
+    public List<ProsessTaskData> finnAlleStatuser(List<ProsessTaskStatus> statuses) {
         return prosessTaskRepository.finnAlle(statuses);
+    }
+
+    @Override
+    public List<ProsessTaskData> finnAlleMedParameterTekst(String tekst, LocalDate fom, LocalDate tom) {
+        return prosessTaskRepository.finnAlleForAngittSøk(tekst, fom, tom);
     }
 
     @Override
@@ -113,19 +127,14 @@ public class ProsessTaskTjenesteImpl implements ProsessTaskTjeneste {
 
         validerBetingelserForRestart(prosessTaskId, oppgittStatus, ptd);
 
-        oppdaterProsessTaskDataMedKjoerbarStatus(ptd, LocalDateTime.now());
+        oppdaterProsessTaskDataMedKjoerbarStatus(ptd);
         prosessTaskRepository.lagre(ptd);
     }
 
     @Override
     public List<Long> flaggAlleFeileteProsessTasksForRestart() {
-        List<Long> restartet = new ArrayList<>();
-        LocalDateTime now = LocalDateTime.now();
-        prosessTaskRepository.finnAlle(ProsessTaskStatus.FEILET).forEach(ptd -> {
-            oppdaterProsessTaskDataMedKjoerbarStatus(ptd, now);
-            prosessTaskRepository.lagre(ptd);
-            restartet.add(ptd.getId());
-        });
+        List<Long> restartet = prosessTaskRepository.hentIdForAlleFeilet();
+        prosessTaskRepository.settAlleFeiledeTasksKlar();
         return restartet;
     }
 
@@ -142,11 +151,6 @@ public class ProsessTaskTjenesteImpl implements ProsessTaskTjeneste {
     @Override
     public int tømNestePartisjon() {
         return prosessTaskRepository.tømNestePartisjon();
-    }
-
-    @Override
-    public void mottaHendelse(ProsessTaskData task, String hendelse) {
-        mottaHendelse(task, hendelse, null);
     }
 
     @Override
@@ -167,17 +171,13 @@ public class ProsessTaskTjenesteImpl implements ProsessTaskTjeneste {
         prosessTaskRepository.lagre(task);
     }
 
-    private void oppdaterProsessTaskDataMedKjoerbarStatus(ProsessTaskData task, LocalDateTime nesteKjøring) {
+    private void oppdaterProsessTaskDataMedKjoerbarStatus(ProsessTaskData task) {
 
         task.setStatus(ProsessTaskStatus.KLAR);
-        task.setNesteKjøringEtter(nesteKjøring);
+        task.setNesteKjøringEtter(LocalDateTime.now());
         task.setSisteFeilKode(null);
         task.setSisteFeil(null);
 
-        /**
-         * Tvungen kjøring: reduserer anall feilede kjøring med 1 slik at {@link no.nav.foreldrepenger.felles.prosesstask.impl.TaskManager}
-         * kan plukke den opp og kjøre.
-         */
         if (task.getAntallFeiledeForsøk() > 0) {
             task.setAntallFeiledeForsøk(task.getAntallFeiledeForsøk() - 1);
         }

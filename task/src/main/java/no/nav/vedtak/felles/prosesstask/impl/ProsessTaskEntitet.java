@@ -202,6 +202,10 @@ public class ProsessTaskEntitet {
         return opprettetTid;
     }
 
+    void setOpprettetTid(LocalDateTime tid) {
+        this.opprettetTid = tid;
+    }
+
     @Override
     public String toString() {
         return getClass().getSimpleName()

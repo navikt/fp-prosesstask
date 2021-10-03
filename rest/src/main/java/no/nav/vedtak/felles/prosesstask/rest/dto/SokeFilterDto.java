@@ -1,11 +1,10 @@
 package no.nav.vedtak.felles.prosesstask.rest.dto;
 
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
+import java.time.LocalDate;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
@@ -22,47 +21,48 @@ import io.swagger.v3.oas.annotations.media.Schema;
 @Schema
 public class SokeFilterDto {
 
-    @JsonProperty(value = "prosessTaskStatuser")
-    @Size(max = 10)
+    @JsonProperty(value = "tekst")
+    @NotNull
     @Valid
-    private List<@NotNull ProsessTaskStatusDto> prosessTaskStatuser = new ArrayList<>();
+    @Size(min = 5, max=200)
+    @Pattern(regexp = "^[\\p{Alnum}_.=\\-]*$")
+    private String tekst;
     
     @JsonProperty(value = "sisteKjoeretidspunktFraOgMed")
     @Valid
-    private LocalDateTime sisteKjoeretidspunktFraOgMed = LocalDateTime.now().minusHours(24);
+    private LocalDate opprettetFraOgMed = LocalDate.now().minusMonths(12);
     
     @JsonProperty(value = "sisteKjoeretidspunktTilOgMed")
     @Valid
-    private LocalDateTime sisteKjoeretidspunktTilOgMed = LocalDateTime.now();
+    private LocalDate opprettetTilOgMed = LocalDate.now();
 
     public SokeFilterDto() {
     }
 
-    @Schema(description = "Angi liste over prosesstask-statuser som skal søkes på, blant KLAR, FERDIG, VENTER_SVAR, SUSPENDERT, eller FEILET")
-    public List<ProsessTaskStatusDto> getProsessTaskStatuser() {
-        return prosessTaskStatuser;
+    @Schema(description = "Søketekst")
+    public String getTekst() {
+        return tekst;
     }
 
-    public void setProsessTaskStatuser(List<ProsessTaskStatusDto> prosessTaskStatuser) {
-        this.prosessTaskStatuser = prosessTaskStatuser;
+    public void setTekst(String tekst) {
+        this.tekst = tekst;
     }
 
     @Schema(description = "Søker etter prosesstask med siste kjøring fra og med dette tidspunktet")
-    public LocalDateTime getSisteKjoeretidspunktFraOgMed() {
-        return sisteKjoeretidspunktFraOgMed;
+    public LocalDate getOpprettetFraOgMed() {
+        return opprettetFraOgMed;
     }
 
-    public void setSisteKjoeretidspunktFraOgMed(LocalDateTime sisteKjoeretidspunktFraOgMed) {
-        this.sisteKjoeretidspunktFraOgMed = sisteKjoeretidspunktFraOgMed;
+    public void setOpprettetFraOgMed(LocalDate opprettetFraOgMed) {
+        this.opprettetFraOgMed = opprettetFraOgMed;
     }
 
     @Schema(description = "Søker etter prosesstask med siste kjøring til og med dette tidspunktet")
-    public LocalDateTime getSisteKjoeretidspunktTilOgMed() {
-        return sisteKjoeretidspunktTilOgMed;
+    public LocalDate getOpprettetTilOgMed() {
+        return opprettetTilOgMed;
     }
 
-    public void setSisteKjoeretidspunktTilOgMed(LocalDateTime sisteKjoeretidspunktTilOgMed) {
-        this.sisteKjoeretidspunktTilOgMed = sisteKjoeretidspunktTilOgMed;
+    public void setOpprettetTilOgMed(LocalDate opprettetTilOgMed) {
+        this.opprettetTilOgMed = opprettetTilOgMed;
     }
-
 }

@@ -240,7 +240,7 @@ public class RunTask {
         void planleggNesteKjøring(ProsessTaskEntitet pte) throws SQLException {
             var cronExpression = taskHandler.cronExpression();
             if (cronExpression != null) {
-                String gruppe = ProsessTaskRepositoryImpl.getUniktProsessTaskGruppeNavn(taskManagerRepository.getEntityManager());
+                String gruppe = ProsessTaskRepository.getUniktProsessTaskGruppeNavn(taskManagerRepository.getEntityManager());
                 LocalDateTime now = LocalDateTime.now();
                 LocalDateTime nesteKjøring = cronExpression.nextLocalDateTimeAfter(now);
                 var data = ProsessTaskDataBuilder.forTaskType(pte.getTaskType())

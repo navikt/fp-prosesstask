@@ -10,7 +10,6 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 import no.nav.vedtak.felles.prosesstask.JpaExtension;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskGruppe;
-import no.nav.vedtak.felles.prosesstask.api.ProsessTaskRepository;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskStatus;
 import no.nav.vedtak.felles.prosesstask.api.TaskType;
 
@@ -19,7 +18,7 @@ public class OpprettProsessTaskIT {
     @RegisterExtension
     public static final JpaExtension repoRule = new JpaExtension();
     
-    private ProsessTaskRepository repo = new ProsessTaskRepositoryImpl(repoRule.getEntityManager(), null, null);
+    private ProsessTaskRepository repo = new ProsessTaskRepository(repoRule.getEntityManager(), null, null);
 
     @Test
     public void skal_lagre_ProsessTask() throws Exception {
@@ -40,7 +39,7 @@ public class OpprettProsessTaskIT {
         repo.lagre(sammensatt);
         repoRule.getEntityManager().flush();
 
-        List<ProsessTaskData> list = repo.finnAlle(ProsessTaskStatus.KLAR);
+        List<ProsessTaskData> list = repo.finnAlle(List.of(ProsessTaskStatus.KLAR));
         assertThat(list).hasSize(2);
         assertThat(list).containsOnly(pt1, pt2);
 
