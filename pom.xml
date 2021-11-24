@@ -63,7 +63,7 @@
 			<dependency>
 				<groupId>org.flywaydb</groupId>
 				<artifactId>flyway-core</artifactId>
-				<version>7.8.2</version>
+				<version>8.0.5</version>
 			</dependency>
 
 			<dependency>
@@ -71,7 +71,7 @@
 				<artifactId>felles</artifactId>
 				<scope>import</scope>
 				<type>pom</type>
-				<version>4.0.10</version>
+				<version>4.1.1</version>
 			</dependency>
 
 			<dependency>
