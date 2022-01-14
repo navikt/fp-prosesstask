@@ -4,12 +4,14 @@ on:
   pull_request:
     branches:
       - master
-      paths-ignore:
-        - '**.md'
-        - '**.MD'
-        - '.gitignore'
-        - 'LICENCE'
-        - 'CODEOWNERS'
+    paths-ignore:
+      - '**.md'
+      - '**.MD'
+      - '.gitignore'
+      - 'LICENCE'
+      - 'CODEOWNERS'
+      - '.github/workflows/build.yml'
+      - '.github/workflows/release.yml'
 
 jobs:
   build:
