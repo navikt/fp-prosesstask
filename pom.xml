@@ -45,6 +45,7 @@
 		<additionalparam>-Xdoclint:none</additionalparam>
 
 		<!-- SonarCloud options -->
+		<sonar.moduleKey>${project.artifactId}</sonar.moduleKey>
 		<sonar.projectKey>navikt_fp-prosesstask</sonar.projectKey>
 		<sonar.organization>navit</sonar.organization>
 		<sonar.host.url>https://sonarcloud.io</sonar.host.url>
