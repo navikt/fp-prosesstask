@@ -10,6 +10,7 @@ on:
       - '.gitignore'
       - 'LICENCE'
       - 'CODEOWNERS'
+      - '.github/workflows/build-pr.yml'
 jobs:
   build:
 
@@ -20,47 +21,37 @@ jobs:
         image: postgres:12-alpine
         env:
           POSTGRES_USER: unittest
-          POSTGRES_PASSWORD: unittest 
-          POSTGRES_DB: unittest 
+          POSTGRES_PASSWORD: unittest
+          POSTGRES_DB: unittest
         ports:
           - 5432:5432
         # needed because the postgres container does not provide a healthcheck
         options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
 
     steps:
-      - uses: actions/checkout@v2.3.4
+      - uses: actions/checkout@v2
         with:
           fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
       - uses: actions/setup-java@v2
         with:
-          distribution: 'adopt'
-          java-version: 16
-      - name: Cache Maven packages
-        uses: actions/cache@v2.1.6
-        with:
-          path: ~/.m2
-          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
-          restore-keys: ${{ runner.os }}-m2
-      - name: Build artifacts 
-        shell: bash
+          distribution: 'temurin'
+          java-version: '17'
+          check-latest: true
+          cache: 'maven'
+      - name: Build artifacts
         run: |
-          set -x
           echo "Building $(echo $GITHUB_SHA | cut -c1-7)"
-          mvn jacoco:prepare-agent install -e --batch-mode --settings ./.github/.m2/settings.xml --file pom.xml  -DtrimStackTrace=false -Djacoco.destFile=$(pwd)/target/jacoco.exec 
-          mvn jacoco:report sonar:sonar -e --batch-mode --settings ./.github/.m2/settings.xml --file pom.xml -Djacoco.dataFile=$(pwd)/target/jacoco.exec -Dsonar.login=${SONAR_TOKEN} -Dsonar.projectKey=navikt_fp-prosesstask -Dsonar.exclusions="pom.xml,**/src/test/**/*"
+          mvn jacoco:prepare-agent install jacoco:report sonar:sonar --quiet --batch-mode --settings .github/.m2/settings.xml -Dsonar.login=${SONAR_TOKEN} -Dsonar.exclusions="pom.xml,**/src/test/**/*"
           echo "Deployed artifacts"
         env:
-          GITHUB_USERNAME: x-access-token
-          GITHUB_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }} 
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           DATASOURCE_HOST: localhost
-          DATASOURCE_PORT: ${{ job.services.postgres.ports[5432] }} # get randomly assigned published 
+          DATASOURCE_PORT: ${{ job.services.postgres.ports[5432] }} # get randomly assigned published
 
-  release-notes:
-    runs-on: ubuntu-latest
-    steps:
       - name: Release Drafter
         uses: release-drafter/release-drafter@v5
+        if: success()
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+

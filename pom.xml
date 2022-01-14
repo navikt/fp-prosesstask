@@ -39,15 +39,18 @@
 	</modules>
 
 	<properties>
-		<java.version>16</java.version>
-
-		<argLine>-Dfile.encoding=UTF-8</argLine>
+		<java.version>17</java.version>
+		<maven.compiler.source>${java.version}</maven.compiler.source>
+		<maven.compiler.target>${java.version}</maven.compiler.target>
 		<additionalparam>-Xdoclint:none</additionalparam>
 
 		<!-- SonarCloud options -->
-		<sonar.host.url>https://sonarcloud.io</sonar.host.url>
+		<sonar.moduleKey>${project.artifactId}</sonar.moduleKey>
+		<sonar.projectKey>navikt_fp-prosesstask</sonar.projectKey>
 		<sonar.organization>navit</sonar.organization>
+		<sonar.host.url>https://sonarcloud.io</sonar.host.url>
 
+		<jacoco.version>0.8.7</jacoco.version>
 	</properties>
 
 	<repositories>
@@ -63,15 +66,19 @@
 			<dependency>
 				<groupId>org.flywaydb</groupId>
 				<artifactId>flyway-core</artifactId>
-				<version>8.0.5</version>
+				<version>8.4.1</version>
 			</dependency>
-
+			<dependency>
+				<groupId>net.minidev</groupId>
+				<artifactId>json-smart</artifactId>
+				<version>2.4.7</version>
+			</dependency>
 			<dependency>
 				<groupId>no.nav.foreldrepenger.felles</groupId>
 				<artifactId>felles</artifactId>
 				<scope>import</scope>
 				<type>pom</type>
-				<version>4.1.1</version>
+				<version>4.1.5</version>
 			</dependency>
 
 			<dependency>
@@ -140,18 +147,6 @@
 		<pluginManagement>
 			<plugins>
 				<plugin>
-					<groupId>org.jacoco</groupId>
-					<artifactId>jacoco-maven-plugin</artifactId>
-					<version>0.8.7</version>
-					<executions>
-						<execution>
-							<goals>
-								<goal>prepare-agent</goal>
-							</goals>
-						</execution>
-					</executions>
-				</plugin>
-				<plugin>
 					<groupId>org.codehaus.mojo</groupId>
 					<artifactId>exec-maven-plugin</artifactId>
 					<version>3.0.0</version>
@@ -174,7 +169,7 @@
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-compiler-plugin</artifactId>
-					<version>3.8.1</version>
+					<version>3.9.0</version>
 					<configuration>
 						<source>${java.version}</source>
 						<target>${java.version}</target>
@@ -190,17 +185,21 @@
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-deploy-plugin</artifactId>
-					<version>3.0.0-M1</version>
+					<version>3.0.0-M2</version>
 				</plugin>
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-jar-plugin</artifactId>
-					<version>3.2.0</version>
+					<version>3.2.2</version>
 				</plugin>
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-surefire-plugin</artifactId>
 					<version>2.22.2</version>
+					<configuration>
+						<!-- Må ha @{argLine} ellers blir properties satt av jacoco-maven-plugin overkrevet -->
+						<argLine>@{argLine} -Dfile.encoding=UTF-8</argLine>
+					</configuration>
 				</plugin>
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
@@ -221,7 +220,7 @@
 				<plugin>
 					<groupId>org.sonarsource.scanner.maven</groupId>
 					<artifactId>sonar-maven-plugin</artifactId>
-					<version>3.9.0.2155</version>
+					<version>3.9.1.2184</version>
 				</plugin>
 			</plugins>
 
@@ -256,17 +255,22 @@
 			<plugin>
 				<groupId>org.jacoco</groupId>
 				<artifactId>jacoco-maven-plugin</artifactId>
+				<version>${jacoco.version}</version>
 				<executions>
 					<execution>
+						<goals>
+							<goal>prepare-agent</goal>
+						</goals>
+					</execution>
+					<execution>
 						<id>report</id>
+						<phase>verify</phase>
 						<goals>
 							<goal>report-aggregate</goal>
 						</goals>
-						<phase>verify</phase>
 					</execution>
 				</executions>
 			</plugin>
-
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-source-plugin</artifactId>
