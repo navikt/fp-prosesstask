@@ -31,7 +31,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
         with:
-          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
+          fetch-depth: "0"  # Shallow clones should be disabled for a better relevancy of analysis
       - uses: actions/setup-java@v2
         with:
           distribution: 'temurin'
@@ -40,9 +40,7 @@ jobs:
           cache: 'maven'
       - name: Build artifacts
         run: |
-          echo "Building $(echo $GITHUB_SHA | cut -c1-7)"
-          mvn jacoco:prepare-agent install jacoco:report sonar:sonar --quiet --batch-mode --settings .github/.m2/settings.xml -Dsonar.login=${SONAR_TOKEN} -Dsonar.exclusions="pom.xml,**/src/test/**/*"
-          echo "Deployed artifacts"
+          mvn jacoco:prepare-agent verify jacoco:report sonar:sonar --quiet --batch-mode --settings .github/.m2/settings.xml -Dsonar.login=${SONAR_TOKEN} -Dsonar.exclusions="pom.xml,**/src/test/**/*"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
