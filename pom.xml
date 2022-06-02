@@ -49,6 +49,7 @@
 		<additionalparam>-Xdoclint:none</additionalparam>
 
 		<!-- SonarCloud options -->
+		<sonar.moduleKey>${project.artifactId}</sonar.moduleKey>
 		<sonar.projectKey>navikt_fp-prosesstask</sonar.projectKey>
 
 		<felles.version>4.1.27</felles.version>
