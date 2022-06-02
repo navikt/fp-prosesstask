@@ -47,7 +47,7 @@ jobs:
           cache: 'maven'
       - name: Build artifacts
         run: |
-          mvn jacoco:prepare-agent verify jacoco:report sonar:sonar -q --b -s settings.xml -Dsonar.login=${SONAR_TOKEN} -Dsonar.exclusions="pom.xml,**/src/test/**/*"
+          mvn jacoco:prepare-agent verify jacoco:report sonar:sonar -q -B -s settings.xml -Dsonar.exclusions="pom.xml,**/src/test/**/*"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
