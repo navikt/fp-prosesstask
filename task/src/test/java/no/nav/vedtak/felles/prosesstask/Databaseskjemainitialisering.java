@@ -75,14 +75,9 @@ public final class Databaseskjemainitialisering {
         cfg.setValidationTimeout(120L * 1000L);
         cfg.setMaximumPoolSize(4);
         cfg.setAutoCommit(false);
-        
+
         var ds = new HikariDataSource(cfg);
-        Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
-            @Override
-            public void run() {
-                ds.close();
-            }
-        }));
+        Runtime.getRuntime().addShutdownHook(new Thread(ds::close));
         return ds;
     }
 
