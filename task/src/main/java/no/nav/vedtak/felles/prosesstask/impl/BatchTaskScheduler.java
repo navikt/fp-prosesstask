@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 
 import no.nav.vedtak.apptjeneste.AppServiceHandler;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskStatus;
+import no.nav.vedtak.log.metrics.Controllable;
 
 /**
  * Starter tasks med cron-expression hvis disse ikke har noen status fra før av.
@@ -19,7 +20,7 @@ import no.nav.vedtak.felles.prosesstask.api.ProsessTaskStatus;
 @ApplicationScoped
 @ActivateRequestContext
 @Transactional
-public class BatchTaskScheduler implements AppServiceHandler {
+public class BatchTaskScheduler implements AppServiceHandler, Controllable {
 
     private static final Logger LOG = LoggerFactory.getLogger(BatchTaskScheduler.class);
     private TaskManagerRepositoryImpl taskRepository;

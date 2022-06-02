@@ -40,12 +40,13 @@ import no.nav.vedtak.felles.jpa.TransactionHandler;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskDispatcher;
 import no.nav.vedtak.felles.prosesstask.api.TaskType;
+import no.nav.vedtak.log.metrics.Controllable;
 
 /**
  * Main class handling polling tasks and dispatching these.
  */
 @ApplicationScoped
-public class TaskManager implements AppServiceHandler {
+public class TaskManager implements AppServiceHandler, Controllable {
 
     public static final String TASK_MANAGER_POLLING_WAIT = "task.manager.polling.wait";
     public static final String TASK_MANAGER_POLLING_DELAY = "task.manager.polling.delay";

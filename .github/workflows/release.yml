@@ -16,8 +16,8 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '17'
-          check-latest: true
           cache: 'maven'
+
       - name: Publish artifact
         env:
           NEW_VERSION: ${{ github.event.release.tag_name }}
