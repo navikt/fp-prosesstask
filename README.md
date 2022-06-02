@@ -1,4 +1,4 @@
-![](https://github.com/navikt/fp-prosesstask/workflows/Bygg%20og%20deploy/badge.svg) 
+[![Bygg og deploy](https://github.com/navikt/fp-prosesstask/actions/workflows/build.yml/badge.svg)](https://github.com/navikt/fp-prosesstask/actions/workflows/build.yml)
 [![Sonarcloud Status](https://sonarcloud.io/api/project_badges/measure?project=navikt_fp-prosesstask&metric=alert_status)](https://sonarcloud.io/dashboard?id=navikt_fp-prosesstask) 
  [![SonarCloud Coverage](https://sonarcloud.io/api/project_badges/measure?project=navikt_fp-prosesstask&metric=coverage)](https://sonarcloud.io/component_measures/metric/coverage/list?id=navikt_fp-prosesstask)
  [![SonarCloud Bugs](https://sonarcloud.io/api/project_badges/measure?project=navikt_fp-prosesstask&metric=bugs)](https://sonarcloud.io/component_measures/metric/reliability_rating/list?id=navikt_fp-prosesstask)
