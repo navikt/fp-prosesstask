@@ -52,7 +52,7 @@
 		<sonar.moduleKey>${project.artifactId}</sonar.moduleKey>
 		<sonar.projectKey>navikt_fp-prosesstask</sonar.projectKey>
 
-		<felles.version>4.1.28</felles.version>
+		<felles.version>4.1.30</felles.version>
 	</properties>
 
 	<repositories>
