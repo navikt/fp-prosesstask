@@ -3,6 +3,7 @@ package no.nav.vedtak.felles.prosesstask.rest;
 import static no.nav.vedtak.sikkerhet.abac.BeskyttetRessursActionAttributt.CREATE;
 import static no.nav.vedtak.sikkerhet.abac.BeskyttetRessursActionAttributt.READ;
 
+import java.net.HttpURLConnection;
 import java.util.List;
 import java.util.Optional;
 
@@ -18,7 +19,6 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import org.apache.http.HttpStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -147,7 +147,7 @@ public class ProsessTaskRestTjeneste {
         if (resultat.isPresent()) {
             return Response.ok(resultat.get()).build();
         }
-        return Response.status(HttpStatus.SC_NOT_FOUND).build();
+        return Response.status(HttpURLConnection.HTTP_NOT_FOUND).build();
     }
 
     @POST
