@@ -42,9 +42,8 @@ public class BatchTaskScheduler implements AppServiceHandler, Controllable {
     }
 
     private boolean erBatchTask(ProsessTaskEntitet pte) {
-        try {
-            var annotatedCronExpression = ProsessTaskHandlerRef.lookup(pte.getTaskType()).cronExpression();
-            return annotatedCronExpression != null;
+        try (var ref = ProsessTaskHandlerRef.lookup(pte.getTaskType())) {
+            return ref.cronExpression() != null;
         } catch (Exception e) {
             return false;
         }

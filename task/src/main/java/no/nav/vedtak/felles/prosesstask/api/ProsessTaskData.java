@@ -38,18 +38,8 @@ public class ProsessTaskData implements ProsessTaskInfo {
     private Long blokkertAvProsessTaskId;
     private LocalDateTime opprettetTid;
 
-    @Deprecated(forRemoval = true) // Bruk forProsessTask eller forTaskType
-    public ProsessTaskData(String taskType) {
-        this(new TaskType(taskType));
-    }
-
     ProsessTaskData(TaskType taskType) {
         this.taskType = taskType;
-    }
-
-    // TODO - evaluer behov. Gir enkel migrering
-    public ProsessTaskData(Class<? extends ProsessTaskHandler> clazz) {
-        this(TaskType.forProsessTask(clazz));
     }
 
     public static ProsessTaskData forProsessTask(Class<? extends ProsessTaskHandler> clazz) {
