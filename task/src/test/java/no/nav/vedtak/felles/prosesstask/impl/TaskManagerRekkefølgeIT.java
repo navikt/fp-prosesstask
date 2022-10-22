@@ -3,6 +3,8 @@ package no.nav.vedtak.felles.prosesstask.impl;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
@@ -52,6 +54,27 @@ public class TaskManagerRekkefølgeIT {
 
         List<ProsessTaskData> sekvensiellRunde04 = taskManagerRepo.pollNeste(now);
         assertThat(sekvensiellRunde04).isEmpty();
+
+    }
+
+    @Test
+    public void skal_polle_tasker_i_sekvens_sjekk_rekkefølge() throws Exception {
+        ProsessTaskGruppe sammensatt = new ProsessTaskGruppe();
+        List<ProsessTaskData> tasks = new ArrayList<>();
+        for (int i = 0; i < 22; i++) {
+            tasks.add(nyTask("mytask" + i, -10));
+            sammensatt.addNesteSekvensiell(tasks.get(i));
+        }
+
+        // Act
+        repo.lagre(sammensatt);
+
+        for (int i = 0; i < 22; i++) {
+            pollEnRundeVerifiserOgFerdigstill(tasks.get(i));
+        }
+
+        List<ProsessTaskData> sekvensiellRunde22 = taskManagerRepo.pollNeste(now);
+        assertThat(sekvensiellRunde22).isEmpty();
 
     }
 
@@ -111,7 +134,7 @@ public class TaskManagerRekkefølgeIT {
     private void pollEnRundeVerifiserOgFerdigstill(ProsessTaskData... tasks) {
         List<ProsessTaskData> neste = taskManagerRepo.pollNeste(now);
         assertThat(neste).hasSize(tasks.length);
-        assertThat(neste).containsExactly(tasks);
+        assertThat(neste.stream().map(ProsessTaskData::getTaskType).toArray()).containsExactly(Arrays.stream(tasks).map(ProsessTaskData::getTaskType).toArray());
 
         neste.forEach(pt -> {
             pt.setStatus(ProsessTaskStatus.KJOERT);
