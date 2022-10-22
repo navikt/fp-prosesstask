@@ -25,7 +25,7 @@ WHERE pt.id
             SELECT id
                 , task_type
                    -- SQL Window Function: finn første sekvens i task_gruppe. (dersom task_gruppe er NULL brukes task_type her som substitutt)
-                , FIRST_VALUE(task_sekvens) OVER (PARTITION BY coalesce(task_gruppe, task_type) ORDER BY task_sekvens ASC NULLS FIRST, siste_kjoering_ts ASC NULLS FIRST, prioritet DESC) AS foerste_sekvens
+                , FIRST_VALUE(task_sekvens) OVER (PARTITION BY coalesce(task_gruppe, task_type) ORDER BY length(task_sekvens), task_sekvens ASC NULLS FIRST, siste_kjoering_ts ASC NULLS FIRST, prioritet DESC) AS foerste_sekvens
                 , task_sekvens
                 , status
                 , feilede_forsoek
