@@ -58,23 +58,23 @@ public class TaskManagerRekkefølgeIT {
     }
 
     @Test
-    public void skal_polle_tasker_i_sekvens_sjekk_sort() throws Exception {
+    public void skal_polle_tasker_i_sekvens_sjekk_rekkefølge() throws Exception {
         ProsessTaskGruppe sammensatt = new ProsessTaskGruppe();
         List<ProsessTaskData> tasks = new ArrayList<>();
-        for (int i = 1; i < 15; i++) {
+        for (int i = 0; i < 22; i++) {
             tasks.add(nyTask("mytask" + i, -10));
-            sammensatt.addNesteSekvensiell(tasks.get(i-1));
+            sammensatt.addNesteSekvensiell(tasks.get(i));
         }
 
         // Act
         repo.lagre(sammensatt);
 
-        for (int i = 1; i < 15; i++) {
-            pollEnRundeVerifiserOgFerdigstill(tasks.get(i-1));
+        for (int i = 0; i < 22; i++) {
+            pollEnRundeVerifiserOgFerdigstill(tasks.get(i));
         }
 
-        List<ProsessTaskData> sekvensiellRunde04 = taskManagerRepo.pollNeste(now);
-        assertThat(sekvensiellRunde04).isEmpty();
+        List<ProsessTaskData> sekvensiellRunde22 = taskManagerRepo.pollNeste(now);
+        assertThat(sekvensiellRunde22).isEmpty();
 
     }
 
