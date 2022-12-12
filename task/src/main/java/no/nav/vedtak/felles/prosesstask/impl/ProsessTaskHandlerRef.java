@@ -29,7 +29,7 @@ public class ProsessTaskHandlerRef implements AutoCloseable {
     private static final String METRIC_NAME = "task";
 
     static {
-        MetricsUtil.utvidMedHistogram(METRIC_NAME);
+        MetricsUtil.utvidMedMedian(METRIC_NAME);
     }
     private static final Logger LOG = LoggerFactory.getLogger(ProsessTaskHandlerRef.class);
 

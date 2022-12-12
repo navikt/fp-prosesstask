@@ -15,17 +15,12 @@ import org.slf4j.LoggerFactory;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskDispatcher;
 import no.nav.vedtak.felles.prosesstask.api.TaskType;
-import no.nav.vedtak.log.metrics.MetricsUtil;
 
 /**
  * Implementerer dispatch vha. CDI scoped beans.
  */
 public class BasicCdiProsessTaskDispatcher implements ProsessTaskDispatcher {
-    private static final String METRIC_NAME = "task";
 
-    static {
-        MetricsUtil.utvidMedHistogram(METRIC_NAME);
-    }
     private static final Logger LOG = LoggerFactory.getLogger(BasicCdiProsessTaskDispatcher.class);
     /**
      * Disse delegres til Feilhåndteringsalgoritme for håndtering. Andre vil alltid
