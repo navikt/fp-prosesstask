@@ -66,7 +66,6 @@ public class RunTaskFeilOgStatusEventHåndterer {
             var feil = kunneIkkeProsessereTaskVilPrøveIgjenEnkelFeilmelding(taskInfo.getId(), taskType, failureAttempt, nyTid, e);
             String feiltekst = getFeiltekstOgLoggEventueltHvisEndret(pte, feil, e, false);
             taskManagerRepository.oppdaterStatusOgNesteKjøring(pte.getId(), ProsessTaskStatus.KLAR, nyTid, feil.kode(), feiltekst, failureAttempt);
-            count("retryable");
             // endrer ikke status ved nytt forsøk eller publiserer event p.t.
         } else {
             var feil = kunneIkkeProsessereTaskVilIkkePrøveIgjenEnkelFeilmelding(taskInfo.getId(), taskType, failureAttempt, e);
@@ -93,7 +92,6 @@ public class RunTaskFeilOgStatusEventHåndterer {
         /*
          * assume won't help to try and write to database just now, log only instead
          */
-        count("transient");
         LOG.warn("PT-530440 Kunne ikke prosessere task pga transient database feil: id={}, taskName={}. Vil automatisk prøve igjen",
                 taskInfo.getId(), taskInfo.getTaskType(), e);
     }
@@ -143,7 +141,7 @@ public class RunTaskFeilOgStatusEventHåndterer {
         return feiltekst;
     }
 
-
+    // TODO (monitorering): erstatt med gauges som teller absolutt antall klar, feilet, ventersvar, (veto / suspendert)?
     private void count(String severity) {
         counter(TASK_FEIL, SEVERITY, severity, TYPE, taskInfo.getTaskType().value()).increment();
     }
