@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.Callable;
@@ -39,6 +40,7 @@ import no.nav.vedtak.exception.TekniskException;
 import no.nav.vedtak.felles.jpa.TransactionHandler;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskDispatcher;
+import no.nav.vedtak.felles.prosesstask.api.TaskMonitor;
 import no.nav.vedtak.felles.prosesstask.api.TaskType;
 import no.nav.vedtak.log.metrics.Controllable;
 
@@ -247,6 +249,7 @@ public class TaskManager implements AppServiceHandler, Controllable {
 
         // schedulerer første runde, reschedulerer seg selv senere.
         pollingService.schedule(new MoveToDonePartition(), 30, TimeUnit.SECONDS);
+        pollingService.schedule(new UpdateTaskMonitor(), 10, TimeUnit.SECONDS);
     }
 
     synchronized void startTaskThreads() {
@@ -556,6 +559,52 @@ public class TaskManager implements AppServiceHandler, Controllable {
         @Override
         public void run() {
             RequestContextHandler.doWithRequestContext(this::doWithContext);
+        }
+
+    }
+
+    /** Oppdaterer TaskMonitor med ferske tall for tasks pr status. */
+    class UpdateTaskMonitor implements Runnable {
+
+        /** splittet fra for å kjøre i {@link TransactionHandler}. */
+        private final class DoInNewTransaction extends TransactionHandler<Integer> {
+
+            Integer doWork() throws Exception {
+                EntityManager entityManager = getTransactionManagerRepository().getEntityManager();
+                try {
+                    return super.apply(entityManager);
+                } finally {
+                    CDI.current().destroy(entityManager);
+                }
+            }
+
+            @Override
+            protected Integer doWork(EntityManager entityManager) throws Exception {
+                var counts = getTransactionManagerRepository().countTasksForStatus(TaskMonitor.monitoredStatuses());
+                TaskMonitor.monitoredStatuses()
+                    .forEach(s -> TaskMonitor.setStatusCount(s, Optional.ofNullable(counts.get(s)).orElse(0)));
+                return counts.entrySet().size();
+            }
+        }
+
+        /** splittet fra {@link #run()} for å kjøre med ActivateRequestContext. */
+        public Integer doWithContext() {
+            try {
+                return new DoInNewTransaction().doWork();
+            } catch (Throwable t) { // NOSONAR
+                // logg, ikke rethrow feil her da det dreper trådene
+                LOG.error("Kunne ikke telle tasks pr status", t);
+            }
+            return 1;
+        }
+
+        @Override
+        public void run() {
+            RequestContextHandler.doWithRequestContext(this::doWithContext);
+            // neste kjører mellom 3-9 min fra nå.
+            int min = 3 * 60 * 1000;
+            int max = 3 * min;
+            pollingService.schedule(this, ThreadLocalRandom.current().nextInt(min, max), TimeUnit.MILLISECONDS);
         }
 
     }

@@ -2,11 +2,15 @@ package no.nav.vedtak.felles.prosesstask.impl;
 
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Scanner;
@@ -411,6 +415,27 @@ public class TaskManagerRepositoryImpl {
             log.info("Fjernet veto fra {} tasks som var blokkert av andre tasks som allerede er ferdig", unvetoed);
         }
     }
+
+    Map<ProsessTaskStatus, Integer> countTasksForStatus(Set<ProsessTaskStatus> statusSet) {
+        List<String> monitorer = statusSet.stream()
+            .filter(t -> !t.erKjørt())
+            .map(ProsessTaskStatus::getDbKode)
+            .toList();
+        Map<ProsessTaskStatus, Integer> resultat = new EnumMap<>(ProsessTaskStatus.class);
+        var query = entityManager
+            .createNativeQuery("select status, count(1) from prosess_task where status in (:statuses) group by status")
+            .setHint(QueryHints.HINT_READONLY, "true")
+            .setParameter("statuses", monitorer);
+        @SuppressWarnings("unchecked")
+        List<Object[]> resultatList = query.getResultList();
+        resultatList.forEach(o -> resultat.put(ProsessTaskStatus.valueOf((String) o[0]), intValueFromCount(o[1])));
+        return resultat;
+    }
+
+    private int intValueFromCount(Object o) {
+        return o instanceof BigInteger bi ? bi.intValue() : (o instanceof BigDecimal bd ? bd.intValue() : 0);
+    }
+
 
     static synchronized String getJvmUniqueProcessName() {
         return ManagementFactory.getRuntimeMXBean().getName();
