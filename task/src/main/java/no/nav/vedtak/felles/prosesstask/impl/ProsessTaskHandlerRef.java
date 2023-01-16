@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTask;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskHandler;
+import no.nav.vedtak.felles.prosesstask.api.TaskMonitor;
 import no.nav.vedtak.felles.prosesstask.api.TaskType;
 import no.nav.vedtak.felles.prosesstask.impl.cron.CronExpression;
 import no.nav.vedtak.felles.prosesstask.spi.ProsessTaskRetryPolicy;
@@ -94,7 +95,7 @@ public class ProsessTaskHandlerRef implements AutoCloseable {
 
     public void doTask(ProsessTaskData data) {
         LOG.info("Starter task {}", data.getTaskType());
-        bean.doTask(data);
+        TaskMonitor.TASK_TIMER.record(() -> bean.doTask(data));
         LOG.info("Stoppet task {}", data.getTaskType());
     }
 

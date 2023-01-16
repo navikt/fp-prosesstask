@@ -6,10 +6,15 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import io.micrometer.core.instrument.Metrics;
+import io.micrometer.core.instrument.Timer;
 
 public class TaskMonitor {
 
     public static final String TASK = "prosesstask.";
+
+    public static final Timer TASK_TIMER = Timer.builder(TASK + "timer")
+        .publishPercentileHistogram()
+        .register(Metrics.globalRegistry);
 
     private static final Map<ProsessTaskStatus, AtomicInteger> TASK_GAUGES = Map.of(
         ProsessTaskStatus.KLAR, statusGauge(ProsessTaskStatus.KLAR),
