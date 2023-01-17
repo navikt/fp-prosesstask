@@ -14,6 +14,7 @@ import no.nav.vedtak.felles.prosesstask.JpaExtension;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskGruppe;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskStatus;
+import no.nav.vedtak.felles.prosesstask.api.TaskMonitor;
 import no.nav.vedtak.felles.prosesstask.api.TaskType;
 
 public class TaskManagerRekkefølgeIT {
@@ -45,6 +46,10 @@ public class TaskManagerRekkefølgeIT {
 
         // Act
         repo.lagre(sammensatt);
+        var monitor = taskManagerRepo.countTasksForStatus(TaskMonitor.monitoredStatuses());
+        assertThat(monitor).containsEntry(ProsessTaskStatus.KLAR, 3);
+        assertThat(monitor.get(ProsessTaskStatus.VENTER_SVAR)).isNull();
+        assertThat(monitor.get(ProsessTaskStatus.FEILET)).isNull();
 
         pollEnRundeVerifiserOgFerdigstill(pt1);
 

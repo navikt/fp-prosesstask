@@ -1,6 +1,5 @@
 package no.nav.vedtak.felles.prosesstask.impl;
 
-import static io.micrometer.core.instrument.Metrics.counter;
 import static no.nav.vedtak.felles.prosesstask.impl.TaskManagerFeil.kunneIkkeProsessereTaskVilIkkePrøveIgjenEnkelFeilmelding;
 import static no.nav.vedtak.felles.prosesstask.impl.TaskManagerFeil.kunneIkkeProsessereTaskVilPrøveIgjenEnkelFeilmelding;
 
@@ -21,12 +20,6 @@ import no.nav.vedtak.felles.prosesstask.spi.ProsessTaskRetryPolicy;
  * tasks.
  */
 public class RunTaskFeilOgStatusEventHåndterer {
-
-    private static final String TYPE = "type";
-
-    private static final String TASK_FEIL = "task.feil";
-
-    private static final String SEVERITY = "severity";
 
     private static final Logger LOG = LoggerFactory.getLogger(RunTaskFeilOgStatusEventHåndterer.class);
 
@@ -77,7 +70,6 @@ public class RunTaskFeilOgStatusEventHåndterer {
         var nyStatus = ProsessTaskStatus.FEILET;
         try {
             publiserNyStatusEvent(pte.tilProsessTask(), pte.getStatus(), nyStatus, feil, e);
-            count("fatal");
         } finally {
             int failureAttempt = pte.getFeiledeForsøk() + 1;
             String feiltekst = getFeiltekstOgLoggEventueltHvisEndret(pte, feil, e, true);
@@ -141,8 +133,4 @@ public class RunTaskFeilOgStatusEventHåndterer {
         return feiltekst;
     }
 
-    // TODO (monitorering): erstatt med gauges som teller absolutt antall klar, feilet, ventersvar, (veto / suspendert)?
-    private void count(String severity) {
-        counter(TASK_FEIL, SEVERITY, severity, TYPE, taskInfo.getTaskType().value()).increment();
-    }
 }

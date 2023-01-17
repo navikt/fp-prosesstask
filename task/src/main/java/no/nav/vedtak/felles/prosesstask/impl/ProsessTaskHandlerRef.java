@@ -11,14 +11,13 @@ import org.jboss.weld.interceptor.util.proxy.TargetInstanceProxy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import io.micrometer.core.instrument.Metrics;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTask;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskHandler;
+import no.nav.vedtak.felles.prosesstask.api.TaskMonitor;
 import no.nav.vedtak.felles.prosesstask.api.TaskType;
 import no.nav.vedtak.felles.prosesstask.impl.cron.CronExpression;
 import no.nav.vedtak.felles.prosesstask.spi.ProsessTaskRetryPolicy;
-import no.nav.vedtak.log.metrics.MetricsUtil;
 
 /**
  *  Referanse til en {@link ProsessTaskHandler}.
@@ -26,11 +25,6 @@ import no.nav.vedtak.log.metrics.MetricsUtil;
 
 public class ProsessTaskHandlerRef implements AutoCloseable {
 
-    private static final String METRIC_NAME = "task";
-
-    static {
-        MetricsUtil.utvidMedMedian(METRIC_NAME);
-    }
     private static final Logger LOG = LoggerFactory.getLogger(ProsessTaskHandlerRef.class);
 
     private final ProsessTaskHandler bean;
@@ -101,7 +95,7 @@ public class ProsessTaskHandlerRef implements AutoCloseable {
 
     public void doTask(ProsessTaskData data) {
         LOG.info("Starter task {}", data.getTaskType());
-        Metrics.timer(METRIC_NAME, "type", data.getTaskType()).record(() -> bean.doTask(data));
+        TaskMonitor.TASK_TIMER.record(() -> bean.doTask(data));
         LOG.info("Stoppet task {}", data.getTaskType());
     }
 
