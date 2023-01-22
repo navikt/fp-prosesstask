@@ -6,19 +6,19 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import io.micrometer.core.instrument.Metrics;
+import io.micrometer.core.instrument.Tags;
 import io.micrometer.core.instrument.Timer;
 
 public class TaskMonitor {
 
-    public static final String TASK = "prosesstask.";
+    public static final String TASK_LENGDE = "prosesstask.lengde";
+    public static final String TASK_ANTALL = "prosesstask.antall";
 
-    public static final Timer TASK_TIMER = Timer.builder(TASK + "timer")
-        .publishPercentileHistogram()
-        .register(Metrics.globalRegistry);
+    public static final Timer TASK_TIMER = Metrics.timer(TASK_LENGDE);
 
-    private static final Map<ProsessTaskStatus, AtomicInteger> TASK_GAUGES = Map.of(
+    public static final Map<ProsessTaskStatus, AtomicInteger> TASK_GAUGES = Map.of(
         ProsessTaskStatus.KLAR, statusGauge(ProsessTaskStatus.KLAR),
-        ProsessTaskStatus.VENTER_SVAR, statusGauge("venter"),
+        ProsessTaskStatus.VENTER_SVAR, statusGauge(ProsessTaskStatus.VENTER_SVAR),
         ProsessTaskStatus.VETO, statusGauge(ProsessTaskStatus.VETO),
         ProsessTaskStatus.FEILET, statusGauge(ProsessTaskStatus.FEILET)
     );
@@ -36,11 +36,11 @@ public class TaskMonitor {
     }
 
     private static AtomicInteger statusGauge(ProsessTaskStatus status) {
-        return statusGauge(status.name().toLowerCase());
+        return Metrics.gauge(TASK_ANTALL, Tags.of("status", statusLabel(status)), new AtomicInteger(0));
     }
 
-    private static AtomicInteger statusGauge(String name) {
-        return Metrics.gauge(TASK + name, new AtomicInteger(0));
+    public static String statusLabel(ProsessTaskStatus status) {
+        return ProsessTaskStatus.VENTER_SVAR.equals(status) ? "venter" : status.name().toLowerCase();
     }
 
 }
