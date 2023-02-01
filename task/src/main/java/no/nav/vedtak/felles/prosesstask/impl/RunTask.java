@@ -32,7 +32,8 @@ import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskDataBuilder;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskMidlertidigException;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskStatus;
-import no.nav.vedtak.felles.prosesstask.api.TaskType;
+import no.nav.vedtak.felles.prosesstask.impl.cron.CronExpression;
+import no.nav.vedtak.felles.prosesstask.spi.ProsessTaskRetryPolicy;
 
 /**
  * Kjører en task. Flere JVM'er kan kjøre tasks i parallell
@@ -179,13 +180,17 @@ public class RunTask {
      */
     class PickAndRunTask {
         private final RunTaskInfo taskInfo;
-        private final ProsessTaskHandlerRef taskHandler;
         private final RunTaskFeilOgStatusEventHåndterer feilOgStatushåndterer;
+        private final ProsessTaskRetryPolicy retryPolicy;
+        private final CronExpression cronExpression;
 
         PickAndRunTask(RunTaskInfo taskInfo) {
             this.taskInfo = taskInfo;
             this.feilOgStatushåndterer = new RunTaskFeilOgStatusEventHåndterer(taskInfo, eventPubliserer, taskManagerRepository);
-            this.taskHandler = getTaskHandlerRef(taskInfo.getTaskType());
+            try (var handler = getTaskInfo().getTaskDispatcher().taskHandler(taskInfo.getTaskType())) {
+                this.retryPolicy = handler.retryPolicy();
+                this.cronExpression = handler.cronExpression();
+            }
         }
 
         RunTaskInfo getTaskInfo() {
@@ -193,7 +198,7 @@ public class RunTask {
         }
 
         void handleTaskFeil(ProsessTaskEntitet pte, Exception e) {
-            feilOgStatushåndterer.handleTaskFeil(taskHandler, pte, e);
+            feilOgStatushåndterer.handleTaskFeil(retryPolicy, pte, e);
         }
 
         void handleFatalTaskFeil(ProsessTaskEntitet pte,Feil feil, Exception e) {
@@ -220,12 +225,6 @@ public class RunTask {
             return nyStatus;
         }
 
-        private ProsessTaskHandlerRef getTaskHandlerRef(TaskType taskType) {
-            try (var handler = getTaskInfo().getTaskDispatcher().taskHandler(taskType)) {
-                return handler;
-            }
-        }
-
         // markerer task som påbegynt (merk committer ikke før til slutt).
         void markerTaskUnderArbeid(ProsessTaskEntitet pte) {
             // mark row being processed with timestamp and server process id
@@ -238,7 +237,6 @@ public class RunTask {
 
         // regner ut neste kjøretid for tasks som kan repeteres (har CronExpression)
         void planleggNesteKjøring(ProsessTaskEntitet pte) throws SQLException {
-            var cronExpression = taskHandler.cronExpression();
             if (cronExpression != null) {
                 String gruppe = ProsessTaskRepository.getUniktProsessTaskGruppeNavn(taskManagerRepository.getEntityManager());
                 LocalDateTime now = LocalDateTime.now();
@@ -265,7 +263,7 @@ public class RunTask {
 
         void dispatchWork(ProsessTaskEntitet pte) throws Exception { // NOSONAR
             ProsessTaskData taskData = pte.tilProsessTask();
-            taskInfo.getTaskDispatcher().dispatch(taskHandler, taskData);
+            taskInfo.getTaskDispatcher().dispatch(taskData);
         }
 
         private EntityManager getEntityManager() {

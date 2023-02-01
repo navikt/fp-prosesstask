@@ -8,7 +8,7 @@ import no.nav.vedtak.felles.prosesstask.impl.ProsessTaskHandlerRef;
 public class TestTaskDispatcher implements ProsessTaskDispatcher {
 
     @Override
-    public void dispatch(ProsessTaskHandlerRef taskHandler, ProsessTaskData task) throws Exception {
+    public void dispatch(ProsessTaskData task) throws Exception {
         System.out.println("HELLO " + task);
     }
     

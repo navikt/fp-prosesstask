@@ -138,10 +138,10 @@ public class TaskManager implements AppServiceHandler, Controllable {
                 }
 
                 @Override
-                public void dispatch(ProsessTaskHandlerRef taskHandler, ProsessTaskData task) throws Exception {
+                public void dispatch(ProsessTaskData task) throws Exception {
                     try {
                         currentTask.set(task);
-                        delegate.dispatch(taskHandler, task);
+                        delegate.dispatch(task);
                     } finally {
                         currentTask.remove();
                     }

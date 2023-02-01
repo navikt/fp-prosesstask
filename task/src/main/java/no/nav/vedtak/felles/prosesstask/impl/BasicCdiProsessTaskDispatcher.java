@@ -46,8 +46,10 @@ public class BasicCdiProsessTaskDispatcher implements ProsessTaskDispatcher {
     }
 
     @Override
-    public void dispatch(ProsessTaskHandlerRef taskHandler, ProsessTaskData task) throws Exception {
-        taskHandler.doTask(task);
+    public void dispatch(ProsessTaskData task) throws Exception {
+        try (var prosessTaskHandler = taskHandler(task.taskType())) {
+            prosessTaskHandler.doTask(task);
+        }
     }
 
     @Override
