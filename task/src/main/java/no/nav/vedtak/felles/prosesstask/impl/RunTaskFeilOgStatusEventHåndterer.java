@@ -49,11 +49,10 @@ public class RunTaskFeilOgStatusEventHåndterer {
      * handle exception on task. Update failure count if less than max. NB:
      * Exception may be null if a lifecycle observer vetoed it (veto==true)
      */
-    protected void handleTaskFeil(ProsessTaskHandlerRef taskHandler, ProsessTaskEntitet pte, Exception e) {
+    protected void handleTaskFeil(ProsessTaskRetryPolicy retryPolicy, ProsessTaskEntitet pte, Exception e) {
         var taskType = pte.getTaskType();
 
         int failureAttempt = pte.getFeiledeForsøk() + 1;
-        var retryPolicy = taskHandler.retryPolicy();
         if (sjekkOmSkalKjøresPåNytt(e, retryPolicy, failureAttempt)) {
             LocalDateTime nyTid = getNesteKjøringForNyKjøring(retryPolicy, failureAttempt);
             var feil = kunneIkkeProsessereTaskVilPrøveIgjenEnkelFeilmelding(taskInfo.getId(), taskType, failureAttempt, nyTid, e);

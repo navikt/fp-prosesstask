@@ -71,7 +71,7 @@ public class RunProsessTaskTestIT {
         AtomicBoolean kjørt = new AtomicBoolean();
         ProsessTaskDispatcher taskDispatcher = new BasicCdiProsessTaskDispatcher() {
             @Override
-            public void dispatch(ProsessTaskHandlerRef taskHandler, ProsessTaskData task) throws Exception {
+            public void dispatch(ProsessTaskData task) throws Exception {
                 kjørt.set(true);
             }
         };

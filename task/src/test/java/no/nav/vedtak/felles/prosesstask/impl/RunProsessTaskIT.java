@@ -218,7 +218,7 @@ public class RunProsessTaskIT {
         }
         
         @Override
-        public void dispatch(ProsessTaskHandlerRef taskHandler, ProsessTaskData task) throws Exception {
+        public void dispatch(ProsessTaskData task) throws Exception {
             consumer.dispatch(task);
         }
     }
