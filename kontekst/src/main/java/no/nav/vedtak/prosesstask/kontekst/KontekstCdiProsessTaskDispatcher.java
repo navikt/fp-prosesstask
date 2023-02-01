@@ -33,23 +33,24 @@ public class KontekstCdiProsessTaskDispatcher extends BasicCdiProsessTaskDispatc
     }
 
     @Override
-    public void dispatch(ProsessTaskHandlerRef taskHandler, ProsessTaskData task) {
+    public void dispatch(ProsessTaskData task) {
+        try (ProsessTaskHandlerRef taskHandler = taskHandler(task.taskType())) {
+            if (task.getSaksnummer() != null) {
+                LOG_CONTEXT.add("fagsak", task.getSaksnummer()); // NOSONAR //$NON-NLS-1$
+            } else if (task.getFagsakId() != null) {
+                LOG_CONTEXT.add("fagsak", task.getFagsakId()); // NOSONAR //$NON-NLS-1$
+            }
+            if (task.getBehandlingId() != null) {
+                LOG_CONTEXT.add("behandling", task.getBehandlingId()); // NOSONAR //$NON-NLS-1$
+            } else if (task.getBehandlingUuid() != null) {
+                LOG_CONTEXT.add("behandling", task.getBehandlingUuid()); // NOSONAR //$NON-NLS-1$
+            }
 
-        if (task.getSaksnummer() != null) {
-            LOG_CONTEXT.add("fagsak", task.getSaksnummer()); // NOSONAR //$NON-NLS-1$
-        } else if (task.getFagsakId() != null) {
-            LOG_CONTEXT.add("fagsak", task.getFagsakId()); // NOSONAR //$NON-NLS-1$
+            taskHandler.doTask(task);
+
+            taskAuditlogger.logg(task);
+            // renser ikke LOG_CONTEXT her. tar alt i RunTask slik at vi kan logge exceptions også
         }
-        if (task.getBehandlingId() != null) {
-            LOG_CONTEXT.add("behandling", task.getBehandlingId()); // NOSONAR //$NON-NLS-1$
-        } else if (task.getBehandlingUuid() != null) {
-            LOG_CONTEXT.add("behandling", task.getBehandlingUuid()); // NOSONAR //$NON-NLS-1$
-        }
-
-        taskHandler.doTask(task);
-
-        taskAuditlogger.logg(task);
-        // renser ikke LOG_CONTEXT her. tar alt i RunTask slik at vi kan logge exceptions også
     }
 
     @SuppressWarnings("resource")
