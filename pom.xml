@@ -95,6 +95,12 @@
 
 			<dependency>
 				<groupId>no.nav.vedtak.prosesstask</groupId>
+				<artifactId>prosesstask-kontekst</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>no.nav.vedtak.prosesstask</groupId>
 				<artifactId>prosesstask-legacy</artifactId>
 				<version>${project.version}</version>
 			</dependency>
