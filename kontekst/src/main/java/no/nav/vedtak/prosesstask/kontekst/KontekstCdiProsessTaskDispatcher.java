@@ -13,6 +13,7 @@ import no.nav.vedtak.felles.prosesstask.api.TaskType;
 import no.nav.vedtak.felles.prosesstask.impl.BasicCdiProsessTaskDispatcher;
 import no.nav.vedtak.felles.prosesstask.impl.ProsessTaskHandlerRef;
 import no.nav.vedtak.felles.prosesstask.log.TaskAuditlogger;
+import no.nav.vedtak.log.mdc.MDCOperations;
 import no.nav.vedtak.log.mdc.MdcExtendedLogContext;
 import no.nav.vedtak.sikkerhet.kontekst.BasisKontekst;
 import no.nav.vedtak.sikkerhet.kontekst.KontekstHolder;
@@ -71,11 +72,17 @@ public class KontekstCdiProsessTaskDispatcher extends BasicCdiProsessTaskDispatc
             if (KontekstHolder.harKontekst()) {
                 KontekstHolder.fjernKontekst();
             }
+            // TODO vurder å flytte MDC til KontekstHolder
+            MDCOperations.removeUserId();
+            MDCOperations.removeConsumerId();
         }
 
         @Override
         public void doTask(ProsessTaskData prosessTaskData) {
             KontekstHolder.setKontekst(BasisKontekst.forProsesstask());
+            // TODO vurder å flytte MDC til KontekstHolder
+            MDCOperations.putConsumerId(KontekstHolder.getKontekst().getKonsumentId());
+            MDCOperations.putUserId(KontekstHolder.getKontekst().getUid());
             super.doTask(prosessTaskData);
         }
 
