@@ -72,6 +72,7 @@ public class KontekstCdiProsessTaskDispatcher extends BasicCdiProsessTaskDispatc
             if (KontekstHolder.harKontekst()) {
                 KontekstHolder.fjernKontekst();
             }
+            // TODO vurder å flytte MDC til KontekstHolder
             MDCOperations.removeUserId();
             MDCOperations.removeConsumerId();
         }
@@ -79,6 +80,7 @@ public class KontekstCdiProsessTaskDispatcher extends BasicCdiProsessTaskDispatc
         @Override
         public void doTask(ProsessTaskData prosessTaskData) {
             KontekstHolder.setKontekst(BasisKontekst.forProsesstask());
+            // TODO vurder å flytte MDC til KontekstHolder
             MDCOperations.putConsumerId(KontekstHolder.getKontekst().getKonsumentId());
             MDCOperations.putUserId(KontekstHolder.getKontekst().getUid());
             super.doTask(prosessTaskData);
