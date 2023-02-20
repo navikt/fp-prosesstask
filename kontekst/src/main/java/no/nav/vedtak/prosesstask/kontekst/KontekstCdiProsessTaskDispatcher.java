@@ -14,8 +14,8 @@ import no.nav.vedtak.felles.prosesstask.impl.BasicCdiProsessTaskDispatcher;
 import no.nav.vedtak.felles.prosesstask.impl.ProsessTaskHandlerRef;
 import no.nav.vedtak.felles.prosesstask.log.TaskAuditlogger;
 import no.nav.vedtak.log.mdc.MdcExtendedLogContext;
+import no.nav.vedtak.sikkerhet.kontekst.BasisKontekst;
 import no.nav.vedtak.sikkerhet.kontekst.KontekstHolder;
-import no.nav.vedtak.sikkerhet.kontekst.SystemKontekst;
 
 /**
  * Implementerer dispatch vha. CDI scoped beans.
@@ -75,7 +75,7 @@ public class KontekstCdiProsessTaskDispatcher extends BasicCdiProsessTaskDispatc
 
         @Override
         public void doTask(ProsessTaskData prosessTaskData) {
-            KontekstHolder.setKontekst(SystemKontekst.forProsesstask());
+            KontekstHolder.setKontekst(BasisKontekst.forProsesstask());
             super.doTask(prosessTaskData);
         }
 
