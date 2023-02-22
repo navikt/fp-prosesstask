@@ -48,13 +48,13 @@ Vanlig bruk. Krever at applikasjonen har en egen implementasjon av ProsessTaskDi
 ```
 
 ### Legacy bruk
-Denne kommer med avhengighet til felles-sikkerhet, og autentiserer bruker ved hver kjøring av task (i `AuthenticatedCdiProsessTaskDispatcher`).
+Denne kommer med avhengighet til felles-kontekst, og setter kontekst  ved hver kjøring av task (i `KontekstCdiProsessTaskDispatcher`).
 
 
 ```
 	<dependency>
 	    <groupId>no.nav.vedtak.prosesstask</groupId>
-	    <artifactId>prosesstask-legacy</artifactId>
+	    <artifactId>prosesstask-kontekst</artifactId>
 	</dependency>
 ```
 
@@ -149,7 +149,7 @@ Se `task/src/test/resources/db/migration/defaultDS` for eksempel tabell DDL (pas
 Nåværende implementasjon forventer at `META-INF/pu-default.prosesstask.orm.xml`er definert i applikasjonens persistence.xml (eller tilsvarende) og dermed er en del av samme EntityManager som applikasjoen benytter. Det gir tilgang til å dele transaksjon for en kjøring (krever dermed ikke midlertidig bokføring for status på tasks eller egen opprydding når noe går galt utover å sette en task til KLAR igjen)
 
 ## Sett opp SubjectProvider 
-*(NB: brukes ikke dersom prosesstask-legacy brukes)*
+*(NB: brukes ikke dersom prosesstask-kontekst brukes)*
 Dette benyttes til sporing for endring av prosesstasks.
 ```
 @ApplicationScoped
@@ -163,7 +163,7 @@ public class MinSubjectProvider implements SubjectProvider{
 ```
 
 ## Definer en ProsessTaskDispatcher
-*(NB: brukes ikke dersom prosesstask-legacy brukes)*
+*(NB: brukes ikke dersom prosesstask-kontekst brukes)*
 Dette er kobling mellom prosesstask data som er satt opp og implementasjon av en task.
 ```
 @ApplicationScoped

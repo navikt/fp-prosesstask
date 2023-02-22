@@ -40,7 +40,6 @@
 
 	<modules>
 		<module>task</module>
-		<module>legacy</module>
 		<module>rest</module>
         <module>kontekst</module>
     </modules>
@@ -53,7 +52,7 @@
 		<sonar.moduleKey>${project.artifactId}</sonar.moduleKey>
 		<sonar.projectKey>navikt_fp-prosesstask</sonar.projectKey>
 
-		<felles.version>4.2.25</felles.version>
+		<felles.version>4.2.26</felles.version>
 	</properties>
 
 	<repositories>
@@ -96,12 +95,6 @@
 			<dependency>
 				<groupId>no.nav.vedtak.prosesstask</groupId>
 				<artifactId>prosesstask-kontekst</artifactId>
-				<version>${project.version}</version>
-			</dependency>
-
-			<dependency>
-				<groupId>no.nav.vedtak.prosesstask</groupId>
-				<artifactId>prosesstask-legacy</artifactId>
 				<version>${project.version}</version>
 			</dependency>
 
