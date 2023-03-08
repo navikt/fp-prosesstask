@@ -15,7 +15,6 @@ import java.util.concurrent.FutureTask;
 import java.util.concurrent.RunnableFuture;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -513,9 +512,9 @@ public class TaskManager implements AppServiceHandler, Controllable {
         public void run() {
             RequestContextHandler.doWithRequestContext(this::doWithContext);
             // neste kjører mellom 1-10 min fra nå.
-            int min = 60 * 1000;
-            int max = min * 10;
-            pollingService.schedule(this, ThreadLocalRandom.current().nextInt(min, max), TimeUnit.MILLISECONDS); // NOSONAR  - denne er OK
+            long min = 60L * 1000;
+            long delay = System.currentTimeMillis() % (9 * min);
+            pollingService.schedule(this, min + delay, TimeUnit.MILLISECONDS);
         }
 
     }
@@ -602,9 +601,9 @@ public class TaskManager implements AppServiceHandler, Controllable {
         public void run() {
             RequestContextHandler.doWithRequestContext(this::doWithContext);
             // neste kjører mellom 3-9 min fra nå.
-            int min = 3 * 60 * 1000;
-            int max = 3 * min;
-            pollingService.schedule(this, ThreadLocalRandom.current().nextInt(min, max), TimeUnit.MILLISECONDS); // NOSONAR  - denne er OK
+            long min = 3L * 60 * 1000;
+            long delay = System.currentTimeMillis() % (2 * min);
+            pollingService.schedule(this, min + delay, TimeUnit.MILLISECONDS);
         }
 
     }
