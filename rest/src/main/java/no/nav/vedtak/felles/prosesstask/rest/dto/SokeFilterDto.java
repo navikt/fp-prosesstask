@@ -37,6 +37,7 @@ public class SokeFilterDto {
     private LocalDate opprettetTilOgMed = LocalDate.now();
 
     public SokeFilterDto() {
+        // Jackson
     }
 
     @Schema(description = "Søketekst")

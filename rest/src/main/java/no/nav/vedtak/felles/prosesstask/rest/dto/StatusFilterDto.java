@@ -27,6 +27,7 @@ public class StatusFilterDto {
     private List<@NotNull ProsessTaskStatusDto> prosessTaskStatuser = new ArrayList<>();
 
     public StatusFilterDto() {
+        // Jackson
     }
 
     @Schema(description = "Angi liste over prosesstask-statuser som skal søkes på, blant KLAR, FERDIG, VENTER_SVAR, SUSPENDERT, eller FEILET")

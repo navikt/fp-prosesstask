@@ -9,6 +9,9 @@ public class CallId {
 
     private static final Random RANDOM = new Random(); // NOSONAR  - denne er OK
 
+    private CallId() {
+    }
+
     public static String generateCallId() {
         int randomNr = RANDOM.nextInt(Integer.MAX_VALUE);
         long systemTime = System.currentTimeMillis();

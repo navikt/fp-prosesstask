@@ -62,6 +62,7 @@ public class ProsessTaskDataDto {
     private Properties taskParametre = new Properties();
 
     public ProsessTaskDataDto() {
+        // Jackson
     }
 
     public Long getId() {
