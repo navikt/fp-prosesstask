@@ -32,8 +32,8 @@ public class KontekstCdiProsessTaskDispatcher extends BasicCdiProsessTaskDispatc
         try (ProsessTaskHandlerRef taskHandler = taskHandler(task.taskType())) {
             if (task.getSaksnummer() != null) {
                 LOG_CONTEXT.add("fagsak", task.getSaksnummer());  
-            } else if (task.getFagsakId() != null) {
-                LOG_CONTEXT.add("fagsak", task.getFagsakId());  
+            } else if (task.getFagsakId() != null) { // NOSONAR
+                LOG_CONTEXT.add("fagsak", task.getFagsakId());  // NOSONAR
             }
             if (task.getBehandlingId() != null) {
                 LOG_CONTEXT.add("behandling", task.getBehandlingId());  

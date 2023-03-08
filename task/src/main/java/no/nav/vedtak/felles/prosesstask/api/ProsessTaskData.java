@@ -19,8 +19,14 @@ import no.nav.vedtak.exception.TekniskException;
  */
 public class ProsessTaskData implements ProsessTaskInfo {
 
-    public static String MANGLER_PROPS = "PT-492717";
-    public static final Pattern VALID_KEY_PATTERN = Pattern.compile("[a-zA-Z0-9_\\.]+$"); 
+    public static final String MANGLER_PROPS = "PT-492717";
+    public static final Pattern VALID_KEY_PATTERN = Pattern.compile("[a-zA-Z0-9_\\.]+$");
+
+    private static final String SAKSNUMMER = "saksnummer";
+    private static final String FAGSAK_ID = "fagsakId";
+    private static final String BEHANDLING_ID = "behandlingId";
+    private static final String AKTØR_ID = "aktørId"; // NOSONAR
+
     private final Properties props = new Properties();
     private final TaskType taskType;
     private int antallFeiledeForsøk;
@@ -287,12 +293,18 @@ public class ProsessTaskData implements ProsessTaskInfo {
         setProperty(CommonTaskProperties.BEHANDLING_UUID, uuid.toString());
     }
 
+    /**
+     * @deprecated Bruk heller saksnummer
+     */
     @Deprecated(forRemoval = true)
     @Override
     public Long getFagsakId() {
         return getPropertyValue(CommonTaskProperties.FAGSAK_ID) != null ? Long.valueOf(getPropertyValue(CommonTaskProperties.FAGSAK_ID)) : null;
     }
 
+    /**
+     * @deprecated Bruk heller saksnummer
+     */
     @Deprecated(forRemoval = true)
     public void setFagsakId(Long id) {
         setProperty(CommonTaskProperties.FAGSAK_ID, id.toString());
@@ -304,21 +316,21 @@ public class ProsessTaskData implements ProsessTaskInfo {
     }
 
     public void setSaksnummer(String saksnummer) {
-        setProperty(CommonTaskProperties.SAKSNUMMER, Objects.requireNonNull(saksnummer, "saksnummer"));
+        setProperty(CommonTaskProperties.SAKSNUMMER, Objects.requireNonNull(saksnummer, SAKSNUMMER));
     }
 
     public void setBehandling(Long fagsakId, Long behandlingId) {
-        Objects.requireNonNull(fagsakId, "fagsakId");  
-        Objects.requireNonNull(behandlingId, "behandlingId");  
+        Objects.requireNonNull(fagsakId, FAGSAK_ID);
+        Objects.requireNonNull(behandlingId, BEHANDLING_ID);
 
         setFagsakId(fagsakId);
         setBehandlingId(behandlingId.toString());
     }
 
     public void setBehandling(Long fagsakId, Long behandlingId, String aktørId) {
-        Objects.requireNonNull(fagsakId, "fagsakId");  
-        Objects.requireNonNull(behandlingId, "behandlingId");  
-        Objects.requireNonNull(aktørId, "aktørId");  
+        Objects.requireNonNull(fagsakId, FAGSAK_ID);
+        Objects.requireNonNull(behandlingId, BEHANDLING_ID);
+        Objects.requireNonNull(aktørId, AKTØR_ID);
 
         setFagsakId(fagsakId);
         setBehandlingId(behandlingId.toString());
@@ -326,8 +338,8 @@ public class ProsessTaskData implements ProsessTaskInfo {
     }
 
     public void setBehandling(String saksnummer, String behandlingId) {
-        Objects.requireNonNull(saksnummer, "saksnummer");  
-        Objects.requireNonNull(behandlingId, "behandlingId");  
+        Objects.requireNonNull(saksnummer, SAKSNUMMER);
+        Objects.requireNonNull(behandlingId, BEHANDLING_ID);
 
         setSaksnummer(saksnummer);
         setBehandlingId(behandlingId);
@@ -341,9 +353,9 @@ public class ProsessTaskData implements ProsessTaskInfo {
      * @param aktørId angitt AktørId gyldig i AktørRegisteret.
      */
     public void setBehandling(String saksnummer, String behandlingId, String aktørId) {
-        Objects.requireNonNull(saksnummer, "saksnummer");  
-        Objects.requireNonNull(behandlingId, "behandlingId");  
-        Objects.requireNonNull(aktørId, "aktørId");  
+        Objects.requireNonNull(saksnummer, SAKSNUMMER);
+        Objects.requireNonNull(behandlingId, BEHANDLING_ID);
+        Objects.requireNonNull(aktørId, AKTØR_ID);
 
         setSaksnummer(saksnummer);
         setBehandlingId(behandlingId);
@@ -351,8 +363,8 @@ public class ProsessTaskData implements ProsessTaskInfo {
     }
 
     public void setFagsak(Long fagsakId, String aktørId) {
-        Objects.requireNonNull(fagsakId, "fagsakId");  
-        Objects.requireNonNull(aktørId, "aktørId");  
+        Objects.requireNonNull(fagsakId, FAGSAK_ID);
+        Objects.requireNonNull(aktørId, AKTØR_ID);
 
         setFagsakId(fagsakId);
         setAktørId(aktørId);
