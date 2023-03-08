@@ -35,6 +35,7 @@ public class FeiletProsessTaskDataDto {
     private ProsessTaskDataDto prosessTaskDataDto;
 
     public FeiletProsessTaskDataDto() {
+        // Jackson
     }
 
     public String getSisteKjøringServerProsess() {

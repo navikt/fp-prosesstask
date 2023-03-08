@@ -26,6 +26,7 @@ public class ProsessTaskStatusDto {
     private String prosessTaskStatusName;
 
     public ProsessTaskStatusDto() {
+        // Jackson
     }
 
     public ProsessTaskStatusDto(String prosessTaskStatusName) {

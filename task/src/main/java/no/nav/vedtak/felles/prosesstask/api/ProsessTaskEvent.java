@@ -79,7 +79,7 @@ public class ProsessTaskEvent implements ProsessTaskInfo {
 
     @Override
     public Long getFagsakId() {
-        return data.getFagsakId();
+        return data.getFagsakId(); //NOSONAR
     }
 
     @Override

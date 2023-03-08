@@ -323,7 +323,7 @@ public class ProsessTaskData implements ProsessTaskInfo {
         Objects.requireNonNull(fagsakId, FAGSAK_ID);
         Objects.requireNonNull(behandlingId, BEHANDLING_ID);
 
-        setFagsakId(fagsakId);
+        setFagsakId(fagsakId); //NOSONAR
         setBehandlingId(behandlingId.toString());
     }
 
@@ -332,7 +332,7 @@ public class ProsessTaskData implements ProsessTaskInfo {
         Objects.requireNonNull(behandlingId, BEHANDLING_ID);
         Objects.requireNonNull(aktørId, AKTØR_ID);
 
-        setFagsakId(fagsakId);
+        setFagsakId(fagsakId); //NOSONAR
         setBehandlingId(behandlingId.toString());
         setAktørId(aktørId);
     }
@@ -366,7 +366,7 @@ public class ProsessTaskData implements ProsessTaskInfo {
         Objects.requireNonNull(fagsakId, FAGSAK_ID);
         Objects.requireNonNull(aktørId, AKTØR_ID);
 
-        setFagsakId(fagsakId);
+        setFagsakId(fagsakId); //NOSONAR
         setAktørId(aktørId);
     }
 
