@@ -10,10 +10,10 @@ import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskFeil;
 import no.nav.vedtak.felles.prosesstask.api.TaskType;
 
-public class ProsessTaskFeilTest {
+class ProsessTaskFeilTest {
 
     @Test
-    public void skal_skrive_feil_til_json() throws Exception {
+    void skal_skrive_feil_til_json() throws Exception {
         // Arrange
         Exception exception = lagEnFeilFraEnMetode();
         Feil feil = TaskManagerFeil.kunneIkkeProsessereTaskVilPrøveIgjenEnkelFeilmelding(1L, new TaskType("hello.world"), 1, LocalDateTime.now(), exception);
@@ -29,7 +29,7 @@ public class ProsessTaskFeilTest {
         
         String json = prosessTaskFeil.writeValueAsString();
         
-        System.out.println(json);  // NOSONAR
+        System.out.println(json);  
     }
 
     private Exception lagEnFeilFraEnMetode() {

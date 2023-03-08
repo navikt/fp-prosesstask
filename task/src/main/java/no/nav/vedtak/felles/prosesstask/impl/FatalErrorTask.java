@@ -37,7 +37,7 @@ public class FatalErrorTask {
 
     @Inject
     public FatalErrorTask(TaskManagerRepositoryImpl taskManagerRepo) {
-        Objects.requireNonNull(taskManagerRepo, "taskManagerRepo"); //$NON-NLS-1$
+        Objects.requireNonNull(taskManagerRepo, "taskManagerRepo"); 
         this.taskManagerRepository = taskManagerRepo;
     }
 

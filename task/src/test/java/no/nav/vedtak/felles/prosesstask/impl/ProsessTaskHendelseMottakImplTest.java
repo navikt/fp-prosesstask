@@ -34,7 +34,7 @@ import no.nav.vedtak.log.util.MemoryAppender;
 @ExtendWith(CdiAwareExtension.class)
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
-public class ProsessTaskHendelseMottakImplTest {
+class ProsessTaskHendelseMottakImplTest {
 
     private static final String HENDELSE_KEY = "ØKONOMI_OPPDRAG_KVITTERING";
 
@@ -71,7 +71,7 @@ public class ProsessTaskHendelseMottakImplTest {
     }
 
     @Test
-    public void testMottaHendelseHappyDay() {
+    void testMottaHendelseHappyDay() {
         // Arrange
         when(taskSomVenterØkonomiKvittering.getStatus()).thenReturn(ProsessTaskStatus.VENTER_SVAR);
         // Act
@@ -81,28 +81,28 @@ public class ProsessTaskHendelseMottakImplTest {
         verify(repo).lagre(taskSomVenterØkonomiKvittering);
     }
     @Test
-    public void testMottaHendelseUkjentTask() {
+    void testMottaHendelseUkjentTask() {
         assertThrows(NullPointerException.class, () -> {
             prosessTaskTjeneste.mottaHendelse(null, HENDELSE_KEY, null);
         });
     }
 
     @Test
-    public void testMottaUventetHendelse() {
+    void testMottaUventetHendelse() {
         assertThrows(IllegalStateException.class, () -> {
             prosessTaskTjeneste.mottaHendelse(taskSomVenterØkonomiKvittering, "UKJENT", null);
         });
     }
 
     @Test
-    public void testMottaHendelseITaskSomIkkeVenter() {
+    void testMottaHendelseITaskSomIkkeVenter() {
         assertThrows(IllegalStateException.class, () -> {
             prosessTaskTjeneste.mottaHendelse(taskSomIkkeVenter, HENDELSE_KEY, null);
         });
     }
 
     @Test
-    public void skal_logge_transient_feil_under_polling() throws Exception {
+    void skal_logge_transient_feil_under_polling() throws Exception {
         TaskManager taskManager = new TaskManager(taskManagerRepo, null) {
             @Override
             protected List<IdentRunnable> pollForAvailableTasks() {
@@ -117,7 +117,7 @@ public class ProsessTaskHendelseMottakImplTest {
     }
 
     @Test
-    public void skal_logge_annen_feil_under_polling() throws Exception {
+    void skal_logge_annen_feil_under_polling() throws Exception {
         TaskManager taskManager = new TaskManager(taskManagerRepo, null) {
             @Override
             protected List<IdentRunnable> pollForAvailableTasks() {

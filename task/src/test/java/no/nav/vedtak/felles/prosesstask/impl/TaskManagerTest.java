@@ -10,7 +10,7 @@ import no.nav.vedtak.felles.prosesstask.JpaExtension;
 import no.nav.vedtak.felles.testutilities.cdi.CdiAwareExtension;
 
 @ExtendWith(CdiAwareExtension.class)
-public class TaskManagerTest {
+class TaskManagerTest {
 
     @RegisterExtension
     public static final JpaExtension repoRule = new JpaExtension();
@@ -19,7 +19,7 @@ public class TaskManagerTest {
     private TaskManagerRepositoryImpl taskManagerRepository;
 
     @Test
-    public void sjekk_startup() throws Exception {
+    void sjekk_startup() throws Exception {
         taskManagerRepository.verifyStartup();
     }
 }

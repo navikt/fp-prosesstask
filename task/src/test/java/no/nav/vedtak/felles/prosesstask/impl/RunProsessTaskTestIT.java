@@ -32,7 +32,7 @@ import no.nav.vedtak.felles.testutilities.db.NonTransactional;
 /** håndterer tx eksplisitt på egen hånd vha JpaExtensin. */
 @NonTransactional
 @ExtendWith(CdiAwareExtension.class)
-public class RunProsessTaskTestIT {
+class RunProsessTaskTestIT {
 
     private static final LocalDateTime NÅ = LocalDateTime.now();
     private static final String TASK1_NAME = "mytask1";
@@ -58,7 +58,7 @@ public class RunProsessTaskTestIT {
     }
 
     @Test
-    public void skal_starte_TaskManager_polle_og_finne_tasks() throws Exception {
+    void skal_starte_TaskManager_polle_og_finne_tasks() throws Exception {
         taskManager.configureTaskThreads(1, 1);
         taskManager.startTaskThreads();
 
@@ -67,7 +67,7 @@ public class RunProsessTaskTestIT {
     }
 
     @Test
-    public void skal_starte_TaskManager_polle_og_kjøre_tasks_i_egne_tråder() throws Exception {
+    void skal_starte_TaskManager_polle_og_kjøre_tasks_i_egne_tråder() throws Exception {
         AtomicBoolean kjørt = new AtomicBoolean();
         ProsessTaskDispatcher taskDispatcher = new BasicCdiProsessTaskDispatcher() {
             @Override
@@ -82,7 +82,7 @@ public class RunProsessTaskTestIT {
     }
 
     @Test
-    public void skal_starte_TaskManager_polle_og_kjøre_en_task_som_får_egen_transaksjon() throws Exception {
+    void skal_starte_TaskManager_polle_og_kjøre_en_task_som_får_egen_transaksjon() throws Exception {
         ProsessTaskDispatcher taskDispatcher = new BasicCdiProsessTaskDispatcher();
 
         // Act

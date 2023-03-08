@@ -34,7 +34,8 @@ public class ProsessTaskRestartResultatDto {
     @Schema(description = "Kjøretidspunkt for restart av prosessen")
     private LocalDateTime nesteKjoeretidspunkt;
 
-    public ProsessTaskRestartResultatDto() { // NOSONAR Input-dto, ingen behov for initialisering
+    public ProsessTaskRestartResultatDto() {
+        // Jackson
     }
 
     public Long getProsessTaskId() {

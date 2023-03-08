@@ -11,7 +11,7 @@ import org.mockito.quality.Strictness;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
-public class ProsessTaskDataTest {
+class ProsessTaskDataTest {
 
     private static final TaskType ORIGINALTYPE = new TaskType("ORIGINALTYPE");
 
@@ -25,7 +25,7 @@ public class ProsessTaskDataTest {
     }
 
     @Test
-    public void testVenterPåHendelse() {
+    void testVenterPåHendelse() {
         // Arrange
         // Act
         original.venterPåHendelse(HENDELSE_KEY);
@@ -37,7 +37,7 @@ public class ProsessTaskDataTest {
     }
 
     @Test
-    public void testVenterIkkePåHendelse() {
+    void testVenterIkkePåHendelse() {
         // Arrange
         // Act
         // Assert

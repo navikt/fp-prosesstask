@@ -19,7 +19,7 @@ import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskStatus;
 import no.nav.vedtak.felles.prosesstask.api.TaskType;
 
-public class ProsessTaskRepositoryImplIT {
+class ProsessTaskRepositoryImplIT {
 
     private static final TaskType TASK_TYPE = new TaskType("hello.world");
     private static final TaskType TASK_TYPE_2 = new TaskType("hello.world2");
@@ -44,7 +44,7 @@ public class ProsessTaskRepositoryImplIT {
     }
 
     @Test
-    public void test_ingen_match_innenfor_et_kjøretidsintervall() {
+    void test_ingen_match_innenfor_et_kjøretidsintervall() {
         List<ProsessTaskStatus> statuser = Arrays.stream(ProsessTaskStatus.values()).filter(ProsessTaskStatus::erIkkeFerdig).toList();
         List<ProsessTaskData> prosessTaskData = prosessTaskRepository.finnAlle(statuser);
 
@@ -52,7 +52,7 @@ public class ProsessTaskRepositoryImplIT {
     }
 
     @Test
-    public void test_ingen_match_for_angitt_prosesstatus() {
+    void test_ingen_match_for_angitt_prosesstatus() {
         List<ProsessTaskStatus> statuser = List.of(ProsessTaskStatus.VETO);
         List<ProsessTaskData> prosessTaskData = prosessTaskRepository.finnAlle(statuser);
 
@@ -60,7 +60,7 @@ public class ProsessTaskRepositoryImplIT {
     }
 
     @Test
-    public void test_skal_finne_tasks_som_matcher_angitt_søk() {
+    void test_skal_finne_tasks_som_matcher_angitt_søk() {
 
         List<ProsessTaskStatus> statuser = List.of(ProsessTaskStatus.SUSPENDERT);
         List<ProsessTaskData> prosessTaskData = prosessTaskRepository.finnAlle(statuser);
@@ -69,21 +69,21 @@ public class ProsessTaskRepositoryImplIT {
     }
 
     @Test
-    public void test_restart_alle() {
+    void test_restart_alle() {
         int restartet = prosessTaskRepository.settAlleFeiledeTasksKlar();
 
         Assertions.assertThat(restartet).isEqualTo(1);
     }
 
     @Test
-    public void test_hent_feilet_id() {
+    void test_hent_feilet_id() {
         var feilet = prosessTaskRepository.hentIdForAlleFeilet();
 
         Assertions.assertThat(feilet).hasSize(1);
     }
 
     @Test
-    public void test_søk() {
+    void test_søk() {
         var tasks = prosessTaskRepository.finnAlleForAngittSøk(CommonTaskProperties.BEHANDLING_ID + "=2", LocalDate.now().minusMonths(1), LocalDate.now());
 
         Assertions.assertThat(tasks).hasSize(7);

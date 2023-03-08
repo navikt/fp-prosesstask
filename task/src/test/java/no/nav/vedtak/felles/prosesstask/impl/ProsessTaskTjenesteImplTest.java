@@ -27,7 +27,7 @@ import no.nav.vedtak.felles.prosesstask.api.TaskType;
 import no.nav.vedtak.felles.testutilities.cdi.CdiAwareExtension;
 
 @ExtendWith(CdiAwareExtension.class)
-public class ProsessTaskTjenesteImplTest {
+class ProsessTaskTjenesteImplTest {
 
     private static final String REQUIRED_PROPERTY = "requiredId";
 
@@ -56,7 +56,7 @@ public class ProsessTaskTjenesteImplTest {
     }
 
     @Test
-    public void skal_opprette_task() {
+    void skal_opprette_task() {
         var ptd = ProsessTaskDataBuilder.forProsessTask(DummyHandlerOpprett.class)
                 .medProperty(REQUIRED_PROPERTY, "Verdi")
                 .build();
@@ -75,29 +75,28 @@ public class ProsessTaskTjenesteImplTest {
     }
 
     @Test
-    public void skal_feile_ved_manglende_property() {
+    void skal_feile_ved_manglende_property() {
+        var ptd = ProsessTaskDataBuilder.forProsessTask(DummyHandlerOpprett.class)
+            .medProperty("ikkepaakrevd", "Verdi")
+            .build();
         var message = Assertions.assertThrows(TekniskException.class, () -> {
-            var ptd = ProsessTaskDataBuilder.forProsessTask(DummyHandlerOpprett.class)
-                    .medProperty("ikkepaakrevd", "Verdi")
-                    .build();
-
             prosessTaskTjeneste.lagreValidert(ptd);
-            verify(prosessTaskRepositoryMock, never()).lagre(any(ProsessTaskData.class));
         });
+        verify(prosessTaskRepositoryMock, never()).lagre(any(ProsessTaskData.class));
         assertThat(message).hasMessageContaining(ProsessTaskData.MANGLER_PROPS);
         assertThat(message).hasMessageContaining(REQUIRED_PROPERTY);
     }
 
     @Test
-    public void skal_feile_ved_manglende_implementasjon() {
-        var message = Assertions.assertThrows(TekniskException.class, () -> {
-            var ptd = ProsessTaskDataBuilder.forTaskType(new TaskType("abc"))
-                    .medProperty("ikkepaakrevd", "Verdi")
-                    .build();
+    void skal_feile_ved_manglende_implementasjon() {
+        var ptd = ProsessTaskDataBuilder.forTaskType(new TaskType("abc"))
+            .medProperty("ikkepaakrevd", "Verdi")
+            .build();
 
+        var message = Assertions.assertThrows(TekniskException.class, () -> {
             prosessTaskTjeneste.lagreValidert(ptd);
-            verify(prosessTaskRepositoryMock, never()).lagre(any(ProsessTaskData.class));
         });
+        verify(prosessTaskRepositoryMock, never()).lagre(any(ProsessTaskData.class));
         assertThat(message).hasMessageContaining(ProsessTaskTjenesteImpl.MANGLER_IMPL);
         assertThat(message).hasMessageContaining("abc");
     }

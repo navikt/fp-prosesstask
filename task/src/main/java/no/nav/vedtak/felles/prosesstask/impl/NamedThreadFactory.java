@@ -19,7 +19,7 @@ class NamedThreadFactory implements ThreadFactory {
 
     @Override
     public Thread newThread(Runnable r) {
-        Thread t = new Thread(r, prefix + "_" + String.format("%03d", counter.getAndIncrement())); //$NON-NLS-1$ //$NON-NLS-2$
+        Thread t = new Thread(r, prefix + "_" + String.format("%03d", counter.getAndIncrement()));
         t.setDaemon(daemon);
         return t;
     }

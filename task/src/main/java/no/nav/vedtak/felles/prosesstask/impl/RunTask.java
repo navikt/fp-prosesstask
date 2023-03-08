@@ -57,7 +57,7 @@ public class RunTask {
     @Inject
     public RunTask(TaskManagerRepositoryImpl taskManagerRepo,
             ProsessTaskEventPubliserer eventPubliserer) {
-        Objects.requireNonNull(taskManagerRepo, "taskManagerRepo"); //$NON-NLS-1$
+        Objects.requireNonNull(taskManagerRepo, "taskManagerRepo"); 
 
         this.eventPubliserer = eventPubliserer;
         this.taskManagerRepository = taskManagerRepo;
@@ -170,7 +170,7 @@ public class RunTask {
         return !getEntityManager().getTransaction().isActive() || getEntityManager().getTransaction().getRollbackOnly();
     }
 
-    private EntityManager getEntityManager() { // NOSONAR
+    private EntityManager getEntityManager() { 
         return taskManagerRepository.getEntityManager();
     }
 
@@ -261,7 +261,7 @@ public class RunTask {
             }
         }
 
-        void dispatchWork(ProsessTaskEntitet pte) throws Exception { // NOSONAR
+        void dispatchWork(ProsessTaskEntitet pte) throws Exception { 
             ProsessTaskData taskData = pte.tilProsessTask();
             taskInfo.getTaskDispatcher().dispatch(taskData);
         }

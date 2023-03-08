@@ -51,6 +51,8 @@ public class TaskManagerRepositoryImpl {
     private static final EnumSet<ProsessTaskStatus> KJØRT_STATUSER = EnumSet.of(ProsessTaskStatus.FERDIG, ProsessTaskStatus.KJOERT);
     private static final Set<ProsessTaskStatus> IKKE_KJØRT_STATUSER = EnumSet.complementOf(KJØRT_STATUSER)
             .stream().collect(Collectors.toUnmodifiableSet());
+    private static final String STATUS = "status";
+    private static final String NESTE_KJØRING = "neste_kjoering";  // NOSONAR
 
     private static final Logger log = LoggerFactory.getLogger(TaskManagerRepositoryImpl.class);
 
@@ -106,8 +108,8 @@ public class TaskManagerRepositoryImpl {
         final String sqlForPolling = getSqlForPolling();
 
         var resultList = getEntityManagerAsSession()
-                .createNativeQuery(sqlForPolling, ProsessTaskEntitet.class) // NOSONAR - statisk SQL
-                .setParameter("neste_kjoering", etterTid, TemporalType.TIMESTAMP)
+                .createNativeQuery(sqlForPolling, ProsessTaskEntitet.class) // NOSONAR  - statisk SQL
+                .setParameter(NESTE_KJØRING, etterTid, TemporalType.TIMESTAMP)
                 .setParameter("skip_ids", Set.of(-1))
                 .setHint(QueryHints.HINT_CACHE_MODE, "IGNORE")
                 .getResultList();
@@ -144,13 +146,13 @@ public class TaskManagerRepositoryImpl {
         String status = taskStatus.getDbKode();
         @SuppressWarnings("resource")
         int tasks = getEntityManagerAsSession().createNativeQuery(updateSql)
-                .setParameter("id", prosessTaskId) // NOSONAR
-                .setParameter("status", status) // NOSONAR
-                .setParameter("status_ts", now, TemporalType.TIMESTAMP) // NOSONAR
-                .setParameter("neste", nesteKjøringEtter, TemporalType.TIMESTAMP) // NOSONAR
-                .setParameter("feilkode", feilkode)// NOSONAR
-                .setParameter("feiltekst", feiltekst)// NOSONAR
-                .setParameter("forsoek", feilforsøk)// NOSONAR
+                .setParameter("id", prosessTaskId) 
+                .setParameter(STATUS, status)
+                .setParameter("status_ts", now, TemporalType.TIMESTAMP) 
+                .setParameter("neste", nesteKjøringEtter, TemporalType.TIMESTAMP) 
+                .setParameter("feilkode", feilkode)
+                .setParameter("feiltekst", feiltekst)
+                .setParameter("forsoek", feilforsøk)
                 .executeUpdate();
 
         if (tasks > 0) {
@@ -173,9 +175,9 @@ public class TaskManagerRepositoryImpl {
         String status = taskStatus.getDbKode();
         LocalDateTime now = LocalDateTime.now();
         @SuppressWarnings({ "unused", "resource" })
-        int tasks = getEntityManagerAsSession().createNativeQuery(updateSql) // NOSONAR
+        int tasks = getEntityManagerAsSession().createNativeQuery(updateSql) 
                 .setParameter("id", prosessTaskId)
-                .setParameter("status", status)
+                .setParameter(STATUS, status)
                 .setParameter("status_ts", now, TemporalType.TIMESTAMP)
                 .executeUpdate();
 
@@ -190,7 +192,7 @@ public class TaskManagerRepositoryImpl {
                 " WHERE id = :id";
 
         @SuppressWarnings("unused")
-        int tasks = getEntityManagerAsSession().createNativeQuery(updateSql) // NOSONAR
+        int tasks = getEntityManagerAsSession().createNativeQuery(updateSql) 
                 .setParameter("id", prosessTaskId)
                 .setParameter("naa", now, TemporalType.TIMESTAMP)
                 .executeUpdate();
@@ -220,9 +222,9 @@ public class TaskManagerRepositoryImpl {
                 " WHERE id = :id";
 
         @SuppressWarnings("unused")
-        int tasks = entityManager.createNativeQuery(updateSql) // NOSONAR
+        int tasks = entityManager.createNativeQuery(updateSql) 
                 .setParameter("id", prosessTaskId)
-                .setParameter("neste_kjoering", nesteKjøring)
+                .setParameter(NESTE_KJØRING, nesteKjøring)
                 .setParameter("naa", now)
                 .setParameter("server", jvmUniqueProcessName)
                 .executeUpdate();
@@ -250,7 +252,7 @@ public class TaskManagerRepositoryImpl {
                 .setFlushMode(FlushMode.MANUAL)
                 // hent kun 1 av gangen for å la andre pollere slippe til
                 .setHint(QueryHints.HINT_FETCH_SIZE, 1)
-                .setParameter("neste_kjoering", timestamp, TemporalType.TIMESTAMP)
+                .setParameter(NESTE_KJØRING, timestamp, TemporalType.TIMESTAMP)
                 .setParameter("skip_ids", skipIds.isEmpty() ? Set.of(-1) : skipIds)
                 .scroll(ScrollMode.FORWARD_ONLY);) {
 
@@ -279,13 +281,13 @@ public class TaskManagerRepositoryImpl {
     }
 
     void logTaskPollet(ProsessTaskEntitet pte) {
-        log.info("Pollet task for kjøring: id={}, type={}, gruppe={}, sekvens={}, status={}, tidligereFeiledeForsøk={}, angitt nesteKjøringEtter={}", // NOSONAR
+        log.info("Pollet task for kjøring: id={}, type={}, gruppe={}, sekvens={}, status={}, tidligereFeiledeForsøk={}, angitt nesteKjøringEtter={}", 
                 pte.getId(), pte.getTaskType().value(), pte.getGruppe(), pte.getSekvens(), pte.getStatus(), pte.getFeiledeForsøk(),
                 pte.getNesteKjøringEtter());
     }
 
     List<ProsessTaskData> tilProsessTask(List<ProsessTaskEntitet> resultList) {
-        return resultList.stream().map(pte -> pte.tilProsessTask()).collect(Collectors.toList());
+        return resultList.stream().map(ProsessTaskEntitet::tilProsessTask).collect(Collectors.toList());
     }
 
     Optional<ProsessTaskEntitet> finnOgLås(RunTaskInfo taskInfo) {
@@ -313,9 +315,9 @@ public class TaskManagerRepositoryImpl {
         Query query = getEntityManagerAsSession().createNativeQuery(sql, ProsessTaskEntitet.class)
                 .setHint(org.hibernate.annotations.QueryHints.FETCH_SIZE, 1)
                 .setHint("javax.persistence.cache.storeMode", "REFRESH")
-                .setParameter("id", taskId)// NOSONAR
-                .setParameter("taskType", taskType.value())// NOSONAR
-                .setParameter("status", status)// NOSONAR
+                .setParameter("id", taskId)
+                .setParameter("taskType", taskType.value())
+                .setParameter(STATUS, status)
                 .setParameter("sisteTs", sistKjørtLowWatermark, TemporalType.TIMESTAMP);
 
         return query.getResultList().stream().findFirst();
@@ -335,7 +337,7 @@ public class TaskManagerRepositoryImpl {
         Query query = getEntityManagerAsSession().createNativeQuery(sql, ProsessTaskEntitet.class)
                 .setHint(org.hibernate.annotations.QueryHints.FETCH_SIZE, 1)
                 .setHint("javax.persistence.cache.storeMode", "REFRESH")
-                .setParameter("id", blokkerendeTaskId)// NOSONAR
+                .setParameter("id", blokkerendeTaskId)
                 .setParameter("statuser", ikkeKjørtStatuser);
 
         Stream<ProsessTaskEntitet> stream = query.getResultStream();
@@ -447,7 +449,7 @@ public class TaskManagerRepositoryImpl {
         Query query = getEntityManagerAsSession().createNativeQuery(sql, ProsessTaskEntitet.class)
                 .setHint(org.hibernate.annotations.QueryHints.FETCH_SIZE, 1)
                 .setHint("javax.persistence.cache.storeMode", "REFRESH")
-                .setParameter("id", id);// NOSONAR
+                .setParameter("id", id);
         return (ProsessTaskEntitet) query.getSingleResult();
     }
 

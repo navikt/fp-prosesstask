@@ -118,7 +118,7 @@ public class RunTaskFeilOgStatusEventHåndterer {
         } catch (IOException e1) {
             // kunne ikke skrive ut json, log stack trace
             feiltekst = "Kunne ikke skrive ut json struktur for feil: " + feilkode + ", json exception: " + e1;
-            LOG.warn(feiltekst, t); // NOSONAR
+            LOG.warn(feiltekst, t); 
         }
 
         if (erEndeligFeil
