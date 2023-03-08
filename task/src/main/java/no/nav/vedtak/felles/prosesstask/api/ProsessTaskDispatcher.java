@@ -13,7 +13,7 @@ import no.nav.vedtak.felles.prosesstask.impl.ProsessTaskHandlerRef;
  */
 public interface ProsessTaskDispatcher {
 
-    void dispatch(ProsessTaskData task) throws Exception; // NOSONAR
+    void dispatch(ProsessTaskData task) throws Exception; 
 
     /** Skal benytte feilhåndtering algoritme for angitt exception. Hvis ikke håndteres den som fatal feil. */
     boolean feilhåndterException(Throwable e);

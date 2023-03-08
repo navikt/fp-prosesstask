@@ -34,7 +34,8 @@ public class ProsessTaskSetFerdigInputDto {
     @Pattern(regexp = "FEILET|VENTER_SVAR|SUSPENDERT|VETO|KLAR")
     private String naaVaaerendeStatus;
 
-    public ProsessTaskSetFerdigInputDto() { // NOSONAR Input-dto, ingen behov for initialisering
+    public ProsessTaskSetFerdigInputDto() {
+        // Jackson
     }
 
     public Long getProsessTaskId() {

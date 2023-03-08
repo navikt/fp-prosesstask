@@ -24,7 +24,7 @@ public class TaskMonitor {
     );
 
     private TaskMonitor() {
-        // NOSONAR
+        
     }
 
     public static void setStatusCount(ProsessTaskStatus status, Integer antall) {

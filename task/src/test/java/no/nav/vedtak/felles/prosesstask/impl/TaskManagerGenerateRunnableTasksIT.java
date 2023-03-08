@@ -16,7 +16,7 @@ import no.nav.vedtak.felles.prosesstask.JpaExtension;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
 import no.nav.vedtak.felles.prosesstask.api.TaskType;
 
-public class TaskManagerGenerateRunnableTasksIT {
+class TaskManagerGenerateRunnableTasksIT {
 
 
     @RegisterExtension
@@ -30,7 +30,7 @@ public class TaskManagerGenerateRunnableTasksIT {
     }
 
     @Test
-    public void skal_fange_PersistenceException_og_legge_til_errorCallback() throws Exception {
+    void skal_fange_PersistenceException_og_legge_til_errorCallback() throws Exception {
         ProsessTaskData data = ProsessTaskData.forTaskType(new TaskType("hello.world"));
         data.setId(99L);
         ProsessTaskEntitet pte = new ProsessTaskEntitet();

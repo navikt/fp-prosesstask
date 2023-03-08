@@ -24,11 +24,11 @@ import no.nav.vedtak.felles.prosesstask.api.ProsessTaskTjeneste;
 @ApplicationScoped
 public class ProsessTaskTjenesteImpl implements ProsessTaskTjeneste {
 
-    public static String KAN_IKKE_RESTARTE_FERDIG_TASK_FEIL_ID = "PT-711948";
-    public static String MAA_ANGI_NAVARENDE_STATUS_FEIL_ID = "PT-306456";
-    public static String STATUS_IKKE_FEILET = "PT-507456";
-    public static String UKJENT_TASK_FEIL_ID = "PT-752429";
-    public static String MANGLER_IMPL = "PT-492729";
+    public static final String KAN_IKKE_RESTARTE_FERDIG_TASK_FEIL_ID = "PT-711948";
+    public static final String MAA_ANGI_NAVARENDE_STATUS_FEIL_ID = "PT-306456";
+    public static final String STATUS_IKKE_FEILET = "PT-507456";
+    public static final String UKJENT_TASK_FEIL_ID = "PT-752429";
+    public static final String MANGLER_IMPL = "PT-492729";
 
     private ProsessTaskRepository prosessTaskRepository;
 

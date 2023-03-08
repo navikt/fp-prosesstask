@@ -36,7 +36,7 @@ public class ProsessTaskEventPubliserer {
         // observere uten å la tasken endre status.
         try {
             publiserer.fire(new ProsessTaskEvent(data, gammelStatus, nyStatus, feil, orgException));
-        } catch (RuntimeException e) { // NOSONAR
+        } catch (RuntimeException e) { 
             // logger og svelger exception her. Feil oppstått i event observer
             String orgExceptionMessage = orgException == null ? null : String.valueOf(orgException);
             LOG.warn("PT-314162 Pollet task for kjøring: id={}, type={}, originalException={}", data.getId(), data.getTaskType(), orgExceptionMessage,

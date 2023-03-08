@@ -28,7 +28,8 @@ public class ProsessTaskRetryAllResultatDto {
     @Valid
     private List<@NotNull Long> prosessTaskIds = new ArrayList<>();
 
-    public ProsessTaskRetryAllResultatDto() { // NOSONAR Input-dto, ingen behov for initialisering
+    public ProsessTaskRetryAllResultatDto() {
+        // Jackson
     }
 
     public List<Long> getProsessTaskIds() {

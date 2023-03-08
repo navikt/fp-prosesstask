@@ -34,7 +34,8 @@ public class ProsessTaskRestartInputDto {
     @Pattern(regexp = "VENTER_SVAR|FEILET|SUSPENDERT")
     private String naaVaaerendeStatus;
 
-    public ProsessTaskRestartInputDto() { // NOSONAR Input-dto, ingen behov for initialisering
+    public ProsessTaskRestartInputDto() {
+        // Jackson
     }
 
     public Long getProsessTaskId() {

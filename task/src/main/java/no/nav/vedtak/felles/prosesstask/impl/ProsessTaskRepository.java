@@ -88,7 +88,7 @@ public class ProsessTaskRepository {
      */
     public static String getUniktProsessTaskGruppeNavn(EntityManager entityManager) throws SQLException {
         String sqlForGruppe = DatabaseUtil.getSqlForUniktGruppeNavn(entityManager);
-        Query query = entityManager.createNativeQuery(sqlForGruppe); // $NON-NLS-1$
+        Query query = entityManager.createNativeQuery(sqlForGruppe);
         return String.valueOf(query.getSingleResult());
     }
 
@@ -187,7 +187,7 @@ public class ProsessTaskRepository {
         List<String> statusNames = statuses.stream().map(ProsessTaskStatus::getDbKode).toList();
         TypedQuery<ProsessTaskEntitet> query = entityManager
             .createQuery("from ProsessTaskEntitet pt where pt.status in(:statuses)", ProsessTaskEntitet.class)
-            .setParameter("statuses", statusNames); // NOSONAR $NON-NLS-1$
+            .setParameter("statuses", statusNames);
         return tilProsessTask(query.getResultList());
     }
 
@@ -203,7 +203,7 @@ public class ProsessTaskRepository {
                 .createQuery("from ProsessTaskEntitet pt where pt pt.status in(:statuses) and pt.task_gruppe = :gruppe",
                         ProsessTaskEntitet.class)
                 .setParameter("statuses", ikkeFerdigStatusNames)
-                .setParameter("gruppe", gruppe); // NOSONAR $NON-NLS-1$
+                .setParameter("gruppe", gruppe);
         return tilProsessTask(query.getResultList());
     }
 
@@ -222,8 +222,8 @@ public class ProsessTaskRepository {
                       AND pt.task_parametere LIKE :likeSearch
                     """, ProsessTaskEntitet.class)
             .setParameter("opprettetFraOgMed", opprettetFraOgMed.minusDays(1))
-            .setParameter("opprettetTilOgMed", opprettetTilOgMed.plusDays(1)) // NOSONAR $NON-NLS-1$
-            .setParameter("likeSearch", "%"+paramSearchText+"%") // NOSONAR $NON-NLS-1$
+            .setParameter("opprettetTilOgMed", opprettetTilOgMed.plusDays(1))
+            .setParameter("likeSearch", "%"+paramSearchText+"%")
             .setHint(QueryHints.HINT_READONLY, "true");
 
         List<ProsessTaskEntitet> resultList = query.getResultList();
@@ -233,7 +233,7 @@ public class ProsessTaskRepository {
     public List<Long> hentIdForAlleFeilet() {
         TypedQuery<ProsessTaskEntitet> query = entityManager
                 .createQuery("from ProsessTaskEntitet pt where pt.status = :feilet", ProsessTaskEntitet.class)
-                .setParameter("feilet", ProsessTaskStatus.FEILET.getDbKode()); // NOSONAR $NON-NLS-1$
+                .setParameter("feilet", ProsessTaskStatus.FEILET.getDbKode());
         return query.getResultList().stream().map(ProsessTaskEntitet::getId).collect(Collectors.toList());
     }
 
@@ -265,7 +265,7 @@ public class ProsessTaskRepository {
 
     public int tømNestePartisjon() {
         String partisjonsNr = utledPartisjonsNr(LocalDate.now());
-        Query query = entityManager.createNativeQuery("TRUNCATE prosess_task_partition_ferdig_" + partisjonsNr);
+        Query query = entityManager.createNativeQuery("TRUNCATE prosess_task_partition_ferdig_" + partisjonsNr); // NOSONAR  - denne er OK
         int updatedRows = query.executeUpdate();
         entityManager.flush();
 

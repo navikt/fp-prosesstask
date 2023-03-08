@@ -7,7 +7,7 @@ public class CallId {
     /** Forventer at callId ligger i MDC som følgende parameter. */
     public static final String CALL_ID = "callId";
 
-    private static final Random RANDOM = new Random();
+    private static final Random RANDOM = new Random(); // NOSONAR  - denne er OK
 
     public static String generateCallId() {
         int randomNr = RANDOM.nextInt(Integer.MAX_VALUE);

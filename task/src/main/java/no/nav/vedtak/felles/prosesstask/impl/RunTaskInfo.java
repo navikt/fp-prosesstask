@@ -25,8 +25,8 @@ class RunTaskInfo {
     }
 
     RunTaskInfo(ProsessTaskDispatcher dispatcher, Long id, TaskType taskType, LocalDateTime timestampLowWatermark) {
-        Objects.requireNonNull(id, "id"); //$NON-NLS-1$
-        Objects.requireNonNull(taskType, "taskName"); //$NON-NLS-1$
+        Objects.requireNonNull(id, "id"); 
+        Objects.requireNonNull(taskType, "taskName"); 
 
         this.id = id;
         this.taskType = taskType;

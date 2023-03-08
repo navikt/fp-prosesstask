@@ -34,7 +34,7 @@ public class ProsessTaskEvent implements ProsessTaskInfo {
         this.gammelStatus = gammelStatus;
         this.nyStatus = nyStatus;
         this.feil = feil;
-        Objects.requireNonNull(data, "data"); //$NON-NLS-1$
+        Objects.requireNonNull(data, "data"); 
         this.data = data;
         this.exception = e;
     }

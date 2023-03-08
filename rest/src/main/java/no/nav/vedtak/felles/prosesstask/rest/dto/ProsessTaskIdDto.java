@@ -24,10 +24,11 @@ public class ProsessTaskIdDto {
     @Max(Long.MAX_VALUE)
     private Long prosessTaskId;
 
-    public ProsessTaskIdDto() { // NOSONAR Input-dto, ingen behov for initialisering
+    public ProsessTaskIdDto() {
+        // Jackson
     }
 
-    public ProsessTaskIdDto(Long prosessTaskId) { // NOSONAR Input-dto, ingen behov for initialisering
+    public ProsessTaskIdDto(Long prosessTaskId) {
         this.prosessTaskId = prosessTaskId;
     }
 

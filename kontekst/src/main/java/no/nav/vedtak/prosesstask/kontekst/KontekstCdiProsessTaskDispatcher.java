@@ -21,7 +21,7 @@ import no.nav.vedtak.sikkerhet.kontekst.KontekstHolder;
  */
 @ApplicationScoped
 public class KontekstCdiProsessTaskDispatcher extends BasicCdiProsessTaskDispatcher {
-    private static final MdcExtendedLogContext LOG_CONTEXT = MdcExtendedLogContext.getContext("prosess"); //$NON-NLS-1$
+    private static final MdcExtendedLogContext LOG_CONTEXT = MdcExtendedLogContext.getContext("prosess"); 
 
     public KontekstCdiProsessTaskDispatcher() {
         super(Set.of(TekniskException.class, IntegrasjonException.class));
@@ -31,14 +31,14 @@ public class KontekstCdiProsessTaskDispatcher extends BasicCdiProsessTaskDispatc
     public void dispatch(ProsessTaskData task) {
         try (ProsessTaskHandlerRef taskHandler = taskHandler(task.taskType())) {
             if (task.getSaksnummer() != null) {
-                LOG_CONTEXT.add("fagsak", task.getSaksnummer()); // NOSONAR //$NON-NLS-1$
+                LOG_CONTEXT.add("fagsak", task.getSaksnummer());  
             } else if (task.getFagsakId() != null) {
-                LOG_CONTEXT.add("fagsak", task.getFagsakId()); // NOSONAR //$NON-NLS-1$
+                LOG_CONTEXT.add("fagsak", task.getFagsakId());  
             }
             if (task.getBehandlingId() != null) {
-                LOG_CONTEXT.add("behandling", task.getBehandlingId()); // NOSONAR //$NON-NLS-1$
+                LOG_CONTEXT.add("behandling", task.getBehandlingId());  
             } else if (task.getBehandlingUuid() != null) {
-                LOG_CONTEXT.add("behandling", task.getBehandlingUuid()); // NOSONAR //$NON-NLS-1$
+                LOG_CONTEXT.add("behandling", task.getBehandlingUuid());  
             }
 
             taskHandler.doTask(task);

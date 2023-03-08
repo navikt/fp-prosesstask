@@ -13,21 +13,23 @@ import no.nav.vedtak.felles.prosesstask.api.ProsessTaskGruppe;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskStatus;
 import no.nav.vedtak.felles.prosesstask.api.TaskType;
 
-public class OpprettProsessTaskIT {
+class OpprettProsessTaskIT {
 
     @RegisterExtension
     public static final JpaExtension repoRule = new JpaExtension();
     
-    private ProsessTaskRepository repo = new ProsessTaskRepository(repoRule.getEntityManager(), null, null);
+    private final ProsessTaskRepository repo = new ProsessTaskRepository(repoRule.getEntityManager(), null, null);
 
     @Test
-    public void skal_lagre_ProsessTask() throws Exception {
+    void skal_lagre_ProsessTask() {
         ProsessTaskData pt = ProsessTaskData.forTaskType(new TaskType("mytask1"));
         repo.lagre(pt);
+        List<ProsessTaskData> list = repo.finnAlle(List.of(ProsessTaskStatus.KLAR));
+        assertThat(list).hasSize(1);
     }
 
     @Test
-    public void skal_lagre_SammensattProsessTask() throws Exception {
+    void skal_lagre_SammensattProsessTask() {
         ProsessTaskData pt1 = ProsessTaskData.forTaskType(new TaskType("mytask1"));
         ProsessTaskData pt2 = ProsessTaskData.forTaskType(new TaskType("mytask2"));
         ProsessTaskGruppe sammensatt = new ProsessTaskGruppe();

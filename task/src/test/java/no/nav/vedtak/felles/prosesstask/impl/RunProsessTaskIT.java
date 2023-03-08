@@ -23,7 +23,7 @@ import no.nav.vedtak.felles.prosesstask.api.TaskType;
 import no.nav.vedtak.felles.testutilities.cdi.CdiAwareExtension;
 
 @ExtendWith(CdiAwareExtension.class)
-public class RunProsessTaskIT {
+class RunProsessTaskIT {
 
     @RegisterExtension
     public static final JpaExtension repoRule = new JpaExtension();
@@ -35,7 +35,7 @@ public class RunProsessTaskIT {
     LocalDateTime now = LocalDateTime.now();
 
     @Test
-    public void skal_kjøre_en_task() throws Exception {
+    void skal_kjøre_en_task() throws Exception {
         // Arrange
         ProsessTaskData pt1 = nyTask(new TaskType("mytask1"), -10);
         repo.lagre(pt1);
@@ -61,7 +61,7 @@ public class RunProsessTaskIT {
     }
 
     @Test
-    public void skal_kjøre_en_task_og_planlegge_ny() throws Exception {
+    void skal_kjøre_en_task_og_planlegge_ny() throws Exception {
         // Arrange
         var taskType = TaskType.forProsessTask(LocalDummyProsessTask.class);
         var pt1 = ProsessTaskData.forTaskType(taskType);
@@ -106,7 +106,7 @@ public class RunProsessTaskIT {
     }
 
     @Test
-    public void skal_kjøre_en_task_som_feiler_og_inkrementere_feilede_forsøk_teller() throws Exception {
+    void skal_kjøre_en_task_som_feiler_og_inkrementere_feilede_forsøk_teller() throws Exception {
         // Arrange
         ProsessTaskData pt1 = nyTask(new TaskType("mytask1"), -10);
         repo.lagre(pt1);
@@ -136,7 +136,7 @@ public class RunProsessTaskIT {
     }
 
     @Test
-    public void skal_kjøre_en_task_som_feiler_med_savepoint_og_inkrementere_feilede_forsøk_teller() throws Exception {
+    void skal_kjøre_en_task_som_feiler_med_savepoint_og_inkrementere_feilede_forsøk_teller() throws Exception {
         // Arrange
         ProsessTaskData pt1 = nyTask(new TaskType("mytask1"), -10);
         repo.lagre(pt1);
@@ -170,7 +170,7 @@ public class RunProsessTaskIT {
     }
 
     @Test
-    public void skal_kjøre_en_task_som_feiler_pga_transient_databasefeil_og_ikke_endre_noe() throws Exception {
+    void skal_kjøre_en_task_som_feiler_pga_transient_databasefeil_og_ikke_endre_noe() throws Exception {
         // Arrange
         ProsessTaskData pt1 = nyTask(new TaskType("mytask1"), -10);
         repo.lagre(pt1);

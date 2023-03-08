@@ -40,7 +40,7 @@ class TaskManagerRunnableTask implements Runnable {
             errorCallback = lagErrorCallback(taskInfo, callId, fatal);
         } catch (Exception e) {
             errorCallback = lagErrorCallback(taskInfo, callId, e);
-        } catch (Throwable t) { // NOSONAR
+        } catch (Throwable t) { 
             errorCallback = lagErrorCallback(taskInfo, callId, t);
         } finally {
             clearLogContext();
@@ -60,7 +60,7 @@ class TaskManagerRunnableTask implements Runnable {
             try {
                 initLogContext(callId, taskInfo.getTaskType(), taskInfo.getId());
                 errorTask.doRun(taskInfo, fatal);
-            } catch (Throwable t) {  // NOSONAR
+            } catch (Throwable t) {  
                 // logg at vi ikke klarte å registrer feilen i db
                 TaskManagerGenerateRunnableTasks.log.error(
                         "PT-415565 Kunne ikke registrere feil på task pga uventet feil ved oppdatering av status/feil, id={}, taskName={}.", taskInfo.getId(), taskInfo.getTaskType(), t);

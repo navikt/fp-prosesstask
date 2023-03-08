@@ -20,7 +20,7 @@ import no.nav.vedtak.exception.TekniskException;
 public class ProsessTaskData implements ProsessTaskInfo {
 
     public static String MANGLER_PROPS = "PT-492717";
-    public static final Pattern VALID_KEY_PATTERN = Pattern.compile("[a-zA-Z0-9_\\.]+$"); //$NON-NLS-1$
+    public static final Pattern VALID_KEY_PATTERN = Pattern.compile("[a-zA-Z0-9_\\.]+$"); 
     private final Properties props = new Properties();
     private final TaskType taskType;
     private int antallFeiledeForsøk;
@@ -308,17 +308,17 @@ public class ProsessTaskData implements ProsessTaskInfo {
     }
 
     public void setBehandling(Long fagsakId, Long behandlingId) {
-        Objects.requireNonNull(fagsakId, "fagsakId"); // NOSONAR //$NON-NLS-1$
-        Objects.requireNonNull(behandlingId, "behandlingId"); // NOSONAR //$NON-NLS-1$
+        Objects.requireNonNull(fagsakId, "fagsakId");  
+        Objects.requireNonNull(behandlingId, "behandlingId");  
 
         setFagsakId(fagsakId);
         setBehandlingId(behandlingId.toString());
     }
 
     public void setBehandling(Long fagsakId, Long behandlingId, String aktørId) {
-        Objects.requireNonNull(fagsakId, "fagsakId"); // NOSONAR //$NON-NLS-1$
-        Objects.requireNonNull(behandlingId, "behandlingId"); // NOSONAR //$NON-NLS-1$
-        Objects.requireNonNull(aktørId, "aktørId"); // NOSONAR //$NON-NLS-1$
+        Objects.requireNonNull(fagsakId, "fagsakId");  
+        Objects.requireNonNull(behandlingId, "behandlingId");  
+        Objects.requireNonNull(aktørId, "aktørId");  
 
         setFagsakId(fagsakId);
         setBehandlingId(behandlingId.toString());
@@ -326,8 +326,8 @@ public class ProsessTaskData implements ProsessTaskInfo {
     }
 
     public void setBehandling(String saksnummer, String behandlingId) {
-        Objects.requireNonNull(saksnummer, "saksnummer"); // NOSONAR //$NON-NLS-1$
-        Objects.requireNonNull(behandlingId, "behandlingId"); // NOSONAR //$NON-NLS-1$
+        Objects.requireNonNull(saksnummer, "saksnummer");  
+        Objects.requireNonNull(behandlingId, "behandlingId");  
 
         setSaksnummer(saksnummer);
         setBehandlingId(behandlingId);
@@ -341,9 +341,9 @@ public class ProsessTaskData implements ProsessTaskInfo {
      * @param aktørId angitt AktørId gyldig i AktørRegisteret.
      */
     public void setBehandling(String saksnummer, String behandlingId, String aktørId) {
-        Objects.requireNonNull(saksnummer, "saksnummer"); // NOSONAR //$NON-NLS-1$
-        Objects.requireNonNull(behandlingId, "behandlingId"); // NOSONAR //$NON-NLS-1$
-        Objects.requireNonNull(aktørId, "aktørId"); // NOSONAR //$NON-NLS-1$
+        Objects.requireNonNull(saksnummer, "saksnummer");  
+        Objects.requireNonNull(behandlingId, "behandlingId");  
+        Objects.requireNonNull(aktørId, "aktørId");  
 
         setSaksnummer(saksnummer);
         setBehandlingId(behandlingId);
@@ -351,8 +351,8 @@ public class ProsessTaskData implements ProsessTaskInfo {
     }
 
     public void setFagsak(Long fagsakId, String aktørId) {
-        Objects.requireNonNull(fagsakId, "fagsakId"); // NOSONAR //$NON-NLS-1$
-        Objects.requireNonNull(aktørId, "aktørId"); // NOSONAR //$NON-NLS-1$
+        Objects.requireNonNull(fagsakId, "fagsakId");  
+        Objects.requireNonNull(aktørId, "aktørId");  
 
         setFagsakId(fagsakId);
         setAktørId(aktørId);
@@ -368,7 +368,7 @@ public class ProsessTaskData implements ProsessTaskInfo {
 
     public void setProperty(String key, String value) {
         if (!VALID_KEY_PATTERN.matcher(key).matches()) {
-            throw new IllegalArgumentException("Invalid key:" + key); //$NON-NLS-1$
+            throw new IllegalArgumentException("Invalid key:" + key); 
         }
         if (value == null) {
             this.props.remove(key);
@@ -380,11 +380,11 @@ public class ProsessTaskData implements ProsessTaskInfo {
     @Override
     public String toString() {
         return getClass().getSimpleName()
-            + "<id=" + getId() //$NON-NLS-1$
-            + ", taskType=" + getTaskType() //$NON-NLS-1$
-            + ", props=" + getProperties() //$NON-NLS-1$
-            + ", status=" + getStatus() //$NON-NLS-1$
-            + ">"; //$NON-NLS-1$
+            + "<id=" + getId() 
+            + ", taskType=" + getTaskType() 
+            + ", props=" + getProperties() 
+            + ", status=" + getStatus() 
+            + ">"; 
     }
 
     public void venterPåHendelse(String hendelse) {

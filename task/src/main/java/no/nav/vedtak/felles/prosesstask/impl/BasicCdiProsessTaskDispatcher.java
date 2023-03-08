@@ -9,8 +9,6 @@ import java.util.Set;
 import javax.persistence.QueryTimeoutException;
 
 import org.hibernate.exception.JDBCConnectionException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskDispatcher;
@@ -21,8 +19,7 @@ import no.nav.vedtak.felles.prosesstask.api.TaskType;
  */
 public class BasicCdiProsessTaskDispatcher implements ProsessTaskDispatcher {
 
-    private static final Logger LOG = LoggerFactory.getLogger(BasicCdiProsessTaskDispatcher.class);
-    /**
+        /**
      * Disse delegres til Feilhåndteringsalgoritme for håndtering. Andre vil alltid
      * gi FEILET status.
      */

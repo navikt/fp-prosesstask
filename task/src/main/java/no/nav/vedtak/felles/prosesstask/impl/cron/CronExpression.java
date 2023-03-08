@@ -261,13 +261,13 @@ public class CronExpression {
 
     public CronExpression(final String expr, final boolean withSeconds) {
         if (expr == null) {
-            throw new IllegalArgumentException("expr is null"); //$NON-NLS-1$
+            throw new IllegalArgumentException("expr is null"); 
         }
 
         this.expr = expr;
 
         final int expectedParts = withSeconds ? 6 : 5;
-        final String[] parts = expr.split("\\s+"); //$NON-NLS-1$
+        final String[] parts = expr.split("\\s+"); 
         if (parts.length != expectedParts) {
             throw new IllegalArgumentException(String.format("Invalid cron expression [%s], expected %s field, got %s", expr, expectedParts, parts.length));
         }
@@ -401,7 +401,7 @@ public class CronExpression {
             parse(fieldExpr);
         }
 
-        private void parse(String fieldExpr) { // NOSONAR
+        private void parse(String fieldExpr) { 
             String[] rangeParts = fieldExpr.split(",");
             for (String rangePart : rangeParts) {
                 Matcher m = CRON_FIELD_REGEXP.matcher(rangePart);

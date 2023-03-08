@@ -2,13 +2,13 @@ package no.nav.vedtak.felles.prosesstask.api;
 
 public enum ProsessTaskStatus {
 
-    KLAR("KLAR"), //$NON-NLS-1$
+    KLAR("KLAR"), 
     KJOERT("KJOERT"),
-    FERDIG("FERDIG"), //$NON-NLS-1$
-    VENTER_SVAR("VENTER_SVAR"), //$NON-NLS-1$
-    VETO("VETO"), //$NON-NLS-1$
-    SUSPENDERT("SUSPENDERT"), //$NON-NLS-1$
-    FEILET("FEILET") //$NON-NLS-1$
+    FERDIG("FERDIG"), 
+    VENTER_SVAR("VENTER_SVAR"), 
+    VETO("VETO"), 
+    SUSPENDERT("SUSPENDERT"), 
+    FEILET("FEILET") 
     ;
 
     private String dbKode;

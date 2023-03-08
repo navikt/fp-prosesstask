@@ -17,7 +17,7 @@ import no.nav.vedtak.felles.prosesstask.api.ProsessTaskStatus;
 import no.nav.vedtak.felles.prosesstask.api.TaskMonitor;
 import no.nav.vedtak.felles.prosesstask.api.TaskType;
 
-public class TaskManagerRekkefølgeIT {
+class TaskManagerRekkefølgeIT {
 
     @RegisterExtension
     public static final JpaExtension repoRule = new JpaExtension();
@@ -29,12 +29,12 @@ public class TaskManagerRekkefølgeIT {
     private LocalDateTime now = LocalDateTime.now();
 
     @Test
-    public void skal_finne_sql_for_polling() throws Exception {
+    void skal_finne_sql_for_polling() throws Exception {
         assertThat(taskManagerRepo.getSqlForPolling()).isNotNull();
     }
 
     @Test
-    public void skal_polle_tasker_i_enkel_sekvens() throws Exception {
+    void skal_polle_tasker_i_enkel_sekvens() throws Exception {
         ProsessTaskData pt1 = nyTask("mytask1", -10);
         ProsessTaskData pt2 = nyTask("mytask2", -10);
         ProsessTaskData pt3 = nyTask("mytask3", -10);
@@ -63,7 +63,7 @@ public class TaskManagerRekkefølgeIT {
     }
 
     @Test
-    public void skal_polle_tasker_i_sekvens_sjekk_rekkefølge() throws Exception {
+    void skal_polle_tasker_i_sekvens_sjekk_rekkefølge() throws Exception {
         ProsessTaskGruppe sammensatt = new ProsessTaskGruppe();
         List<ProsessTaskData> tasks = new ArrayList<>();
         for (int i = 0; i < 22; i++) {
@@ -84,7 +84,7 @@ public class TaskManagerRekkefølgeIT {
     }
 
     @Test
-    public void skal_ikke_polle_ny_når_får_feil_på_første() throws Exception {
+    void skal_ikke_polle_ny_når_får_feil_på_første() throws Exception {
         ProsessTaskData pt1 = nyTask("mytask1", -10);
         ProsessTaskData pt2 = nyTask("mytask2", -10);
         ProsessTaskGruppe sammensatt = new ProsessTaskGruppe();
@@ -102,7 +102,7 @@ public class TaskManagerRekkefølgeIT {
     }
 
     @Test
-    public void skal_polle_tasker_i_sekvens_med_feil_i_midten() throws Exception {
+    void skal_polle_tasker_i_sekvens_med_feil_i_midten() throws Exception {
         ProsessTaskData pt1 = nyTask("mytask1", -10);
         ProsessTaskData pt2 = nyTask("mytask2", -10);
         ProsessTaskData pt3 = nyTask("mytask3", -10);
@@ -150,7 +150,7 @@ public class TaskManagerRekkefølgeIT {
     }
 
     @Test
-    public void skal_polle_3_tasker_i_parallell_deretter_1_sekvensielt_for_avslutning() throws Exception {
+    void skal_polle_3_tasker_i_parallell_deretter_1_sekvensielt_for_avslutning() throws Exception {
 
         // Arrange
         ProsessTaskData pt1 = nyTask("mytask1", -10);
@@ -174,7 +174,7 @@ public class TaskManagerRekkefølgeIT {
     }
 
     @Test
-    public void skal_polle_tasker_i_sekvens_så_parallell() throws Exception {
+    void skal_polle_tasker_i_sekvens_så_parallell() throws Exception {
 
         ProsessTaskData pt1 = nyTask("mytask1", -10);
         ProsessTaskData pt2 = nyTask("mytask2", -10);
