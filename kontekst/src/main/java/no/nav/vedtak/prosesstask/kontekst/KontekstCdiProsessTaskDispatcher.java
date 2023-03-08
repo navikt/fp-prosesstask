@@ -72,7 +72,7 @@ public class KontekstCdiProsessTaskDispatcher extends BasicCdiProsessTaskDispatc
 
         @Override
         public void doTask(ProsessTaskData prosessTaskData) {
-            KontekstHolder.setKontekst(BasisKontekst.forProsesstask());
+            KontekstHolder.setKontekst(BasisKontekst.forProsesstaskUtenSystembruker());
             // TODO vurder å flytte MDC til KontekstHolder
             MDCOperations.putConsumerId(KontekstHolder.getKontekst().getKonsumentId());
             MDCOperations.putUserId(KontekstHolder.getKontekst().getUid());
