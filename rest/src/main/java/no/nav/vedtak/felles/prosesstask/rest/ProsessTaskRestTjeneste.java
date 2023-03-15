@@ -86,7 +86,7 @@ public class ProsessTaskRestTjeneste {
             @ApiResponse(responseCode = "200", description = "Prosesstaskens oppdatert informasjon", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ProsessTaskRestartResultatDto.class))),
             @ApiResponse(responseCode = "500", description = "Feilet pga ukjent feil eller tekniske/funksjonelle feil")
     })
-    @BeskyttetRessurs(actionType = ActionType.CREATE, property = ABAC_DRIFT_ATTRIBUTT)
+    @BeskyttetRessurs(actionType = ActionType.CREATE, property = ABAC_DRIFT_ATTRIBUTT, sporingslogg = false)
     public ProsessTaskRestartResultatDto restartProsessTask(@Parameter(description = "Informasjon for restart en eksisterende prosesstask") @TilpassetAbacAttributt(supplierClass = AbacEmptySupplier.class) @Valid ProsessTaskRestartInputDto restartInputDto) {
         // kjøres manuelt for å avhjelpe feilsituasjon, da er det veldig greit at det blir logget!
         logger.info("Restarter prossess task {}", restartInputDto.getProsessTaskId());
@@ -100,7 +100,7 @@ public class ProsessTaskRestTjeneste {
             @ApiResponse(responseCode = "200", description = "Response med liste av prosesstasks som restartes", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ProsessTaskRetryAllResultatDto.class))),
             @ApiResponse(responseCode = "500", description = "Feilet pga ukjent feil eller tekniske/funksjonelle feil")
     })
-    @BeskyttetRessurs(actionType = ActionType.CREATE, property = ABAC_DRIFT_ATTRIBUTT)
+    @BeskyttetRessurs(actionType = ActionType.CREATE, property = ABAC_DRIFT_ATTRIBUTT, sporingslogg = false)
     public ProsessTaskRetryAllResultatDto retryAllProsessTask() {
         // kjøres manuelt for å avhjelpe feilsituasjon, da er det veldig greit at det blir logget!
         logger.info("Restarter alle prossess task i status FEILET");
