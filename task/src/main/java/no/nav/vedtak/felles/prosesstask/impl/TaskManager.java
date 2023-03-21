@@ -34,7 +34,6 @@ import org.hibernate.exception.JDBCConnectionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import no.nav.vedtak.apptjeneste.AppServiceHandler;
 import no.nav.vedtak.exception.TekniskException;
 import no.nav.vedtak.felles.jpa.TransactionHandler;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
@@ -47,7 +46,7 @@ import no.nav.vedtak.log.metrics.Controllable;
  * Main class handling polling tasks and dispatching these.
  */
 @ApplicationScoped
-public class TaskManager implements AppServiceHandler, Controllable {
+public class TaskManager implements Controllable {
 
     public static final String TASK_MANAGER_POLLING_WAIT = "task.manager.polling.wait";
     public static final String TASK_MANAGER_POLLING_DELAY = "task.manager.polling.delay";
@@ -81,7 +80,7 @@ public class TaskManager implements AppServiceHandler, Controllable {
      * Ventetid før neste polling forsøk (antar dersom task ikke plukkes raskt nok,
      * kan en annen poller ta over). (sekunder)
      */
-    private long waitTimeBeforeNextPollingAttemptSecs = getSystemPropertyWithLowerBoundry(TASK_MANAGER_POLLING_WAIT, 30L, 1L);
+    private final long waitTimeBeforeNextPollingAttemptSecs = getSystemPropertyWithLowerBoundry(TASK_MANAGER_POLLING_WAIT, 30L, 1L);
 
     /**
      * Executor for å håndtere tråder for å kjøre tasks.
@@ -108,7 +107,9 @@ public class TaskManager implements AppServiceHandler, Controllable {
     private final AtomicReference<LocalDateTime> pollerRoundNoneFoundSince = new AtomicReference<>(LocalDateTime.now());
     private final AtomicReference<LocalDateTime> pollerRoundNoneLastReported = new AtomicReference<>(LocalDateTime.now());
 
-    /** trenger ikke ha denne som static siden TaskManager er ApplicationScoped. */
+    /**
+     * trenger ikke ha denne som static siden TaskManager er ApplicationScoped.
+     */
     private final ThreadLocal<ProsessTaskData> currentTask = new ThreadLocal<>();
 
     static final String TASK_PROP = "prosess_task";
@@ -119,7 +120,7 @@ public class TaskManager implements AppServiceHandler, Controllable {
 
     @Inject
     public TaskManager(TaskManagerRepositoryImpl taskManagerRepository, @Any Instance<ProsessTaskDispatcher> dispatcher) {
-        Objects.requireNonNull(taskManagerRepository, "taskManagerRepository"); 
+        Objects.requireNonNull(taskManagerRepository, "taskManagerRepository");
         this.taskManagerRepository = taskManagerRepository;
 
         if (dispatcher != null) {
@@ -129,7 +130,7 @@ public class TaskManager implements AppServiceHandler, Controllable {
              * ut info om det på en tråd.
              */
             class TrackCurrentDispatchedTask implements ProsessTaskDispatcher {
-                ProsessTaskDispatcher delegate = selectProsessTaskDispatcher(dispatcher);
+                final ProsessTaskDispatcher delegate = selectProsessTaskDispatcher(dispatcher);
 
                 @Override
                 public boolean feilhåndterException(Throwable e) {
@@ -147,7 +148,7 @@ public class TaskManager implements AppServiceHandler, Controllable {
                 }
 
                 @Override
-                public ProsessTaskHandlerRef taskHandler(TaskType taskType)  {
+                public ProsessTaskHandlerRef taskHandler(TaskType taskType) {
                     return delegate.taskHandler(taskType);
                 }
             }
@@ -172,7 +173,7 @@ public class TaskManager implements AppServiceHandler, Controllable {
                 // kast exception har fler enn 2 instanser tilgjengelig, vet ikke hvilken vi
                 // skal velge
                 throw new IllegalArgumentException(
-                        "Utvikler-feil: har flere mulige instanser å velge mellom, vet ikke hvilken som skal benyttes: " + dispatcherList);
+                    "Utvikler-feil: har flere mulige instanser å velge mellom, vet ikke hvilken som skal benyttes: " + dispatcherList);
             }
         } else {
             throw new IllegalArgumentException("Utvikler-feil: skal ikke komme hit (unsatifisied dependency) - har ingen ProsessTaskDispatcher");
@@ -180,7 +181,7 @@ public class TaskManager implements AppServiceHandler, Controllable {
     }
 
     public synchronized void setProsessTaskDispatcher(ProsessTaskDispatcher taskDispatcher) {
-        Objects.requireNonNull(taskDispatcher, "taskDispatcher"); 
+        Objects.requireNonNull(taskDispatcher, "taskDispatcher");
         this.taskDispatcher = taskDispatcher;
     }
 
@@ -212,8 +213,8 @@ public class TaskManager implements AppServiceHandler, Controllable {
             startPollerThread();
         } else {
             LOG.info(
-                    "Kan ikke starte {}, ingen tråder konfigurert, sjekk om du har konfigurert kontaineren din riktig bør ha minst en cpu tilgjengelig.",
-                    getClass().getSimpleName());
+                "Kan ikke starte {}, ingen tråder konfigurert, sjekk om du har konfigurert kontaineren din riktig bør ha minst en cpu tilgjengelig.",
+                getClass().getSimpleName());
         }
     }
 
@@ -239,12 +240,12 @@ public class TaskManager implements AppServiceHandler, Controllable {
         }
         if (pollingService == null) {
             this.pollingService = Executors
-                    .newSingleThreadScheduledExecutor(new NamedThreadFactory(threadPoolNamePrefix + "-poller", false));
+                .newSingleThreadScheduledExecutor(new NamedThreadFactory(threadPoolNamePrefix + "-poller", false));
         }
         this.pollingServiceScheduledFutures = List.of(
-                pollingService.scheduleWithFixedDelay(new PollAvailableTasks(), delayBetweenPollingMillis / 2, delayBetweenPollingMillis,
-                        TimeUnit.MILLISECONDS),
-                pollingService.scheduleWithFixedDelay(new FreeBlockedTasks(), 750L, 7500L, TimeUnit.MILLISECONDS));
+            pollingService.scheduleWithFixedDelay(new PollAvailableTasks(), delayBetweenPollingMillis / 2, delayBetweenPollingMillis,
+                TimeUnit.MILLISECONDS),
+            pollingService.scheduleWithFixedDelay(new FreeBlockedTasks(), 750L, 7500L, TimeUnit.MILLISECONDS));
 
         // schedulerer første runde, reschedulerer seg selv senere.
         pollingService.schedule(new MoveToDonePartition(), 30, TimeUnit.SECONDS);
@@ -267,17 +268,17 @@ public class TaskManager implements AppServiceHandler, Controllable {
      */
     protected synchronized List<IdentRunnable> pollForAvailableTasks() {
 
-        LocalDateTime now = LocalDateTime.now();
+        var now = LocalDateTime.now();
 
-        int capacity = getRunTaskService().remainingCapacity();
+        var capacity = getRunTaskService().remainingCapacity();
         if (reportRegularlyAndSkipIfNoAvailableCapacity(now, capacity)) {
             return Collections.emptyList();
         }
 
-        int numberOfTasksToPoll = Math.min(capacity, maxNumberOfTasksToPoll);
-        TaskManagerGenerateRunnableTasks pollDatabaseToRunnable = new TaskManagerGenerateRunnableTasks(getTaskDispatcher(), this::pollTasksFunksjon,
-                this::submitTask);
-        List<IdentRunnable> tasksFound = pollDatabaseToRunnable.execute(numberOfTasksToPoll);
+        var numberOfTasksToPoll = Math.min(capacity, maxNumberOfTasksToPoll);
+        var pollDatabaseToRunnable = new TaskManagerGenerateRunnableTasks(getTaskDispatcher(), this::pollTasksFunksjon,
+            this::submitTask);
+        var tasksFound = pollDatabaseToRunnable.execute(numberOfTasksToPoll);
 
         reportRegularlyIfNoTasksFound(now, tasksFound);
         return tasksFound;
@@ -298,11 +299,11 @@ public class TaskManager implements AppServiceHandler, Controllable {
 
     private boolean reportRegularlyAndSkipIfNoAvailableCapacity(LocalDateTime now, int capacity) {
         if (capacity < 1) {
-            long round = pollerRoundNoCapacityRounds.incrementAndGet();
+            var round = pollerRoundNoCapacityRounds.incrementAndGet();
             if (round % 60 == 0) {
                 LOG.warn(
-                        "Ingen ledig kapasitet i siste polling runder siden [{}].  Sjekk eventuelt om tasks blir kjørt eller om de henger/er treghet under kjøring.",
-                        pollerRoundNoCapacitySince.get());
+                    "Ingen ledig kapasitet i siste polling runder siden [{}].  Sjekk eventuelt om tasks blir kjørt eller om de henger/er treghet under kjøring.",
+                    pollerRoundNoCapacitySince.get());
             }
             // internal work queue already full, no point trying to push more
             return true;
@@ -314,12 +315,11 @@ public class TaskManager implements AppServiceHandler, Controllable {
     }
 
     List<IdentRunnable> pollTasksFunksjon(int numberOfTasksToPoll, ReadTaskFunksjon readTaskFunksjon) {
-        int numberOfTasksStillToGo = numberOfTasksToPoll;
 
-        Set<Long> inmemoryTaskIds = getRunTaskService().getTaskIds();
+        var inmemoryTaskIds = getRunTaskService().getTaskIds();
 
-        List<ProsessTaskEntitet> tasksEntiteter = taskManagerRepository
-                .pollNesteScrollingUpdate(numberOfTasksStillToGo, waitTimeBeforeNextPollingAttemptSecs, inmemoryTaskIds);
+        var tasksEntiteter = taskManagerRepository
+            .pollNesteScrollingUpdate(numberOfTasksToPoll, waitTimeBeforeNextPollingAttemptSecs, inmemoryTaskIds);
 
         return tasksEntiteter.stream().map(readTaskFunksjon).collect(Collectors.toList());
     }
@@ -337,7 +337,7 @@ public class TaskManager implements AppServiceHandler, Controllable {
 
             List<IdentRunnable> doWork() throws Exception {
 
-                EntityManager entityManager = getTransactionManagerRepository().getEntityManager();
+                var entityManager = getTransactionManagerRepository().getEntityManager();
                 try {
                     return super.apply(entityManager);
                 } finally {
@@ -355,7 +355,7 @@ public class TaskManager implements AppServiceHandler, Controllable {
          * simple backoff interval in seconds per round to account for transient
          * database errors.
          */
-        private final int[] backoffInterval = new int[] { 1, 2, 5, 5, 10, 10, 10, 10, 30 };
+        private final int[] backoffInterval = new int[]{1, 2, 5, 5, 10, 10, 10, 10, 30};
         private final AtomicInteger backoffRound = new AtomicInteger();
 
         /**
@@ -371,7 +371,7 @@ public class TaskManager implements AppServiceHandler, Controllable {
                 if (backoffRound.get() > 0) {
                     Thread.sleep(getBackoffIntervalSeconds());
                 }
-                List<IdentRunnable> availableTasks = new PollInNewTransaction().doWork();
+                var availableTasks = new PollInNewTransaction().doWork();
 
                 // dispatch etter commit
                 dispatchTasks(availableTasks);
@@ -382,14 +382,14 @@ public class TaskManager implements AppServiceHandler, Controllable {
             } catch (InterruptedException e) {
                 backoffRound.incrementAndGet();
                 Thread.currentThread().interrupt();
-            } catch (JDBCConnectionException e) { 
+            } catch (JDBCConnectionException e) {
                 backoffRound.incrementAndGet();
                 LOG.warn("PT-739415 Transient datase connection feil, venter til neste runde (runde={}): {}: {}",
-                        backoffRound.get(), e.getClass(), e.getMessage());
-            } catch (Exception e) { 
+                    backoffRound.get(), e.getClass(), e.getMessage());
+            } catch (Exception e) {
                 backoffRound.set(backoffInterval.length - 1); // force max delay (skal kun havne her for Exception/RuntimeException)
                 LOG.warn("PT-996896 Kunne ikke polle database, venter til neste runde(runde={})", backoffRound.get(), e);
-            } catch (Throwable t) { 
+            } catch (Throwable t) {
                 backoffRound.set(backoffInterval.length - 1); // force max delay (skal kun havne her for Error)
                 LOG.error("PT-996897 Kunne ikke polle grunnet kritisk feil, venter ({}s)", getBackoffIntervalSeconds(), t);
             }
@@ -411,15 +411,15 @@ public class TaskManager implements AppServiceHandler, Controllable {
                  *
                  * @see ScheduledExecutorService#scheduleWithFixedDelay
                  */
-                LOG.error("Polling fatal feil, logger exception men tråden vil bli drept", fatal);
+                LOG.error("Polling fatal feil, logger exception men tråden vil bli drept");
                 throw fatal;
             }
         }
 
         private void dispatchTasks(List<IdentRunnable> availableTasks) {
-            for (IdentRunnable task : availableTasks) {
+            for (var task : availableTasks) {
                 @SuppressWarnings("unused")
-                Future<?> future = submitTask(task); 
+                Future<?> future = submitTask(task);
                 // lar futures ligge, feil fanges i task
             }
         }
@@ -454,35 +454,33 @@ public class TaskManager implements AppServiceHandler, Controllable {
     }
 
     interface Work<R> {
-        R doWork(EntityManager em) throws Exception; 
+        R doWork(EntityManager em) throws Exception;
     }
 
     private static int getSystemPropertyWithLowerBoundry(String key, int defaultValue, int lowerBoundry) {
-        final String property = System.getProperty(key, String.valueOf(defaultValue));
-        final int systemPropertyValue = Integer.parseInt(property);
-        if (systemPropertyValue < lowerBoundry) {
-            return lowerBoundry;
-        }
-        return systemPropertyValue;
+        final var property = System.getProperty(key, String.valueOf(defaultValue));
+        final var systemPropertyValue = Integer.parseInt(property);
+        return Math.max(systemPropertyValue, lowerBoundry);
     }
 
     private static long getSystemPropertyWithLowerBoundry(String key, long defaultValue, long lowerBoundry) {
-        final String property = System.getProperty(key, String.valueOf(defaultValue));
-        final long systemPropertyValue = Long.parseLong(property);
-        if (systemPropertyValue < lowerBoundry) {
-            return lowerBoundry;
-        }
-        return systemPropertyValue;
+        final var property = System.getProperty(key, String.valueOf(defaultValue));
+        final var systemPropertyValue = Long.parseLong(property);
+        return Math.max(systemPropertyValue, lowerBoundry);
     }
 
-    /** Flytter fra KJOERT til FERDIG status i en separat tråd/transaksjon. */
+    /**
+     * Flytter fra KJOERT til FERDIG status i en separat tråd/transaksjon.
+     */
     class MoveToDonePartition implements Runnable {
 
-        /** splittet fra for å kjøre i {@link TransactionHandler}. */
+        /**
+         * splittet fra for å kjøre i {@link TransactionHandler}.
+         */
         private final class DoInNewTransaction extends TransactionHandler<Integer> {
 
             Integer doWork() throws Exception {
-                EntityManager entityManager = getTransactionManagerRepository().getEntityManager();
+                var entityManager = getTransactionManagerRepository().getEntityManager();
                 try {
                     return super.apply(entityManager);
                 } finally {
@@ -497,11 +495,13 @@ public class TaskManager implements AppServiceHandler, Controllable {
             }
         }
 
-        /** splittet fra {@link #run()} for å kjøre med ActivateRequestContext. */
+        /**
+         * splittet fra {@link #run()} for å kjøre med ActivateRequestContext.
+         */
         public Integer doWithContext() {
             try {
                 return new DoInNewTransaction().doWork();
-            } catch (Throwable t) { 
+            } catch (Throwable t) {
                 // logg, ikke rethrow feil her da det dreper trådene
                 LOG.error("Kunne ikke flytte KJOERT tasks til FERDIG partisjoner", t);
             }
@@ -512,8 +512,8 @@ public class TaskManager implements AppServiceHandler, Controllable {
         public void run() {
             RequestContextHandler.doWithRequestContext(this::doWithContext);
             // neste kjører mellom 1-10 min fra nå.
-            long min = 60L * 1000;
-            long delay = System.currentTimeMillis() % (9 * min);
+            var min = 60L * 1000;
+            var delay = System.currentTimeMillis() % (9 * min);
             pollingService.schedule(this, min + delay, TimeUnit.MILLISECONDS);
         }
 
@@ -525,11 +525,13 @@ public class TaskManager implements AppServiceHandler, Controllable {
      */
     class FreeBlockedTasks implements Runnable {
 
-        /** splittet fra for å kjøre i {@link TransactionHandler}. */
+        /**
+         * splittet fra for å kjøre i {@link TransactionHandler}.
+         */
         private final class DoInNewTransaction extends TransactionHandler<Integer> {
 
             Integer doWork() throws Exception {
-                EntityManager entityManager = getTransactionManagerRepository().getEntityManager();
+                var entityManager = getTransactionManagerRepository().getEntityManager();
                 try {
                     return super.apply(entityManager);
                 } finally {
@@ -544,11 +546,13 @@ public class TaskManager implements AppServiceHandler, Controllable {
             }
         }
 
-        /** splittet fra {@link #run()} for å kjøre med ActivateRequestContext. */
+        /**
+         * splittet fra {@link #run()} for å kjøre med ActivateRequestContext.
+         */
         public Integer doWithContext() {
             try {
                 return new DoInNewTransaction().doWork();
-            } catch (Throwable t) { 
+            } catch (Throwable t) {
                 // logg, ikke rethrow feil her da det dreper trådene
                 LOG.error("Kunne ikke unblokkerer tasks som kan frigis", t);
             }
@@ -562,14 +566,18 @@ public class TaskManager implements AppServiceHandler, Controllable {
 
     }
 
-    /** Oppdaterer TaskMonitor med ferske tall for tasks pr status. */
+    /**
+     * Oppdaterer TaskMonitor med ferske tall for tasks pr status.
+     */
     class UpdateTaskMonitor implements Runnable {
 
-        /** splittet fra for å kjøre i {@link TransactionHandler}. */
+        /**
+         * splittet fra for å kjøre i {@link TransactionHandler}.
+         */
         private final class DoInNewTransaction extends TransactionHandler<Integer> {
 
             Integer doWork() throws Exception {
-                EntityManager entityManager = getTransactionManagerRepository().getEntityManager();
+                var entityManager = getTransactionManagerRepository().getEntityManager();
                 try {
                     return super.apply(entityManager);
                 } finally {
@@ -586,11 +594,13 @@ public class TaskManager implements AppServiceHandler, Controllable {
             }
         }
 
-        /** splittet fra {@link #run()} for å kjøre med ActivateRequestContext. */
+        /**
+         * splittet fra {@link #run()} for å kjøre med ActivateRequestContext.
+         */
         public Integer doWithContext() {
             try {
                 return new DoInNewTransaction().doWork();
-            } catch (Throwable t) { 
+            } catch (Throwable t) {
                 // logg, ikke rethrow feil her da det dreper trådene
                 LOG.error("Kunne ikke telle tasks pr status", t);
             }
@@ -601,8 +611,8 @@ public class TaskManager implements AppServiceHandler, Controllable {
         public void run() {
             RequestContextHandler.doWithRequestContext(this::doWithContext);
             // neste kjører mellom 3-9 min fra nå.
-            long min = 3L * 60 * 1000;
-            long delay = System.currentTimeMillis() % (2 * min);
+            var min = 3L * 60 * 1000;
+            var delay = System.currentTimeMillis() % (2 * min);
             pollingService.schedule(this, min + delay, TimeUnit.MILLISECONDS);
         }
 
@@ -617,8 +627,8 @@ public class TaskManager implements AppServiceHandler, Controllable {
 
         IdentExecutorService() {
             executor = new ThreadPoolExecutor(numberOfTaskRunnerThreads, numberOfTaskRunnerThreads, 0L, TimeUnit.MILLISECONDS,
-                    new ArrayBlockingQueue<>(maxNumberOfTasksToPoll),
-                    new NamedThreadFactory(threadPoolNamePrefix + "-runtask", true)) { 
+                new ArrayBlockingQueue<>(maxNumberOfTasksToPoll),
+                new NamedThreadFactory(threadPoolNamePrefix + "-runtask", true)) {
 
                 @Override
                 protected void afterExecute(Runnable r, Throwable t) {
@@ -635,7 +645,7 @@ public class TaskManager implements AppServiceHandler, Controllable {
 
                 @Override
                 protected <T> RunnableFuture<T> newTaskFor(Runnable runnable, T value) {
-                    return new IdentFutureTask<T>((IdentRunnable) runnable, value);
+                    return new IdentFutureTask<>((IdentRunnable) runnable, value);
                 }
 
             };
@@ -651,9 +661,9 @@ public class TaskManager implements AppServiceHandler, Controllable {
 
         Set<Long> getTaskIds() {
             return executor.getQueue().stream()
-                    .map(IdentFutureTask.class::cast)
-                    .map(IdentFutureTask::getId)
-                    .collect(Collectors.toSet());
+                .map(IdentFutureTask.class::cast)
+                .map(IdentFutureTask::getId)
+                .collect(Collectors.toSet());
         }
 
         void stop() {
@@ -683,7 +693,9 @@ public class TaskManager implements AppServiceHandler, Controllable {
             return id;
         }
 
-        /** Tid denne future tasken ble opprettet (i minne). */
+        /**
+         * Tid denne future tasken ble opprettet (i minne).
+         */
         @Override
         public LocalDateTime getCreateTime() {
             return createTime;

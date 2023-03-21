@@ -14,7 +14,7 @@ class TaskManagerRunnableTask implements Runnable {
     private final TaskType taskType;
     private final RunTaskInfo taskInfo;
     private final String callId;
-    private Consumer<IdentRunnable> fatalErrorSubmitFunc;
+    private final Consumer<IdentRunnable> fatalErrorSubmitFunc;
 
     TaskManagerRunnableTask(TaskType taskType, RunTaskInfo taskInfo, String callId, Consumer<IdentRunnable> fatalErrorSubmitFunc) {
         this.taskType = taskType;
@@ -26,8 +26,8 @@ class TaskManagerRunnableTask implements Runnable {
     @Override
     public void run() {
         MDC.clear();
-        
-        RunTask runSingleTask = newRunTaskInstance();
+
+        var runSingleTask = newRunTaskInstance();
         IdentRunnable errorCallback = null;
         try {
             initLogContext(callId, taskType, taskInfo.getId());
@@ -40,7 +40,7 @@ class TaskManagerRunnableTask implements Runnable {
             errorCallback = lagErrorCallback(taskInfo, callId, fatal);
         } catch (Exception e) {
             errorCallback = lagErrorCallback(taskInfo, callId, e);
-        } catch (Throwable t) { 
+        } catch (Throwable t) {
             errorCallback = lagErrorCallback(taskInfo, callId, t);
         } finally {
             clearLogContext();
@@ -50,7 +50,7 @@ class TaskManagerRunnableTask implements Runnable {
             handleErrorCallback(errorCallback);
         }
     }
-    
+
     IdentRunnable lagErrorCallback(final RunTaskInfo taskInfo, final String callId, final Throwable fatal) {
         Runnable errorCallback;
         var mdcCopy = MDC.getCopyOfContextMap();
@@ -60,7 +60,7 @@ class TaskManagerRunnableTask implements Runnable {
             try {
                 initLogContext(callId, taskInfo.getTaskType(), taskInfo.getId());
                 errorTask.doRun(taskInfo, fatal);
-            } catch (Throwable t) {  
+            } catch (Throwable t) {
                 // logg at vi ikke klarte å registrer feilen i db
                 TaskManagerGenerateRunnableTasks.log.error(
                         "PT-415565 Kunne ikke registrere feil på task pga uventet feil ved oppdatering av status/feil, id={}, taskName={}.", taskInfo.getId(), taskInfo.getTaskType(), t);
@@ -91,7 +91,7 @@ class TaskManagerRunnableTask implements Runnable {
         MDC.put(TaskManager.TASK_PROP, taskType.value());
         MDC.put(TaskManager.TASK_ID_PROP, taskId.toString());
     }
-    
+
     void handleErrorCallback(IdentRunnable errorCallback) {
         if (errorCallback != null) {
             // NB - kjøres i annen transaksjon enn opprinnelig

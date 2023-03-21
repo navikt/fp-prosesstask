@@ -11,7 +11,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import no.nav.vedtak.felles.prosesstask.api.CallId;
-import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskDispatcher;
 import no.nav.vedtak.felles.prosesstask.api.TaskType;
 import no.nav.vedtak.felles.prosesstask.impl.TaskManager.ReadTaskFunksjon;
@@ -27,7 +26,7 @@ public class TaskManagerGenerateRunnableTasks {
 
     /**
      * Constructor
-     * 
+     *
      * @param taskDispatcher - dispatcher som skal velge implementasjon og kjøre en spesifikk task
      * @param availableTasksFunc - funksjon for å polle tilgenglige tasks
      */
@@ -44,12 +43,11 @@ public class TaskManagerGenerateRunnableTasks {
     }
 
     IdentRunnable readTask(ProsessTaskEntitet pte) {
-        ProsessTaskData prosessTaskData = pte.tilProsessTask();
-        final RunTaskInfo taskInfo = new RunTaskInfo(taskDispatcher, prosessTaskData);
-        final String callId = pte.getPropertyValue(CallId.CALL_ID);
+        var prosessTaskData = pte.tilProsessTask();
+        final var taskInfo = new RunTaskInfo(taskDispatcher, prosessTaskData);
+        final var callId = pte.getPropertyValue(CallId.CALL_ID);
         var taskType = pte.getTaskType();
-        IdentRunnable r = createRunnable(taskInfo, callId, taskType);
-        return r;
+        return createRunnable(taskInfo, callId, taskType);
     }
 
     private IdentRunnable createRunnable(final RunTaskInfo taskInfo, final String callId, TaskType taskType) {

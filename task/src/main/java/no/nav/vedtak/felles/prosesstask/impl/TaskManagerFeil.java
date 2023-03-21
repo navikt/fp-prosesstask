@@ -11,6 +11,8 @@ import no.nav.vedtak.felles.prosesstask.api.TaskType;
  */
 class TaskManagerFeil  {
 
+    private TaskManagerFeil() {
+    }
 
     static Feil kunneIkkeProsessereTaskVilPrøveIgjenEnkelFeilmelding(Long taskId, TaskType taskName, int failureAttempt, LocalDateTime localDateTime, Exception e) {
         return new Feil("PT-415564",
@@ -33,7 +35,7 @@ class TaskManagerFeil  {
                         taskId, taskName.value(), feiletAntall),
                 Level.WARN, t);
     }
-    
+
     static Feil kunneIkkeProsessereTaskFeilKonfigurasjon(Long id, TaskType name, Exception e) {
         return new Feil("PT-853562",
                 String.format("Kunne ikke prosessere task, id=%s, taskName=%s. Feil konfigurasjon",
@@ -49,5 +51,5 @@ class TaskManagerFeil  {
                 Level.INFO, null);
     }
 
-    
+
 }

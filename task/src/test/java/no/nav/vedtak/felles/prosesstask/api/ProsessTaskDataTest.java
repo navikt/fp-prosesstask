@@ -32,8 +32,7 @@ class ProsessTaskDataTest {
         // Assert
         assertThat(original.getStatus()).isEqualTo(ProsessTaskStatus.VENTER_SVAR);
         var venterPå = original.getVentetHendelse();
-        assertThat(venterPå).isPresent();
-        assertThat(venterPå).hasValue(HENDELSE_KEY);
+        assertThat(venterPå).isPresent().hasValue(HENDELSE_KEY);
     }
 
     @Test

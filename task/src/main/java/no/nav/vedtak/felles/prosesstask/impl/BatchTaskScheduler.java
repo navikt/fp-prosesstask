@@ -10,7 +10,6 @@ import javax.transaction.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import no.nav.vedtak.apptjeneste.AppServiceHandler;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskStatus;
 import no.nav.vedtak.log.metrics.Controllable;
 
@@ -20,7 +19,7 @@ import no.nav.vedtak.log.metrics.Controllable;
 @ApplicationScoped
 @ActivateRequestContext
 @Transactional
-public class BatchTaskScheduler implements AppServiceHandler, Controllable {
+public class BatchTaskScheduler implements Controllable {
 
     private static final Logger LOG = LoggerFactory.getLogger(BatchTaskScheduler.class);
     private TaskManagerRepositoryImpl taskRepository;
@@ -56,6 +55,6 @@ public class BatchTaskScheduler implements AppServiceHandler, Controllable {
 
     @Override
     public void stop() {
-
+        // Ingenting å stoppe
     }
 }

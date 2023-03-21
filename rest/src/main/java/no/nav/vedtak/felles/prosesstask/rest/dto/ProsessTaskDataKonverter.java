@@ -13,7 +13,7 @@ public class ProsessTaskDataKonverter {
     }
 
     public static ProsessTaskDataDto tilProsessTaskDataDto(ProsessTaskData data) {
-        ProsessTaskDataDto dto = new ProsessTaskDataDto();
+        var dto = new ProsessTaskDataDto();
 
         dto.setId(data.getId());
         dto.setTaskType(data.getTaskType());
@@ -29,7 +29,7 @@ public class ProsessTaskDataKonverter {
     }
 
     public static FeiletProsessTaskDataDto tilFeiletProsessTaskDataDto(ProsessTaskData data) {
-        FeiletProsessTaskDataDto dto = new FeiletProsessTaskDataDto();
+        var dto = new FeiletProsessTaskDataDto();
 
         dto.setProsessTaskDataDto(tilProsessTaskDataDto(data));
 

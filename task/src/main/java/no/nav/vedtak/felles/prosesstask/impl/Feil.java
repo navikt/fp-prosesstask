@@ -6,7 +6,7 @@ import org.slf4j.event.Level;
 public record Feil(String kode, String feilmelding, Level logLevel, Throwable cause) {
 
     private String toLogString() {
-        return (kode + ":" + feilmelding).replaceAll("(\\r|\\n)", "");
+        return (kode + ":" + feilmelding).replaceAll("\\R", "");
     }
 
     @Override

@@ -12,13 +12,12 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
  * This provides cron support for java8 using java-time.
  * <P>
- * 
+ *
  * Parser for unix-like cron expressions: Cron expressions allow specifying combinations of criteria for time
  * such as: &quot;Each Monday-Friday at 08:00&quot; or &quot;Every last friday of the month at 01:30&quot;
  * <p>
@@ -216,7 +215,8 @@ public class CronExpression {
             }
         };
 
-        final int from, to;
+        final int from;
+        final int to;
         final List<String> names;
 
         CronFieldType(int from, int to, List<String> names) {
@@ -261,13 +261,13 @@ public class CronExpression {
 
     public CronExpression(final String expr, final boolean withSeconds) {
         if (expr == null) {
-            throw new IllegalArgumentException("expr is null"); 
+            throw new IllegalArgumentException("expr is null");
         }
 
         this.expr = expr;
 
         final int expectedParts = withSeconds ? 6 : 5;
-        final String[] parts = expr.split("\\s+"); 
+        final String[] parts = expr.split("\\s+");
         if (parts.length != expectedParts) {
             throw new IllegalArgumentException(String.format("Invalid cron expression [%s], expected %s field, got %s", expr, expectedParts, parts.length));
         }
@@ -299,7 +299,7 @@ public class CronExpression {
     public LocalDateTime nextLocalDateTimeAfter(LocalDateTime dateTime) {
         return nextTimeAfter(ZonedDateTime.of(dateTime, ZoneId.systemDefault())).toLocalDateTime();
     }
-    
+
     public ZonedDateTime nextTimeAfter(ZonedDateTime afterTime, long durationInMillis) {
         // will search for the next time within the next durationInMillis
         // millisecond. Be aware that the duration is specified in millis,
@@ -315,7 +315,7 @@ public class CronExpression {
             if (!monthField.nextMatch(nextDateTime)) {
                 continue;
             }
-            if (!findDay(nextDateTime, dateTimeBarrier)) {
+            if (!findDay(nextDateTime)) {
                 continue;
             }
             if (!hourField.nextMatch(nextDateTime)) {
@@ -340,11 +340,10 @@ public class CronExpression {
      * to handle them together in the same method.
      *
      * @param dateTime        Initial {@link ZonedDateTime} instance to start from
-     * @param dateTimeBarrier At which point stop searching for next execution time
      * @return {@code true} if a match was found for this field or {@code false} if the field overflowed
      * @see {@link SimpleField#nextMatch(ZonedDateTime[])}
      */
-    private boolean findDay(ZonedDateTime[] dateTime, ZonedDateTime dateTimeBarrier) {
+    private boolean findDay(ZonedDateTime[] dateTime) {
         int month = dateTime[0].getMonthValue();
 
             while (!(dayOfMonthField.matches(dateTime[0].toLocalDate())
@@ -370,7 +369,8 @@ public class CronExpression {
 
     static class FieldPart implements Comparable<FieldPart> {
         private int from = -1, to = -1, increment = -1;
-        private String modifier, incrementModifier;
+        private String modifier;
+        private String incrementModifier;
 
         @Override
         public int compareTo(FieldPart o) {
@@ -401,20 +401,20 @@ public class CronExpression {
             parse(fieldExpr);
         }
 
-        private void parse(String fieldExpr) { 
-            String[] rangeParts = fieldExpr.split(",");
-            for (String rangePart : rangeParts) {
-                Matcher m = CRON_FIELD_REGEXP.matcher(rangePart);
+        private void parse(String fieldExpr) {
+            var rangeParts = fieldExpr.split(",");
+            for (var rangePart : rangeParts) {
+                var m = CRON_FIELD_REGEXP.matcher(rangePart);
                 if (!m.matches()) {
                     throw new IllegalArgumentException("Invalid cron field '" + rangePart + "' for field [" + fieldType + "]");
                 }
-                String startNummer = m.group("start");
-                String modifier = m.group("mod");
-                String sluttNummer = m.group("end");
-                String incrementModifier = m.group("incmod");
-                String increment = m.group("inc");
+                var startNummer = m.group("start");
+                var modifier = m.group("mod");
+                var sluttNummer = m.group("end");
+                var incrementModifier = m.group("incmod");
+                var increment = m.group("inc");
 
-                FieldPart part = new FieldPart();
+                var part = new FieldPart();
                 part.increment = 999;
                 if (startNummer != null) {
                     part.from = mapValue(startNummer);

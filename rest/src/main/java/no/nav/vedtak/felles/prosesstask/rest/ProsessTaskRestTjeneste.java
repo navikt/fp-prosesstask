@@ -2,7 +2,6 @@ package no.nav.vedtak.felles.prosesstask.rest;
 
 import java.net.HttpURLConnection;
 import java.util.List;
-import java.util.Optional;
 
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
@@ -49,12 +48,12 @@ import no.nav.vedtak.sikkerhet.abac.beskyttet.ActionType;
 @Transactional
 public class ProsessTaskRestTjeneste {
 
-    private static final Logger logger = LoggerFactory.getLogger(ProsessTaskRestTjeneste.class);
+    private static final Logger LOG = LoggerFactory.getLogger(ProsessTaskRestTjeneste.class);
     private static final String ABAC_DRIFT_ATTRIBUTT = "abac.attributt.drift";
 
     private ProsessTaskApplikasjonTjeneste prosessTaskApplikasjonTjeneste;
 
-    public ProsessTaskRestTjeneste() {
+    ProsessTaskRestTjeneste() {
         // REST CDI
     }
 
@@ -73,7 +72,7 @@ public class ProsessTaskRestTjeneste {
     @BeskyttetRessurs(actionType = ActionType.CREATE, property = ABAC_DRIFT_ATTRIBUTT)
     public ProsessTaskDataDto createProsessTask(@Parameter(description = "Informasjon for restart en eksisterende prosesstask") @TilpassetAbacAttributt(supplierClass = AbacEmptySupplier.class) @Valid ProsessTaskOpprettInputDto inputDto) {
         // kjøres manuelt for å avhjelpe feilsituasjon, da er det veldig greit at det blir logget!
-        logger.info("Oppretter prossess task av type {}", inputDto.getTaskType());
+        LOG.info("Oppretter prossess task av type {}", inputDto.getTaskType());
         return prosessTaskApplikasjonTjeneste.opprettTask(inputDto);
     }
 
@@ -89,7 +88,7 @@ public class ProsessTaskRestTjeneste {
     @BeskyttetRessurs(actionType = ActionType.CREATE, property = ABAC_DRIFT_ATTRIBUTT, sporingslogg = false)
     public ProsessTaskRestartResultatDto restartProsessTask(@Parameter(description = "Informasjon for restart en eksisterende prosesstask") @TilpassetAbacAttributt(supplierClass = AbacEmptySupplier.class) @Valid ProsessTaskRestartInputDto restartInputDto) {
         // kjøres manuelt for å avhjelpe feilsituasjon, da er det veldig greit at det blir logget!
-        logger.info("Restarter prossess task {}", restartInputDto.getProsessTaskId());
+        LOG.info("Restarter prossess task {}", restartInputDto.getProsessTaskId());
         return prosessTaskApplikasjonTjeneste.flaggProsessTaskForRestart(restartInputDto);
     }
 
@@ -103,7 +102,7 @@ public class ProsessTaskRestTjeneste {
     @BeskyttetRessurs(actionType = ActionType.CREATE, property = ABAC_DRIFT_ATTRIBUTT, sporingslogg = false)
     public ProsessTaskRetryAllResultatDto retryAllProsessTask() {
         // kjøres manuelt for å avhjelpe feilsituasjon, da er det veldig greit at det blir logget!
-        logger.info("Restarter alle prossess task i status FEILET");
+        LOG.info("Restarter alle prossess task i status FEILET");
         return prosessTaskApplikasjonTjeneste.flaggAlleFeileteProsessTasksForRestart();
     }
 
@@ -115,8 +114,7 @@ public class ProsessTaskRestTjeneste {
     })
     @BeskyttetRessurs(actionType = ActionType.READ, property = ABAC_DRIFT_ATTRIBUTT)
     public List<ProsessTaskDataDto> finnProsessTasks(@Parameter(description = "Liste av statuser som skal hentes.") @TilpassetAbacAttributt(supplierClass = AbacEmptySupplier.class) @Valid StatusFilterDto statusFilterDto) {
-        List<ProsessTaskDataDto> resultat = prosessTaskApplikasjonTjeneste.finnAlle(statusFilterDto);
-        return resultat;
+        return prosessTaskApplikasjonTjeneste.finnAlle(statusFilterDto);
     }
 
     @POST
@@ -127,21 +125,20 @@ public class ProsessTaskRestTjeneste {
     })
     @BeskyttetRessurs(actionType = ActionType.READ, property = ABAC_DRIFT_ATTRIBUTT)
     public List<ProsessTaskDataDto> searchProsessTasks(@Parameter(description = "Søkefilter for å begrense resultatet av returnerte prosesstask.") @TilpassetAbacAttributt(supplierClass = AbacEmptySupplier.class) @Valid SokeFilterDto sokeFilterDto) {
-        List<ProsessTaskDataDto> resultat = prosessTaskApplikasjonTjeneste.søk(sokeFilterDto);
-        return resultat;
+        return prosessTaskApplikasjonTjeneste.søk(sokeFilterDto);
     }
 
     @POST
     @Path("/feil")
     @Consumes(MediaType.APPLICATION_JSON)
     @Operation(description = "Henter informasjon om feilet prosesstask med angitt prosesstask-id", tags = "prosesstask", responses = {
-            @ApiResponse(responseCode = "200", description = "Angit prosesstask-id finnes", content = @Content(mediaType = "application/json", schema = @Schema(implementation = FeiletProsessTaskDataDto.class))),
+            @ApiResponse(responseCode = "200", description = "Angitt prosesstask-id finnes", content = @Content(mediaType = "application/json", schema = @Schema(implementation = FeiletProsessTaskDataDto.class))),
             @ApiResponse(responseCode = "404", description = "Tom respons når angitt prosesstask-id ikke finnes"),
             @ApiResponse(responseCode = "400", description = "Feil input")
     })
     @BeskyttetRessurs(actionType = ActionType.READ, property = ABAC_DRIFT_ATTRIBUTT)
     public Response finnFeiletProsessTask(@NotNull @Parameter(description = "Prosesstask-id for feilet prosesstask") @TilpassetAbacAttributt(supplierClass = AbacEmptySupplier.class) @Valid ProsessTaskIdDto prosessTaskIdDto) {
-        Optional<FeiletProsessTaskDataDto> resultat = prosessTaskApplikasjonTjeneste.finnFeiletProsessTask(prosessTaskIdDto.getProsessTaskId());
+        var resultat = prosessTaskApplikasjonTjeneste.finnFeiletProsessTask(prosessTaskIdDto.getProsessTaskId());
         if (resultat.isPresent()) {
             return Response.ok(resultat.get()).build();
         }
@@ -160,5 +157,4 @@ public class ProsessTaskRestTjeneste {
         prosessTaskApplikasjonTjeneste.setProsessTaskFerdig(prosessTaskIdDto.getProsessTaskId(), ProsessTaskStatus.valueOf(prosessTaskIdDto.getNaaVaaerendeStatus()));
         return Response.ok().build();
     }
-
 }

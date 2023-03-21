@@ -28,6 +28,7 @@ public class ProsessTaskApplikasjonTjeneste {
     private ProsessTaskTjeneste prosessTaskTjeneste;
 
     ProsessTaskApplikasjonTjeneste() {
+        // CDI
     }
 
     @Inject
@@ -43,20 +44,20 @@ public class ProsessTaskApplikasjonTjeneste {
             statusFilterDto.getProsessTaskStatuser().add(new ProsessTaskStatusDto(ProsessTaskStatus.VENTER_SVAR.getDbKode()));
         }
 
-        List<ProsessTaskStatus> statuser = statusFilterDto.getProsessTaskStatuser().stream().map(e -> ProsessTaskStatus.valueOf(e.getProsessTaskStatusName())).toList();
-        List<ProsessTaskData> prosessTaskData = prosessTaskTjeneste.finnAlleStatuser(statuser);
+        var statuser = statusFilterDto.getProsessTaskStatuser().stream().map(e -> ProsessTaskStatus.valueOf(e.getProsessTaskStatusName())).toList();
+        var prosessTaskData = prosessTaskTjeneste.finnAlleStatuser(statuser);
         return prosessTaskData.stream().map(ProsessTaskDataKonverter::tilProsessTaskDataDto).toList();
     }
 
     public List<ProsessTaskDataDto> søk(SokeFilterDto sokeFilterDto) {
 
-        List<ProsessTaskData> prosessTaskData = prosessTaskTjeneste.finnAlleMedParameterTekst(sokeFilterDto.getTekst(),
+        var prosessTaskData = prosessTaskTjeneste.finnAlleMedParameterTekst(sokeFilterDto.getTekst(),
                 sokeFilterDto.getOpprettetFraOgMed(), sokeFilterDto.getOpprettetTilOgMed());
         return prosessTaskData.stream().map(ProsessTaskDataKonverter::tilProsessTaskDataDto).toList();
     }
 
     public Optional<FeiletProsessTaskDataDto> finnFeiletProsessTask(Long prosessTaskId) {
-        ProsessTaskData taskData = prosessTaskTjeneste.finn(prosessTaskId);
+        var taskData = prosessTaskTjeneste.finn(prosessTaskId);
         if (taskData != null && ProsessTaskStatus.FEILET.equals(taskData.getStatus())) {
             return Optional.of(ProsessTaskDataKonverter.tilFeiletProsessTaskDataDto(taskData));
         }
@@ -70,7 +71,7 @@ public class ProsessTaskApplikasjonTjeneste {
     public ProsessTaskRestartResultatDto flaggProsessTaskForRestart(ProsessTaskRestartInputDto prosessTaskRestartInputDto) {
         prosessTaskTjeneste.flaggProsessTaskForRestart(prosessTaskRestartInputDto.getProsessTaskId(), prosessTaskRestartInputDto.getNaaVaaerendeStatus());
 
-        ProsessTaskRestartResultatDto restartResultatDto = new ProsessTaskRestartResultatDto();
+        var restartResultatDto = new ProsessTaskRestartResultatDto();
         restartResultatDto.setNesteKjoeretidspunkt(LocalDateTime.now());
         restartResultatDto.setProsessTaskId(prosessTaskRestartInputDto.getProsessTaskId());
         restartResultatDto.setProsessTaskStatus(ProsessTaskStatus.KLAR.getDbKode());
@@ -78,7 +79,7 @@ public class ProsessTaskApplikasjonTjeneste {
     }
 
     public ProsessTaskRetryAllResultatDto flaggAlleFeileteProsessTasksForRestart() {
-        ProsessTaskRetryAllResultatDto retryAllResultatDto = new ProsessTaskRetryAllResultatDto();
+        var retryAllResultatDto = new ProsessTaskRetryAllResultatDto();
 
         prosessTaskTjeneste.flaggAlleFeileteProsessTasksForRestart().forEach(retryAllResultatDto::addProsessTaskId);
 
@@ -86,7 +87,7 @@ public class ProsessTaskApplikasjonTjeneste {
     }
 
     public ProsessTaskDataDto opprettTask(ProsessTaskOpprettInputDto inputDto) {
-        ProsessTaskData taskData = ProsessTaskData.forTaskType(new TaskType(inputDto.getTaskType()));
+        var taskData = ProsessTaskData.forTaskType(new TaskType(inputDto.getTaskType()));
         taskData.setProperties(inputDto.getTaskParametre());
         prosessTaskTjeneste.lagreValidert(taskData);
 

@@ -63,7 +63,7 @@ class ProsessTaskTjenesteImplTest {
 
         when(prosessTaskRepositoryMock.lagre(any(ProsessTaskData.class))).thenReturn("gruppe-id");
 
-        var gid = prosessTaskTjeneste.lagreValidert(ptd);
+        prosessTaskTjeneste.lagreValidert(ptd);
 
         var argumentCaptor = ArgumentCaptor.forClass(ProsessTaskGruppe.class);
         verify(prosessTaskRepositoryMock).lagre(argumentCaptor.capture());
@@ -83,8 +83,7 @@ class ProsessTaskTjenesteImplTest {
             prosessTaskTjeneste.lagreValidert(ptd);
         });
         verify(prosessTaskRepositoryMock, never()).lagre(any(ProsessTaskData.class));
-        assertThat(message).hasMessageContaining(ProsessTaskData.MANGLER_PROPS);
-        assertThat(message).hasMessageContaining(REQUIRED_PROPERTY);
+        assertThat(message).hasMessageContaining(ProsessTaskData.MANGLER_PROPS).hasMessageContaining(REQUIRED_PROPERTY);
     }
 
     @Test
@@ -97,8 +96,7 @@ class ProsessTaskTjenesteImplTest {
             prosessTaskTjeneste.lagreValidert(ptd);
         });
         verify(prosessTaskRepositoryMock, never()).lagre(any(ProsessTaskData.class));
-        assertThat(message).hasMessageContaining(ProsessTaskTjenesteImpl.MANGLER_IMPL);
-        assertThat(message).hasMessageContaining("abc");
+        assertThat(message).hasMessageContaining(ProsessTaskTjenesteImpl.MANGLER_IMPL).hasMessageContaining("abc");
     }
 
 }
