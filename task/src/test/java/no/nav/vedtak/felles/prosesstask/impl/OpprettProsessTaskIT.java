@@ -5,19 +5,19 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 import no.nav.vedtak.felles.prosesstask.JpaExtension;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskGruppe;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskStatus;
 import no.nav.vedtak.felles.prosesstask.api.TaskType;
-import no.nav.vedtak.felles.testutilities.db.EntityManagerAwareTest;
 
-@ExtendWith(JpaExtension.class)
-class OpprettProsessTaskIT extends EntityManagerAwareTest {
+class OpprettProsessTaskIT {
 
-    private final ProsessTaskRepository repo = new ProsessTaskRepository(getEntityManager(), null, null);
+    @RegisterExtension
+    public static final JpaExtension repoRule = new JpaExtension();
+    private final ProsessTaskRepository repo = new ProsessTaskRepository(repoRule.getEntityManager(), null, null);
 
     @Test
     void skal_lagre_ProsessTask() {
@@ -38,7 +38,7 @@ class OpprettProsessTaskIT extends EntityManagerAwareTest {
 
         // Act
         repo.lagre(sammensatt);
-        getEntityManager().flush();
+        repoRule.getEntityManager().flush();
 
         var list = repo.finnAlle(List.of(ProsessTaskStatus.KLAR));
         assertThat(list).hasSize(2).containsOnly(pt1, pt2);
