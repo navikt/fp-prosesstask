@@ -7,11 +7,14 @@ on:
     paths-ignore:
       - '**.md'
       - '**.MD'
+      - '.editorconfig'
       - '.gitignore'
+      - '.java-version'
       - 'LICENSE'
       - 'CODEOWNERS'
-      - 'dokumentasjon/**'
+      - 'docs/**'
       - 'lokalutvikling/**'
+      - '.github/*.yml'
   schedule:
     - cron: '0 4 * * 1'
 
