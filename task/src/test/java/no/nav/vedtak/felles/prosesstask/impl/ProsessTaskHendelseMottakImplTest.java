@@ -40,7 +40,7 @@ class ProsessTaskHendelseMottakImplTest {
 
     @RegisterExtension
     public static final JpaExtension repoRule = new JpaExtension();
-    
+
     private MemoryAppender logSniffer = MemoryAppender.sniff(TaskManager.class);
 
     private ProsessTaskTjeneste prosessTaskTjeneste;
@@ -53,7 +53,7 @@ class ProsessTaskHendelseMottakImplTest {
 
     @Mock
     private ProsessTaskData taskSomIkkeVenter;
-    
+
     @Inject
     private TaskManagerRepositoryImpl taskManagerRepo;
 
@@ -62,7 +62,7 @@ class ProsessTaskHendelseMottakImplTest {
         var logger = (Logger) LoggerFactory.getLogger(TaskManager.class);
         logger.detachAppender(logSniffer.getName());
     }
-    
+
     @BeforeEach
     public void setUp() throws Exception {
         prosessTaskTjeneste = new ProsessTaskTjenesteImpl(repo);
@@ -103,7 +103,7 @@ class ProsessTaskHendelseMottakImplTest {
 
     @Test
     void skal_logge_transient_feil_under_polling() throws Exception {
-        TaskManager taskManager = new TaskManager(taskManagerRepo, null) {
+        var taskManager = new TaskManager(taskManagerRepo, null) {
             @Override
             protected List<IdentRunnable> pollForAvailableTasks() {
                 throw new JDBCConnectionException("NOT AVAILABLE!", null);
@@ -118,7 +118,7 @@ class ProsessTaskHendelseMottakImplTest {
 
     @Test
     void skal_logge_annen_feil_under_polling() throws Exception {
-        TaskManager taskManager = new TaskManager(taskManagerRepo, null) {
+        var taskManager = new TaskManager(taskManagerRepo, null) {
             @Override
             protected List<IdentRunnable> pollForAvailableTasks() {
                 throw new RuntimeException("HERE BE DRAGONS!");

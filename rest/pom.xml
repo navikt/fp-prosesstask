@@ -14,7 +14,6 @@
     <packaging>jar</packaging>
 
     <dependencies>
-
         <dependency>
             <!-- Trengs for implementasjon av TaskManager -->
             <groupId>no.nav.vedtak.prosesstask</groupId>
@@ -42,12 +41,10 @@
         </dependency>
 
         <dependency>
-            <!-- Trengs for REST grensesnitt -->
             <groupId>io.swagger.core.v3</groupId>
-            <artifactId>swagger-jaxrs2</artifactId>
+            <artifactId>swagger-annotations</artifactId>
             <scope>provided</scope>
         </dependency>
-
     </dependencies>
 
 </project>
