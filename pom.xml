@@ -54,6 +54,8 @@
 		<sonar.projectKey>navikt_fp-prosesstask</sonar.projectKey>
 
 		<felles.version>4.2.36</felles.version>
+
+        <jakarta.persistence.version>2.2.3</jakarta.persistence.version>
 	</properties>
 
 	<repositories>
@@ -66,6 +68,21 @@
 
 	<dependencyManagement>
 		<dependencies>
+            <!-- Jakarta EE API BOM -->
+            <dependency>
+                <groupId>jakarta.platform</groupId>
+                <artifactId>jakarta.jakartaee-bom</artifactId>
+                <version>8.0.0</version>
+                <scope>import</scope>
+                <type>pom</type>
+            </dependency>
+            <dependency>
+                <!-- kan fjernes ved Jakarta EE 9/ oppgradering av jakarta.platform -->
+                <groupId>jakarta.persistence</groupId>
+                <artifactId>jakarta.persistence-api</artifactId>
+                <version>${jakarta.persistence.version}</version>
+            </dependency>
+
 			<dependency>
 				<groupId>no.nav.vedtak.prosesstask</groupId>
 				<artifactId>prosesstask</artifactId>
