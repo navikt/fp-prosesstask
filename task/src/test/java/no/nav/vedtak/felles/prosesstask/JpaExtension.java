@@ -10,7 +10,7 @@ public class JpaExtension extends EntityManagerAwareExtension {
 
     static {
         Databaseskjemainitialisering.migrerUnittestSkjemaer();
-        Databaseskjemainitialisering.settJdniOppslag();
+        Databaseskjemainitialisering.settJndiOppslag();
     }
 
     /** Kan brukes til å kjøre egne ting i tx. */

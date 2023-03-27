@@ -3,10 +3,10 @@ package no.nav.vedtak.felles.prosesstask;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import javax.sql.DataSource;
 
-import org.eclipse.jetty.plus.jndi.EnvEntry;
 import org.flywaydb.core.Flyway;
 import org.flywaydb.core.api.FlywayException;
 import org.flywaydb.core.api.configuration.ClassicConfiguration;
@@ -22,7 +22,7 @@ public final class Databaseskjemainitialisering {
 
     static final String USER = "unittest";
 
-    private static final DataSource DS = settJdniOppslag(USER);
+    private static final DataSource DS = settJndiOppslag(USER);
 
     public static void main(String[] args) {
         migrerUnittestSkjemaer();
@@ -33,11 +33,11 @@ public final class Databaseskjemainitialisering {
         if (GUARD_UNIT_TEST_SKJEMAER.compareAndSet(false, true)) {
             var location = "/db/migration/";
 
-            ClassicConfiguration conf = new ClassicConfiguration();
+            var conf = new ClassicConfiguration();
             conf.setDataSource(createDs(USER));
             conf.setLocationsAsStrings(location);
             conf.setBaselineOnMigrate(true);
-            Flyway flyway = new Flyway(conf);
+            var flyway = new Flyway(conf);
             try {
                 flyway.migrate();
             } catch (FlywayException fwe) {
@@ -52,16 +52,19 @@ public final class Databaseskjemainitialisering {
         }
     }
 
-    private static synchronized DataSource settJdniOppslag(String user) {
-
+    private static synchronized DataSource settJndiOppslag(String user) {
         var ds = createDs(user);
-
         try {
-
-            new EnvEntry("jdbc/defaultDS", ds); 
+            System.setProperty("java.naming.factory.initial", "org.osjava.sj.SimpleContextFactory");
+            System.setProperty("org.osjava.sj.jndi.shared", "true");
+            System.setProperty("org.osjava.sj.delimiter", "/");
+            var ic = new InitialContext();
+            var subcontext = ic.createSubcontext("jdbc");
+            subcontext.bind("defaultDS", ds);
+            //new EnvEntry("jdbc/defaultDS", ds);
             return ds;
         } catch (NamingException e) {
-            throw new IllegalStateException("Feil under registrering av JDNI-entry for default datasource", e); 
+            throw new IllegalStateException("Feil under registrering av JDNI-entry for default datasource", e);
         }
     }
 
@@ -81,11 +84,11 @@ public final class Databaseskjemainitialisering {
         return ds;
     }
 
-    public static void settJdniOppslag() {
+    public static void settJndiOppslag() {
         if (DS != null) {
             return;
         }
-        settJdniOppslag(USER);
+        settJndiOppslag(USER);
     }
 
 }
