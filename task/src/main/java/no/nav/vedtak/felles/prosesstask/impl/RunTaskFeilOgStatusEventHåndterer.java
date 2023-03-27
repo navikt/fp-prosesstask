@@ -52,11 +52,11 @@ public class RunTaskFeilOgStatusEventHåndterer {
     protected void handleTaskFeil(ProsessTaskRetryPolicy retryPolicy, ProsessTaskEntitet pte, Exception e) {
         var taskType = pte.getTaskType();
 
-        int failureAttempt = pte.getFeiledeForsøk() + 1;
+        var failureAttempt = pte.getFeiledeForsøk() + 1;
         if (sjekkOmSkalKjøresPåNytt(e, retryPolicy, failureAttempt)) {
-            LocalDateTime nyTid = getNesteKjøringForNyKjøring(retryPolicy, failureAttempt);
+            var nyTid = getNesteKjøringForNyKjøring(retryPolicy, failureAttempt);
             var feil = kunneIkkeProsessereTaskVilPrøveIgjenEnkelFeilmelding(taskInfo.getId(), taskType, failureAttempt, nyTid, e);
-            String feiltekst = getFeiltekstOgLoggEventueltHvisEndret(pte, feil, e, false);
+            var feiltekst = getFeiltekstOgLoggEventueltHvisEndret(pte, feil, e, false);
             taskManagerRepository.oppdaterStatusOgNesteKjøring(pte.getId(), ProsessTaskStatus.KLAR, nyTid, feil.kode(), feiltekst, failureAttempt);
             // endrer ikke status ved nytt forsøk eller publiserer event p.t.
         } else {
@@ -70,8 +70,8 @@ public class RunTaskFeilOgStatusEventHåndterer {
         try {
             publiserNyStatusEvent(pte.tilProsessTask(), pte.getStatus(), nyStatus, feil, e);
         } finally {
-            int failureAttempt = pte.getFeiledeForsøk() + 1;
-            String feiltekst = getFeiltekstOgLoggEventueltHvisEndret(pte, feil, e, true);
+            var failureAttempt = pte.getFeiledeForsøk() + 1;
+            var feiltekst = getFeiltekstOgLoggEventueltHvisEndret(pte, feil, e, true);
             taskManagerRepository.oppdaterStatusOgNesteKjøring(pte.getId(), nyStatus, null, feil.kode(), feiltekst, failureAttempt);
         }
     }
@@ -88,10 +88,9 @@ public class RunTaskFeilOgStatusEventHåndterer {
     }
 
     private LocalDateTime getNesteKjøringForNyKjøring(ProsessTaskRetryPolicy retryPolicy, int failureAttempt) {
-        int secsBetweenAttempts = retryPolicy.secondsToNextRun(failureAttempt);
+        var secsBetweenAttempts = retryPolicy.secondsToNextRun(failureAttempt);
 
-        LocalDateTime nyTid = LocalDateTime.now().plusSeconds(secsBetweenAttempts);
-        return nyTid;
+        return LocalDateTime.now().plusSeconds(secsBetweenAttempts);
     }
 
     private boolean sjekkOmSkalKjøresPåNytt(Exception e, ProsessTaskRetryPolicy retryPolicy, int failureAttempt) {
@@ -111,14 +110,14 @@ public class RunTaskFeilOgStatusEventHåndterer {
 
         var taskFeil = new ProsessTaskFeil(pte.tilProsessTask(), feil);
 
-        String feilkode = taskFeil.getFeilkode();
-        String feiltekst = null;
+        var feilkode = taskFeil.getFeilkode();
+        String feiltekst;
         try {
             feiltekst = taskFeil.writeValueAsString();
         } catch (IOException e1) {
             // kunne ikke skrive ut json, log stack trace
             feiltekst = "Kunne ikke skrive ut json struktur for feil: " + feilkode + ", json exception: " + e1;
-            LOG.warn(feiltekst, t); 
+            LOG.warn(feiltekst, t);
         }
 
         if (erEndeligFeil

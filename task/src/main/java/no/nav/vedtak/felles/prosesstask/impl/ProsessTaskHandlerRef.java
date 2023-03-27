@@ -102,7 +102,7 @@ public class ProsessTaskHandlerRef implements AutoCloseable {
     /** Lookup Literal Referanse til en {@link ProsessTaskHandler} for CDI. */
     public static class ProsessTaskLiteral extends AnnotationLiteral<ProsessTask> implements ProsessTask {
 
-        private String taskType;
+        private final String taskType;
 
         public ProsessTaskLiteral(String taskType) {
             this.taskType = taskType;

@@ -25,7 +25,7 @@ public class ProsessTaskData implements ProsessTaskInfo {
     private static final String SAKSNUMMER = "saksnummer";
     private static final String FAGSAK_ID = "fagsakId";
     private static final String BEHANDLING_ID = "behandlingId";
-    private static final String AKTØR_ID = "aktørId"; // NOSONAR
+    private static final String AKTØR_ID = "aktørId";
 
     private final Properties props = new Properties();
     private final TaskType taskType;
@@ -68,12 +68,11 @@ public class ProsessTaskData implements ProsessTaskInfo {
 
     @Override
     public boolean equals(Object obj) {
-        if (!(obj instanceof ProsessTaskData)) {
+        if (!(obj instanceof ProsessTaskData other)) {
             return false;
         } else if (obj == this) {
             return true;
         }
-        ProsessTaskData other = (ProsessTaskData) obj;
         return Objects.equals(taskType, other.taskType)
             && Objects.equals(props, other.props);
 
@@ -92,7 +91,7 @@ public class ProsessTaskData implements ProsessTaskInfo {
     public String getGruppe() {
         return gruppe;
     }
-    
+
     @Override
     public Long getBlokkertAvProsessTaskId() {
         return blokkertAvProsessTaskId;
@@ -323,7 +322,7 @@ public class ProsessTaskData implements ProsessTaskInfo {
         Objects.requireNonNull(fagsakId, FAGSAK_ID);
         Objects.requireNonNull(behandlingId, BEHANDLING_ID);
 
-        setFagsakId(fagsakId); //NOSONAR
+        setFagsakId(fagsakId);
         setBehandlingId(behandlingId.toString());
     }
 
@@ -332,7 +331,7 @@ public class ProsessTaskData implements ProsessTaskInfo {
         Objects.requireNonNull(behandlingId, BEHANDLING_ID);
         Objects.requireNonNull(aktørId, AKTØR_ID);
 
-        setFagsakId(fagsakId); //NOSONAR
+        setFagsakId(fagsakId);
         setBehandlingId(behandlingId.toString());
         setAktørId(aktørId);
     }
@@ -347,7 +346,7 @@ public class ProsessTaskData implements ProsessTaskInfo {
 
     /**
      * Convenience API - Angi (optional) hvilken behandling/sak denne prosesstasken kjøres for.
-     * 
+     *
      * @param saksnummer offisielt saksnummer
      * @param behandlingId angitt behandlingId definert av fagsystem (kan være Long, UUID, etc)
      * @param aktørId angitt AktørId gyldig i AktørRegisteret.
@@ -366,7 +365,7 @@ public class ProsessTaskData implements ProsessTaskInfo {
         Objects.requireNonNull(fagsakId, FAGSAK_ID);
         Objects.requireNonNull(aktørId, AKTØR_ID);
 
-        setFagsakId(fagsakId); //NOSONAR
+        setFagsakId(fagsakId);
         setAktørId(aktørId);
     }
 
@@ -380,7 +379,7 @@ public class ProsessTaskData implements ProsessTaskInfo {
 
     public void setProperty(String key, String value) {
         if (!VALID_KEY_PATTERN.matcher(key).matches()) {
-            throw new IllegalArgumentException("Invalid key:" + key); 
+            throw new IllegalArgumentException("Invalid key:" + key);
         }
         if (value == null) {
             this.props.remove(key);
@@ -392,11 +391,11 @@ public class ProsessTaskData implements ProsessTaskInfo {
     @Override
     public String toString() {
         return getClass().getSimpleName()
-            + "<id=" + getId() 
-            + ", taskType=" + getTaskType() 
-            + ", props=" + getProperties() 
-            + ", status=" + getStatus() 
-            + ">"; 
+            + "<id=" + getId()
+            + ", taskType=" + getTaskType()
+            + ", props=" + getProperties()
+            + ", status=" + getStatus()
+            + ">";
     }
 
     public void venterPåHendelse(String hendelse) {
@@ -416,7 +415,7 @@ public class ProsessTaskData implements ProsessTaskInfo {
         if (props.isEmpty()) {
             return null;
         } else {
-            StringWriter sw = new StringWriter(200);
+            var sw = new StringWriter(200);
             props.store(sw, null);
             return sw.toString();
         }

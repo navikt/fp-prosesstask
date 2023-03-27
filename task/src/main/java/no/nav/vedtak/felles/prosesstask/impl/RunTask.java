@@ -57,7 +57,7 @@ public class RunTask {
     @Inject
     public RunTask(TaskManagerRepositoryImpl taskManagerRepo,
             ProsessTaskEventPubliserer eventPubliserer) {
-        Objects.requireNonNull(taskManagerRepo, "taskManagerRepo"); 
+        Objects.requireNonNull(taskManagerRepo, "taskManagerRepo");
 
         this.eventPubliserer = eventPubliserer;
         this.taskManagerRepository = taskManagerRepo;
@@ -99,7 +99,9 @@ public class RunTask {
             if (ProsessTaskStatus.KLAR == pte.getStatus()) {
                 var sluttStatus = pickAndRun.markerTaskFerdig(pte);
 
-                LOG.info("Prosesstask [{}], id={}, status={}", pte.getTaskType().value(), pte.getId(), sluttStatus);
+                if (LOG.isInfoEnabled()) {
+                    LOG.info("Prosesstask [{}], id={}, status={}", pte.getTaskType().value(), pte.getId(), sluttStatus);
+                }
                 pickAndRun.planleggNesteKjøring(pte);
             }
 
@@ -170,7 +172,7 @@ public class RunTask {
         return !getEntityManager().getTransaction().isActive() || getEntityManager().getTransaction().getRollbackOnly();
     }
 
-    private EntityManager getEntityManager() { 
+    private EntityManager getEntityManager() {
         return taskManagerRepository.getEntityManager();
     }
 
@@ -251,17 +253,19 @@ public class RunTask {
                 getEntityManager().persist(nyPte);
                 getEntityManager().flush();
 
-                LOG.info("Oppretter ny prosesstask [{}], id={}, status={}, cron={}, nå={}, nytt kjøretidspunkt etter={}",
-                        nyPte.getTaskType().value(),
-                        nyPte.getId(),
-                        nyPte.getStatus(),
-                        now,
-                        cronExpression,
-                        nyPte.getNesteKjøringEtter());
+                if (LOG.isInfoEnabled()) {
+                    LOG.info("Oppretter ny prosesstask [{}], id={}, status={}, cron={}, nå={}, nytt kjøretidspunkt etter={}",
+                            nyPte.getTaskType().value(),
+                            nyPte.getId(),
+                            nyPte.getStatus(),
+                            now,
+                            cronExpression,
+                            nyPte.getNesteKjøringEtter());
+                }
             }
         }
 
-        void dispatchWork(ProsessTaskEntitet pte) throws Exception { 
+        void dispatchWork(ProsessTaskEntitet pte) throws Exception {
             ProsessTaskData taskData = pte.tilProsessTask();
             taskInfo.getTaskDispatcher().dispatch(taskData);
         }

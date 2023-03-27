@@ -27,34 +27,34 @@ class RunProsessTaskIT {
 
     @RegisterExtension
     public static final JpaExtension repoRule = new JpaExtension();
-    
-    private ProsessTaskRepository repo = new ProsessTaskRepository(repoRule.getEntityManager(), null, null);
 
-    private TaskManagerRepositoryImpl taskManagerRepo = new TaskManagerRepositoryImpl(repoRule.getEntityManager());
+    private final ProsessTaskRepository repo = new ProsessTaskRepository(repoRule.getEntityManager(), null, null);
+
+    private final TaskManagerRepositoryImpl taskManagerRepo = new TaskManagerRepositoryImpl(repoRule.getEntityManager());
 
     LocalDateTime now = LocalDateTime.now();
 
     @Test
     void skal_kjøre_en_task() throws Exception {
         // Arrange
-        ProsessTaskData pt1 = nyTask(new TaskType("mytask1"), -10);
+        var pt1 = nyTask(new TaskType("mytask1"));
         repo.lagre(pt1);
         repo.flushAndClear();
 
-        AtomicBoolean allDone = new AtomicBoolean();
+        var allDone = new AtomicBoolean();
         ProsessTaskDispatcher dispatcher = new DummyProsessTaskDispatcher((task) -> {
             allDone.set(task != null);
         });
 
         // Act
-        RunTask runTask = new RunTask(taskManagerRepo, null);
+        var runTask = new RunTask(taskManagerRepo, null);
 
         runTask.doRun(new RunTaskInfo(dispatcher, pt1));
 
         // Assert
         assertThat(allDone.get()).isTrue();
 
-        ProsessTaskData prosessTask = repo.finn(pt1.getId());
+        var prosessTask = repo.finn(pt1.getId());
         assertThat(prosessTask).isNotNull();
         assertThat(prosessTask.getSistKjørt()).isNotNull();
         assertThat(prosessTask.getSisteFeil()).isNull();
@@ -69,30 +69,30 @@ class RunProsessTaskIT {
         repo.lagre(pt1);
         repo.flushAndClear();
 
-        AtomicBoolean allDone = new AtomicBoolean();
+        var allDone = new AtomicBoolean();
         ProsessTaskDispatcher dispatcher = new DummyProsessTaskDispatcher((task) -> {
             allDone.set(task != null);
         });
 
         // Act
-        RunTask runTask = new RunTask(taskManagerRepo, null);
+        var runTask = new RunTask(taskManagerRepo, null);
 
         runTask.doRun(new RunTaskInfo(dispatcher, pt1));
 
         // Assert
         assertThat(allDone.get()).isTrue();
 
-        ProsessTaskData prosessTask = repo.finn(pt1.getId());
+        var prosessTask = repo.finn(pt1.getId());
         assertThat(prosessTask).isNotNull();
         assertThat(prosessTask.getSistKjørt()).isNotNull();
         assertThat(prosessTask.getSisteFeil()).isNull();
 
-        List<ProsessTaskData> prosessTaskData = repo.finnAlle(List.of(ProsessTaskStatus.KLAR))
+        var prosessTaskData = repo.finnAlle(List.of(ProsessTaskStatus.KLAR))
                 .stream()
                 .filter(it -> it.taskType().equals(taskType))
                 .collect(Collectors.toList());
         assertThat(prosessTaskData).hasSize(1);
-        ProsessTaskData first = prosessTaskData.get(0);
+        var first = prosessTaskData.get(0);
         assertThat(first.getNesteKjøringEtter()).isAfter(now);
     }
 
@@ -108,18 +108,18 @@ class RunProsessTaskIT {
     @Test
     void skal_kjøre_en_task_som_feiler_og_inkrementere_feilede_forsøk_teller() throws Exception {
         // Arrange
-        ProsessTaskData pt1 = nyTask(new TaskType("mytask1"), -10);
+        var pt1 = nyTask(new TaskType("mytask1"));
         repo.lagre(pt1);
         repo.flushAndClear();
 
-        AtomicBoolean allDone = new AtomicBoolean();
+        var allDone = new AtomicBoolean();
         ProsessTaskDispatcher dispatcher = new DummyProsessTaskDispatcher((task) -> {
             allDone.set(task != null);
             throw new RuntimeException("I am a walrus!");
         });
 
         // Act
-        RunTask runTask = new RunTask(taskManagerRepo, null);
+        var runTask = new RunTask(taskManagerRepo, null);
 
         runTask.doRun(new RunTaskInfo(dispatcher, pt1));
 
@@ -128,7 +128,7 @@ class RunProsessTaskIT {
         // Assert
         assertThat(allDone.get()).isTrue();
 
-        ProsessTaskData prosessTask = repo.finn(pt1.getId());
+        var prosessTask = repo.finn(pt1.getId());
         assertThat(prosessTask).isNotNull();
         assertThat(prosessTask.getSistKjørt()).isNotNull();
         assertThat(prosessTask.getSisteFeil()).contains("I am a walrus!");
@@ -138,18 +138,18 @@ class RunProsessTaskIT {
     @Test
     void skal_kjøre_en_task_som_feiler_med_savepoint_og_inkrementere_feilede_forsøk_teller() throws Exception {
         // Arrange
-        ProsessTaskData pt1 = nyTask(new TaskType("mytask1"), -10);
+        var pt1 = nyTask(new TaskType("mytask1"));
         repo.lagre(pt1);
         repo.flushAndClear();
 
-        AtomicBoolean allDone = new AtomicBoolean();
+        var allDone = new AtomicBoolean();
         ProsessTaskDispatcher dispatcher = new DummyProsessTaskDispatcher((task) -> {
             allDone.set(task != null);
             throw new SavepointRolledbackException("Save me!", new UnsupportedOperationException("ignored"));
         });
 
         // Act
-        RunTask runTask = new RunTask(taskManagerRepo, null);
+        var runTask = new RunTask(taskManagerRepo, null);
 
         runTask.doRun(new RunTaskInfo(dispatcher, pt1));
 
@@ -159,7 +159,7 @@ class RunProsessTaskIT {
         // Assert
         assertThat(allDone.get()).isTrue();
 
-        ProsessTaskData prosessTask = repo.finn(pt1.getId());
+        var prosessTask = repo.finn(pt1.getId());
         assertThat(prosessTask).isNotNull();
         assertThat(prosessTask.getSistKjørt()).isNotNull();
         assertThat(prosessTask.getSisteFeil())
@@ -172,51 +172,51 @@ class RunProsessTaskIT {
     @Test
     void skal_kjøre_en_task_som_feiler_pga_transient_databasefeil_og_ikke_endre_noe() throws Exception {
         // Arrange
-        ProsessTaskData pt1 = nyTask(new TaskType("mytask1"), -10);
+        var pt1 = nyTask(new TaskType("mytask1"));
         repo.lagre(pt1);
         repo.flushAndClear();
 
-        AtomicBoolean allDone = new AtomicBoolean();
+        var allDone = new AtomicBoolean();
         ProsessTaskDispatcher dispatcher = new DummyProsessTaskDispatcher((task) -> {
             allDone.set(task != null);
             throw new SQLTransientException("I am NOT a walrus!");
         });
 
         // Acts
-        RunTask runTask = new RunTask(taskManagerRepo, null);
+        var runTask = new RunTask(taskManagerRepo, null);
 
         runTask.doRun(new RunTaskInfo(dispatcher, pt1));
 
         // Assert
         assertThat(allDone.get()).isTrue();
 
-        ProsessTaskData prosessTask = repo.finn(pt1.getId());
+        var prosessTask = repo.finn(pt1.getId());
         assertThat(prosessTask).isNotNull();
         assertThat(prosessTask.getSistKjørt()).isNotNull();
 
         // ingen endring på disse for transiente db feils
         assertThat(prosessTask.getSisteFeil()).isNull();
-        assertThat(prosessTask.getAntallFeiledeForsøk()).isEqualTo(0);
+        assertThat(prosessTask.getAntallFeiledeForsøk()).isZero();
     }
 
-    private ProsessTaskData nyTask(TaskType taskType, int nesteKjøringRelativt) {
-        ProsessTaskData task = ProsessTaskData.forTaskType(taskType);
-        task.setNesteKjøringEtter(now.plusSeconds(nesteKjøringRelativt));
+    private ProsessTaskData nyTask(TaskType taskType) {
+        var task = ProsessTaskData.forTaskType(taskType);
+        task.setNesteKjøringEtter(now.plusSeconds(-10));
         return task;
     }
-    
+
     interface DummyConsumer {
-        void dispatch(ProsessTaskData task) throws Exception; 
+        void dispatch(ProsessTaskData task) throws Exception;
     }
 
-    class DummyProsessTaskDispatcher extends BasicCdiProsessTaskDispatcher {
-        
-        private DummyConsumer consumer;
+    static class DummyProsessTaskDispatcher extends BasicCdiProsessTaskDispatcher {
+
+        private final DummyConsumer consumer;
 
         public DummyProsessTaskDispatcher(DummyConsumer consumer) {
             this.consumer = consumer;
         }
-        
+
         @Override
         public void dispatch(ProsessTaskData task) throws Exception {
             consumer.dispatch(task);

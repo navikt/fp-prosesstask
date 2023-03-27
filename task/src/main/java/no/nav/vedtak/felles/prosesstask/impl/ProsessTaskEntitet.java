@@ -243,7 +243,7 @@ public class ProsessTaskEntitet {
         if (props == null || props.isEmpty()) {
             return null;
         } else {
-            StringWriter sw = new StringWriter(200);
+            var sw = new StringWriter(200);
             props.store(sw, null);
             return sw.toString();
         }
@@ -304,18 +304,16 @@ public class ProsessTaskEntitet {
             if (props == null || props.isEmpty()) {
                 return null;
             }
-            StringWriter sw = new StringWriter(512);
+            var sw = new StringWriter(512);
             // custom istdf Properties.store slik at vi ikke får med default timestamp
-            props.forEach((k, v) -> {
-                sw.append((String) k).append('=').append((String) v).append('\n');
-            });
+            props.forEach((k, v) -> sw.append((String) k).append('=').append((String) v).append('\n'));
             return sw.toString();
 
         }
 
         @Override
         public Properties convertToEntityAttribute(String dbData) {
-            Properties props = new Properties();
+            var props = new Properties();
             if (dbData != null) {
                 try {
                     props.load(new StringReader(dbData));

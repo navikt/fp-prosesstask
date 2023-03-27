@@ -3,6 +3,10 @@ package no.nav.vedtak.felles.prosesstask.impl.util;
 import javax.persistence.EntityManager;
 
 public class DatabaseUtil {
+
+    private DatabaseUtil() {
+    }
+
     public static boolean isPostgres(EntityManager entityManager) {
         return getDialect(entityManager).contains("PostgreSQL");
     }

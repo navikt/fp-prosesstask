@@ -4,7 +4,6 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Properties;
 
 import javax.enterprise.context.ApplicationScoped;
@@ -14,7 +13,6 @@ import javax.inject.Inject;
 import no.nav.vedtak.exception.TekniskException;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskGruppe;
-import no.nav.vedtak.felles.prosesstask.api.ProsessTaskGruppe.Entry;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskStatus;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskTjeneste;
 
@@ -36,12 +34,10 @@ public class ProsessTaskTjenesteImpl implements ProsessTaskTjeneste {
         // for CDI proxying
     }
 
-
     @Inject
     public ProsessTaskTjenesteImpl(ProsessTaskRepository prosessTaskRepository) {
         this.prosessTaskRepository = prosessTaskRepository;
     }
-
 
     @Override
     public String lagre(ProsessTaskGruppe sammensattTask) {
@@ -50,7 +46,7 @@ public class ProsessTaskTjenesteImpl implements ProsessTaskTjeneste {
 
     @Override
     public String lagreValidert(ProsessTaskGruppe sammensattTask) {
-        for (Entry entry : sammensattTask.getTasks()) {
+        for (var entry : sammensattTask.getTasks()) {
             validerProsessTask(entry.task());
         }
         return prosessTaskRepository.lagre(sammensattTask);
@@ -60,14 +56,14 @@ public class ProsessTaskTjenesteImpl implements ProsessTaskTjeneste {
     public String lagreValidert(ProsessTaskData task) {
         // prosesserer enkelt task som en gruppe av 1
         validerProsessTask(task);
-        ProsessTaskGruppe gruppe = new ProsessTaskGruppe(task);
+        var gruppe = new ProsessTaskGruppe(task);
         return prosessTaskRepository.lagre(gruppe);
     }
 
     @Override
     public String lagre(ProsessTaskData task) {
         // prosesserer enkelt task som en gruppe av 1
-        ProsessTaskGruppe gruppe = new ProsessTaskGruppe(task);
+        var gruppe = new ProsessTaskGruppe(task);
         return prosessTaskRepository.lagre(gruppe);
     }
 
@@ -106,7 +102,7 @@ public class ProsessTaskTjenesteImpl implements ProsessTaskTjeneste {
 
     @Override
     public void setProsessTaskFerdig(Long prosessTaskId, ProsessTaskStatus status) {
-        ProsessTaskData taskData = prosessTaskRepository.finn(prosessTaskId);
+        var taskData = prosessTaskRepository.finn(prosessTaskId);
         if (taskData == null) {
             throw new TekniskException(UKJENT_TASK_FEIL_ID,
                     String.format("Ingen prosesstask med id %s eksisterer", prosessTaskId));
@@ -123,7 +119,7 @@ public class ProsessTaskTjenesteImpl implements ProsessTaskTjeneste {
 
     @Override
     public void flaggProsessTaskForRestart(Long prosessTaskId, String oppgittStatus) {
-        ProsessTaskData ptd = prosessTaskRepository.finn(prosessTaskId);
+        var ptd = prosessTaskRepository.finn(prosessTaskId);
 
         validerBetingelserForRestart(prosessTaskId, oppgittStatus, ptd);
 
@@ -133,7 +129,7 @@ public class ProsessTaskTjenesteImpl implements ProsessTaskTjeneste {
 
     @Override
     public List<Long> flaggAlleFeileteProsessTasksForRestart() {
-        List<Long> restartet = prosessTaskRepository.hentIdForAlleFeilet();
+        var restartet = prosessTaskRepository.hentIdForAlleFeilet();
         prosessTaskRepository.settAlleFeiledeTasksKlar();
         return restartet;
     }
@@ -156,7 +152,7 @@ public class ProsessTaskTjenesteImpl implements ProsessTaskTjeneste {
     @Override
     public void mottaHendelse(ProsessTaskData task, String hendelse, Properties properties) {
         Objects.requireNonNull(task, "Mangler task");
-        Optional<String> venterHendelse = task.getVentetHendelse();
+        var venterHendelse = task.getVentetHendelse();
         if (!Objects.equals(ProsessTaskStatus.VENTER_SVAR, task.getStatus()) || venterHendelse.isEmpty()) {
             throw new IllegalStateException("Uventet hendelse " + hendelse + " mottatt i tilstand " + task.getStatus());
         }
