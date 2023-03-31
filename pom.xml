@@ -223,7 +223,12 @@
                 <artifactId>assertj-core</artifactId>
                 <version>3.24.2</version>
             </dependency>
-		</dependencies>
+            <dependency>
+                <groupId>ch.qos.logback</groupId>
+                <artifactId>logback-classic</artifactId>
+                <version>1.3.6</version>
+            </dependency>
+        </dependencies>
 	</dependencyManagement>
 
 	<dependencies>
