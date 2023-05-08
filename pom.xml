@@ -53,7 +53,7 @@
 		<sonar.projectName>fp-prosesstask</sonar.projectName>
 		<sonar.projectKey>navikt_fp-prosesstask</sonar.projectKey>
 
-		<felles.version>4.2.44</felles.version>
+		<felles.version>4.2.45</felles.version>
 
         <jakarta.persistence.version>2.2.3</jakarta.persistence.version>
 	</properties>
@@ -161,7 +161,7 @@
             <dependency>
                 <groupId>com.fasterxml.jackson</groupId>
                 <artifactId>jackson-bom</artifactId>
-                <version>2.15.0</version>
+                <version>2.14.2</version>
                 <scope>import</scope>
                 <type>pom</type>
             </dependency>
