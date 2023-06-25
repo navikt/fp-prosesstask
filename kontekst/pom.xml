@@ -9,14 +9,16 @@
         <version>0.0.0-SNAPSHOT</version>
     </parent>
 
-
     <artifactId>prosesstask-kontekst</artifactId>
 
     <name>Prosesstask :: Bridge mot felles/trådkontekst</name>
     <packaging>jar</packaging>
 
-    <dependencies>
+    <properties>
+        <maven.deploy.skip>false</maven.deploy.skip>
+    </properties>
 
+    <dependencies>
         <dependency>
             <!-- Trengs for implementasjon av TaskManager -->
             <groupId>no.nav.vedtak.prosesstask</groupId>

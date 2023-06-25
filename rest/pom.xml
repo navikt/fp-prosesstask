@@ -13,6 +13,10 @@
     <name>Prosesstask :: Rest</name>
     <packaging>jar</packaging>
 
+    <properties>
+        <maven.deploy.skip>false</maven.deploy.skip>
+    </properties>
+
     <dependencies>
         <dependency>
             <!-- Trengs for implementasjon av TaskManager -->
