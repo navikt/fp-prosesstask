@@ -56,6 +56,8 @@
 		<felles.version>4.2.47</felles.version>
 
         <jakarta.persistence.version>2.2.3</jakarta.persistence.version>
+
+        <maven.deploy.skip>true</maven.deploy.skip>
 	</properties>
 
 	<repositories>
@@ -434,6 +436,10 @@
 
 		<plugins>
             <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>flatten-maven-plugin</artifactId>
+            </plugin>
+            <plugin>
                 <groupId>org.jboss.jandex</groupId>
                 <artifactId>jandex-maven-plugin</artifactId>
             </plugin>
@@ -621,6 +627,7 @@
                                     <url>${project.distributionManagement.repository.url}</url>
                                     <file>${project.build.directory}/${project.artifactId}-jakarta-${project.version}-TOBEDEPLOYED.jar</file>
                                     <sources>${project.build.directory}/${project.artifactId}-jakarta-${project.version}-sources-TOBEDEPLOYED.jar</sources>
+                                    <skip>${maven.deploy.skip}</skip>
                                 </configuration>
                             </execution>
                         </executions>
