@@ -436,24 +436,12 @@
 
 		<plugins>
             <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>flatten-maven-plugin</artifactId>
-            </plugin>
-            <plugin>
                 <groupId>org.jboss.jandex</groupId>
                 <artifactId>jandex-maven-plugin</artifactId>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-source-plugin</artifactId>
-            </plugin>
-
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-deploy-plugin</artifactId>
-                <configuration>
-                    <deployAtEnd>true</deployAtEnd>
-                </configuration>
             </plugin>
 
             <plugin>
@@ -654,7 +642,7 @@
 		<repository>
 			<id>github</id>
 			<name>Github navikt Maven Packages</name>
-			<url>https://maven.pkg.github.com/navikt/fp-prosessta</url>
+			<url>https://maven.pkg.github.com/navikt/fp-prosesstask</url>
 		</repository>
 	</distributionManagement>
 
