@@ -53,11 +53,11 @@
 		<sonar.projectName>fp-prosesstask</sonar.projectName>
 		<sonar.projectKey>navikt_fp-prosesstask</sonar.projectKey>
 
-		<felles.version>4.2.47</felles.version>
+		<felles.version>4.3.1</felles.version>
 
         <jakarta.persistence.version>2.2.3</jakarta.persistence.version>
 
-        <maven.deploy.skip>true</maven.deploy.skip>
+        <maven.deploy.skip>false</maven.deploy.skip>
 	</properties>
 
 	<repositories>
@@ -497,7 +497,7 @@
                     <dependency>
                         <groupId>no.nav.k9.dev</groupId>
                         <artifactId>dev-jakarta-transform</artifactId>
-                        <version>0.6.7</version>
+                        <version>0.6.10</version>
                     </dependency>
                     <dependency>
                         <groupId>ant-contrib</groupId>
