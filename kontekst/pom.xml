@@ -14,10 +14,6 @@
     <name>Prosesstask :: Bridge mot felles/trådkontekst</name>
     <packaging>jar</packaging>
 
-    <properties>
-        <maven.deploy.skip>false</maven.deploy.skip>
-    </properties>
-
     <dependencies>
         <dependency>
             <!-- Trengs for implementasjon av TaskManager -->
