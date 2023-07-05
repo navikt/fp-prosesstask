@@ -428,9 +428,9 @@
                 </plugin>
 
                 <plugin>
-                    <groupId>io.smallrye</groupId>
+                    <groupId>org.jboss.jandex</groupId>
                     <artifactId>jandex-maven-plugin</artifactId>
-                    <version>3.0.5</version>
+                    <version>1.2.3</version>
                     <executions>
                         <execution>
                             <id>make-index</id>
@@ -450,10 +450,10 @@
         </pluginManagement>
 
 		<plugins>
-<!--            <plugin>-->
-<!--                <groupId>io.smallrye</groupId>-->
-<!--                <artifactId>jandex-maven-plugin</artifactId>-->
-<!--            </plugin>-->
+            <plugin>
+                <groupId>org.jboss.jandex</groupId>
+                <artifactId>jandex-maven-plugin</artifactId>
+            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-source-plugin</artifactId>
