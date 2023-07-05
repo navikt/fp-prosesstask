@@ -1,8 +1,12 @@
 [![Bygg og deploy](https://github.com/navikt/fp-prosesstask/actions/workflows/build.yml/badge.svg)](https://github.com/navikt/fp-prosesstask/actions/workflows/build.yml)
-[![Sonarcloud Status](https://sonarcloud.io/api/project_badges/measure?project=navikt_fp-prosesstask&metric=alert_status)](https://sonarcloud.io/dashboard?id=navikt_fp-prosesstask) 
+
+[![Sonarcloud Status](https://sonarcloud.io/api/project_badges/measure?project=navikt_fp-prosesstask&metric=alert_status)](https://sonarcloud.io/dashboard?id=navikt_fp-prosesstask)
+[![Lines of Code](https://sonarcloud.io/api/project_badges/measure?project=navikt_fp-prosesstask&metric=ncloc)](https://sonarcloud.io/summary/new_code?id=navikt_fp-prosesstask)
 [![SonarCloud Coverage](https://sonarcloud.io/api/project_badges/measure?project=navikt_fp-prosesstask&metric=coverage)](https://sonarcloud.io/component_measures/metric/coverage/list?id=navikt_fp-prosesstask)
 [![SonarCloud Bugs](https://sonarcloud.io/api/project_badges/measure?project=navikt_fp-prosesstask&metric=bugs)](https://sonarcloud.io/component_measures/metric/reliability_rating/list?id=navikt_fp-prosesstask)
-[![SonarCloud Vulnerabilities](https://sonarcloud.io/api/project_badges/measure?project=navikt_fp-prosesstask&metric=vulnerabilities)](https://sonarcloud.io/component_measures/metric/security_rating/list?id=navikt_fp-prosesstask) 
+[![SonarCloud Vulnerabilities](https://sonarcloud.io/api/project_badges/measure?project=navikt_fp-prosesstask&metric=vulnerabilities)](https://sonarcloud.io/component_measures/metric/security_rating/list?id=navikt_fp-prosesstask)
+[![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=navikt_fp-prosesstask&metric=security_rating)](https://sonarcloud.io/summary/new_code?id=navikt_fp-prosesstask)
+
 ![GitHub release (latest by date)](https://img.shields.io/github/v/release/navikt/fp-prosesstask)
 ![GitHub](https://img.shields.io/github/license/navikt/fp-prosesstask)
 
