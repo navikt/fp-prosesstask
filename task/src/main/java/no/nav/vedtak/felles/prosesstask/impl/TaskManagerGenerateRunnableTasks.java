@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 
-import javax.enterprise.inject.spi.CDI;
+import jakarta.enterprise.inject.spi.CDI;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -2,7 +2,7 @@ package no.nav.vedtak.prosesstask.kontekst;
 
 import java.util.Optional;
 
-import javax.enterprise.context.Dependent;
+import jakarta.enterprise.context.Dependent;
 
 import no.nav.foreldrepenger.konfig.Environment;
 import no.nav.vedtak.felles.prosesstask.impl.SubjectProvider;

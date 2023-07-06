@@ -9,10 +9,10 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.enterprise.inject.spi.CDI;
-import javax.inject.Inject;
-import javax.persistence.EntityManager;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.inject.spi.CDI;
+import jakarta.inject.Inject;
+import jakarta.persistence.EntityManager;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;

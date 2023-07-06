@@ -7,9 +7,9 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import javax.enterprise.inject.Stereotype;
-import javax.enterprise.util.Nonbinding;
-import javax.inject.Qualifier;
+import jakarta.enterprise.inject.Stereotype;
+import jakarta.enterprise.util.Nonbinding;
+import jakarta.inject.Qualifier;
 
 /**
  * Marker type som implementerer interface {@link ProsessTaskHandler}.<br>

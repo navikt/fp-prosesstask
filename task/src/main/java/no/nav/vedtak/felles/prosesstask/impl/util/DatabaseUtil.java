@@ -1,6 +1,6 @@
 package no.nav.vedtak.felles.prosesstask.impl.util;
 
-import javax.persistence.EntityManager;
+import jakarta.persistence.EntityManager;
 
 public class DatabaseUtil {
 
