@@ -3,7 +3,7 @@ package no.nav.vedtak.felles.prosesstask.impl;
 import java.time.LocalDateTime;
 import java.util.function.Consumer;
 
-import javax.persistence.PersistenceException;
+import jakarta.persistence.PersistenceException;
 
 import org.slf4j.MDC;
 

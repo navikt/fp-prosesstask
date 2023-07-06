@@ -22,17 +22,17 @@
         </dependency>
         <dependency>
             <groupId>no.nav.foreldrepenger.felles</groupId>
-            <artifactId>felles-log</artifactId>
+            <artifactId>felles-log-jakarta</artifactId>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>no.nav.foreldrepenger.felles</groupId>
-            <artifactId>felles-db</artifactId>
+            <artifactId>felles-db-jakarta</artifactId>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>no.nav.foreldrepenger.felles</groupId>
-            <artifactId>felles-kontekst</artifactId>
+            <artifactId>felles-kontekst-jakarta</artifactId>
             <scope>provided</scope>
         </dependency>
 

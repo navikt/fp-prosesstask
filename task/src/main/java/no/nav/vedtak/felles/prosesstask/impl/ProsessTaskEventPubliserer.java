@@ -1,8 +1,8 @@
 package no.nav.vedtak.felles.prosesstask.impl;
 
-import javax.enterprise.context.Dependent;
-import javax.enterprise.event.Event;
-import javax.inject.Inject;
+import jakarta.enterprise.context.Dependent;
+import jakarta.enterprise.event.Event;
+import jakarta.inject.Inject;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,7 +36,7 @@ public class ProsessTaskEventPubliserer {
         // observere uten å la tasken endre status.
         try {
             publiserer.fire(new ProsessTaskEvent(data, gammelStatus, nyStatus, feil, orgException));
-        } catch (RuntimeException e) { 
+        } catch (RuntimeException e) {
             // logger og svelger exception her. Feil oppstått i event observer
             String orgExceptionMessage = orgException == null ? null : String.valueOf(orgException);
             LOG.warn("PT-314162 Pollet task for kjøring: id={}, type={}, originalException={}", data.getId(), data.getTaskType(), orgExceptionMessage,

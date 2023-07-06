@@ -9,16 +9,15 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.enterprise.inject.Any;
-import javax.enterprise.inject.Instance;
-import javax.inject.Inject;
-import javax.persistence.EntityManager;
-
-import org.hibernate.jpa.QueryHints;
+import org.hibernate.jpa.HibernateHints;
 import org.hibernate.query.NativeQuery;
 import org.slf4j.MDC;
 
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.inject.Any;
+import jakarta.enterprise.inject.Instance;
+import jakarta.inject.Inject;
+import jakarta.persistence.EntityManager;
 import no.nav.vedtak.exception.TekniskException;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskGruppe;
@@ -170,9 +169,9 @@ public class ProsessTaskRepository {
     }
 
     public ProsessTaskData finn(Long id) {
-        var prosessTaskEntitet = this.entityManager.createQuery("from ProsessTaskEntitet pt where pt.id=:id", ProsessTaskEntitet.class)
+        var prosessTaskEntitet = this.entityManager.createQuery("select pt from ProsessTaskEntitet pt where pt.id=:id", ProsessTaskEntitet.class)
             .setParameter("id", id)
-            .setHint(QueryHints.HINT_CACHE_MODE, "IGNORE")
+            .setHint(HibernateHints.HINT_CACHE_MODE, "IGNORE")
             .getSingleResult();
         return prosessTaskEntitet == null ? null : prosessTaskEntitet.tilProsessTask();
     }
@@ -183,7 +182,7 @@ public class ProsessTaskRepository {
         }
         var statusNames = statuses.stream().map(ProsessTaskStatus::getDbKode).toList();
         var query = entityManager
-            .createQuery("from ProsessTaskEntitet pt where pt.status in(:statuses)", ProsessTaskEntitet.class)
+            .createQuery("select pt from ProsessTaskEntitet pt where pt.status in(:statuses)", ProsessTaskEntitet.class)
             .setParameter("statuses", statusNames);
         return tilProsessTask(query.getResultList());
     }
@@ -193,14 +192,14 @@ public class ProsessTaskRepository {
             throw new IllegalArgumentException("Ugyldig søk etter tasks");
         }
         var ikkeFerdigStatusNames = Arrays.stream(ProsessTaskStatus.values())
-                .filter(ProsessTaskStatus::erIkkeFerdig)
-                .map(ProsessTaskStatus::getDbKode)
-                .toList();
+            .filter(ProsessTaskStatus::erIkkeFerdig)
+            .map(ProsessTaskStatus::getDbKode)
+            .toList();
         var query = entityManager
-                .createQuery("from ProsessTaskEntitet pt where pt pt.status in(:statuses) and pt.task_gruppe = :gruppe",
-                        ProsessTaskEntitet.class)
-                .setParameter("statuses", ikkeFerdigStatusNames)
-                .setParameter("gruppe", gruppe);
+            .createQuery("select pt from ProsessTaskEntitet pt where pt.status in(:statuses) and pt.gruppe = :gruppe",
+                ProsessTaskEntitet.class)
+            .setParameter("statuses", ikkeFerdigStatusNames)
+            .setParameter("gruppe", gruppe);
         return tilProsessTask(query.getResultList());
     }
 
@@ -221,7 +220,7 @@ public class ProsessTaskRepository {
             .setParameter("opprettetFraOgMed", opprettetFraOgMed.minusDays(1))
             .setParameter("opprettetTilOgMed", opprettetTilOgMed.plusDays(1))
             .setParameter("likeSearch", "%"+paramSearchText+"%")
-            .setHint(QueryHints.HINT_READONLY, "true");
+            .setHint(HibernateHints.HINT_READ_ONLY, "true");
 
         var resultList = query.getResultList();
         return tilProsessTask(resultList);
@@ -229,9 +228,9 @@ public class ProsessTaskRepository {
 
     public List<Long> hentIdForAlleFeilet() {
         var query = entityManager
-                .createQuery("from ProsessTaskEntitet pt where pt.status = :feilet", ProsessTaskEntitet.class)
-                .setParameter("feilet", ProsessTaskStatus.FEILET.getDbKode());
-        return query.getResultList().stream().map(ProsessTaskEntitet::getId).collect(Collectors.toList());
+            .createQuery("select pt from ProsessTaskEntitet pt where pt.status = :feilet", ProsessTaskEntitet.class)
+            .setParameter("feilet", ProsessTaskStatus.FEILET.getDbKode());
+        return query.getResultList().stream().map(ProsessTaskEntitet::getId).toList();
     }
 
     public int settAlleFeiledeTasksKlar() {
@@ -278,7 +277,7 @@ public class ProsessTaskRepository {
     }
 
     private List<ProsessTaskData> tilProsessTask(List<ProsessTaskEntitet> resultList) {
-        return resultList.stream().map(ProsessTaskEntitet::tilProsessTask).collect(Collectors.toList());
+        return resultList.stream().map(ProsessTaskEntitet::tilProsessTask).toList();
     }
 
     void flushAndClear() {

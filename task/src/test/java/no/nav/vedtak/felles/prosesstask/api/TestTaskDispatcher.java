@@ -1,6 +1,6 @@
 package no.nav.vedtak.felles.prosesstask.api;
 
-import javax.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.context.ApplicationScoped;
 
 import no.nav.vedtak.felles.prosesstask.impl.ProsessTaskHandlerRef;
 
@@ -11,7 +11,7 @@ public class TestTaskDispatcher implements ProsessTaskDispatcher {
     public void dispatch(ProsessTaskData task) throws Exception {
         System.out.println("HELLO " + task);
     }
-    
+
     @Override
     public boolean feilhåndterException(Throwable e) {
         return false;

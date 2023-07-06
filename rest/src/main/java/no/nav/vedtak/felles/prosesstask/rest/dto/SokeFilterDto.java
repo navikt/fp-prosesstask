@@ -2,10 +2,10 @@ package no.nav.vedtak.felles.prosesstask.rest.dto;
 
 import java.time.LocalDate;
 
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Pattern;
-import javax.validation.constraints.Size;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
@@ -27,11 +27,11 @@ public class SokeFilterDto {
     @Size(min = 5, max=200)
     @Pattern(regexp = "^[\\p{Alnum}_.=\\-]*$")
     private String tekst;
-    
+
     @JsonProperty(value = "sisteKjoeretidspunktFraOgMed")
     @Valid
     private LocalDate opprettetFraOgMed = LocalDate.now().minusMonths(12);
-    
+
     @JsonProperty(value = "sisteKjoeretidspunktTilOgMed")
     @Valid
     private LocalDate opprettetTilOgMed = LocalDate.now();
