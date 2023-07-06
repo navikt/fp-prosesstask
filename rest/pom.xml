@@ -6,7 +6,7 @@
     <parent>
         <groupId>no.nav.vedtak.prosesstask</groupId>
         <artifactId>prosesstask-root</artifactId>
-        <version>0.0.0-SNAPSHOT</version>
+        <version>0.5.0-SNAPSHOT</version>
     </parent>
 
     <artifactId>prosesstask-rest-api</artifactId>
@@ -21,22 +21,22 @@
         </dependency>
         <dependency>
             <groupId>no.nav.foreldrepenger.felles.sikkerhet</groupId>
-            <artifactId>felles-sikkerhet-jakarta</artifactId>
+            <artifactId>felles-sikkerhet</artifactId>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>no.nav.foreldrepenger.felles</groupId>
-            <artifactId>felles-abac-jakarta</artifactId>
+            <artifactId>felles-abac</artifactId>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>no.nav.foreldrepenger.felles</groupId>
-            <artifactId>felles-db-jakarta</artifactId>
+            <artifactId>felles-db</artifactId>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>no.nav.foreldrepenger.felles</groupId>
-            <artifactId>felles-log-jakarta</artifactId>
+            <artifactId>felles-log</artifactId>
             <scope>provided</scope>
         </dependency>
 
