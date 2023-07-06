@@ -10,15 +10,15 @@ import java.time.LocalDateTime;
 import java.util.Objects;
 import java.util.Optional;
 
-import javax.enterprise.context.Dependent;
-import javax.enterprise.context.control.ActivateRequestContext;
-import javax.enterprise.inject.InjectionException;
-import javax.inject.Inject;
-import javax.persistence.EntityManager;
-import javax.persistence.EntityNotFoundException;
-import javax.persistence.LockTimeoutException;
-import javax.persistence.PersistenceException;
-import javax.transaction.Transactional;
+import jakarta.enterprise.context.Dependent;
+import jakarta.enterprise.context.control.ActivateRequestContext;
+import jakarta.enterprise.inject.InjectionException;
+import jakarta.inject.Inject;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityNotFoundException;
+import jakarta.persistence.LockTimeoutException;
+import jakarta.persistence.PersistenceException;
+import jakarta.transaction.Transactional;
 
 import org.hibernate.Session;
 import org.hibernate.exception.JDBCConnectionException;

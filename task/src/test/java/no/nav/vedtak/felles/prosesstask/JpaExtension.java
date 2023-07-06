@@ -1,6 +1,6 @@
 package no.nav.vedtak.felles.prosesstask;
 
-import javax.persistence.EntityManager;
+import jakarta.persistence.EntityManager;
 
 import no.nav.vedtak.felles.jpa.TransactionHandler;
 import no.nav.vedtak.felles.jpa.TransactionHandler.Work;

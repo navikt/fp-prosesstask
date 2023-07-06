@@ -21,28 +21,28 @@
         </dependency>
         <dependency>
             <groupId>no.nav.foreldrepenger.felles.sikkerhet</groupId>
-            <artifactId>felles-sikkerhet</artifactId>
+            <artifactId>felles-sikkerhet-jakarta</artifactId>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>no.nav.foreldrepenger.felles</groupId>
-            <artifactId>felles-abac</artifactId>
+            <artifactId>felles-abac-jakarta</artifactId>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>no.nav.foreldrepenger.felles</groupId>
-            <artifactId>felles-db</artifactId>
+            <artifactId>felles-db-jakarta</artifactId>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>no.nav.foreldrepenger.felles</groupId>
-            <artifactId>felles-log</artifactId>
+            <artifactId>felles-log-jakarta</artifactId>
             <scope>provided</scope>
         </dependency>
 
         <dependency>
             <groupId>io.swagger.core.v3</groupId>
-            <artifactId>swagger-annotations</artifactId>
+            <artifactId>swagger-annotations-jakarta</artifactId>
             <scope>provided</scope>
         </dependency>
     </dependencies>
