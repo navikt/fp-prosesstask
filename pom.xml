@@ -57,7 +57,7 @@
 
         <jakarta.jakartaee-bom.version>9.1.0</jakarta.jakartaee-bom.version>
         <jakarta.persistence.version>2.2.3</jakarta.persistence.version>
-        <hibernate-core.version>6.0.2.Final</hibernate-core.version>
+        <hibernate-core.version>6.1.7.Final</hibernate-core.version>
     </properties>
 
 	<repositories>
