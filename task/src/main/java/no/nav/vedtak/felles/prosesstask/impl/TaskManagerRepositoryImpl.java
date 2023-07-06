@@ -22,7 +22,6 @@ import java.util.stream.Stream;
 import org.hibernate.ScrollMode;
 import org.hibernate.Session;
 import org.hibernate.jpa.HibernateHints;
-import org.hibernate.jpa.QueryHints;
 import org.hibernate.query.NativeQuery;
 import org.jboss.weld.interceptor.util.proxy.TargetInstanceProxy;
 import org.slf4j.Logger;
@@ -37,7 +36,6 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.FlushModeType;
 import jakarta.persistence.LockTimeoutException;
 import jakarta.persistence.Query;
-import jakarta.persistence.TemporalType;
 import jakarta.transaction.Transactional;
 import no.nav.vedtak.exception.TekniskException;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
@@ -315,7 +313,7 @@ public class TaskManagerRepositoryImpl {
 
         @SuppressWarnings("resource")
         Query query = getEntityManagerAsSession().createNativeQuery(sql, ProsessTaskEntitet.class)
-                .setHint(org.hibernate.annotations.QueryHints.FETCH_SIZE, 1)
+                .setHint(HibernateHints.HINT_FETCH_SIZE, 1)
                 .setHint(JAVAX_PERSISTENCE_CACHE_STORE_MODE, REFRESH)
                 .setParameter("id", taskId)
                 .setParameter("taskType", taskType.value())
