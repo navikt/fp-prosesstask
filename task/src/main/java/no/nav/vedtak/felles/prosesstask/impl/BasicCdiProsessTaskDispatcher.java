@@ -6,7 +6,7 @@ import java.sql.SQLTransientException;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-import javax.persistence.QueryTimeoutException;
+import jakarta.persistence.QueryTimeoutException;
 
 import org.hibernate.exception.JDBCConnectionException;
 

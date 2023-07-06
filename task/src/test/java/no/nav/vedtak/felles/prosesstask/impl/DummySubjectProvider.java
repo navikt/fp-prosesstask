@@ -1,6 +1,6 @@
 package no.nav.vedtak.felles.prosesstask.impl;
 
-import javax.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.context.ApplicationScoped;
 
 @ApplicationScoped
 public class DummySubjectProvider implements SubjectProvider {

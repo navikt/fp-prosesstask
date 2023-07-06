@@ -14,19 +14,23 @@
 	<packaging>jar</packaging>
 
     <dependencies>
-		<dependency>
+        <dependency>
+            <groupId>jakarta.transaction</groupId>
+            <artifactId>jakarta.transaction-api</artifactId>
+        </dependency>
+        <dependency>
 			<groupId>no.nav.foreldrepenger.felles</groupId>
-			<artifactId>felles-log</artifactId>
+			<artifactId>felles-log-jakarta</artifactId>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>no.nav.foreldrepenger.felles</groupId>
-			<artifactId>felles-util</artifactId>
+			<artifactId>felles-util-jakarta</artifactId>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>no.nav.foreldrepenger.felles</groupId>
-			<artifactId>felles-db</artifactId>
+			<artifactId>felles-db-jakarta</artifactId>
 			<scope>provided</scope>
 		</dependency>
 
@@ -37,12 +41,12 @@
 		</dependency>
 
         <dependency>
-            <groupId>org.hibernate</groupId>
+            <groupId>org.hibernate.orm</groupId>
             <artifactId>hibernate-core</artifactId>
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>org.hibernate</groupId>
+            <groupId>org.hibernate.orm</groupId>
             <artifactId>hibernate-micrometer</artifactId>
             <scope>provided</scope>
         </dependency>
@@ -65,7 +69,7 @@
 
 		<dependency>
 			<groupId>no.nav.foreldrepenger.felles</groupId>
-			<artifactId>felles-testutilities</artifactId>
+			<artifactId>felles-testutilities-jakarta</artifactId>
 			<scope>test</scope>
 		</dependency>
 
