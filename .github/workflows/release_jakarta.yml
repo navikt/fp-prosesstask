@@ -12,6 +12,6 @@ jobs:
       packages: write
     uses: navikt/fp-gha-workflows/.github/workflows/release-feature.yml@main
     with:
-      release-version: ${{ $GITHUB_REF }}
+      release-version: ${{ github.ref }}
       release-branch: 'jakarta_ee9'
     secrets: inherit
