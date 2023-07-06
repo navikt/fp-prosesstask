@@ -1,7 +1,7 @@
 package no.nav.vedtak.felles.prosesstask.impl;
 
-import javax.persistence.EntityManager;
-import javax.persistence.Query;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.Query;
 
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
 

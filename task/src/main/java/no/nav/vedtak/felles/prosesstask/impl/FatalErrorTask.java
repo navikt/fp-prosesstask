@@ -5,11 +5,11 @@ import java.sql.SQLException;
 import java.util.Objects;
 import java.util.Optional;
 
-import javax.enterprise.context.Dependent;
-import javax.enterprise.context.control.ActivateRequestContext;
-import javax.inject.Inject;
-import javax.persistence.EntityManager;
-import javax.transaction.Transactional;
+import jakarta.enterprise.context.Dependent;
+import jakarta.enterprise.context.control.ActivateRequestContext;
+import jakarta.inject.Inject;
+import jakarta.persistence.EntityManager;
+import jakarta.transaction.Transactional;
 
 import org.hibernate.Session;
 import org.hibernate.jdbc.Work;
@@ -37,7 +37,7 @@ public class FatalErrorTask {
 
     @Inject
     public FatalErrorTask(TaskManagerRepositoryImpl taskManagerRepo) {
-        Objects.requireNonNull(taskManagerRepo, "taskManagerRepo"); 
+        Objects.requireNonNull(taskManagerRepo, "taskManagerRepo");
         this.taskManagerRepository = taskManagerRepo;
     }
 

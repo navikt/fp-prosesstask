@@ -2,7 +2,7 @@ package no.nav.vedtak.felles.prosesstask.impl;
 
 import java.util.function.Supplier;
 
-import javax.enterprise.inject.spi.CDI;
+import jakarta.enterprise.inject.spi.CDI;
 
 import org.jboss.weld.context.RequestContext;
 import org.jboss.weld.context.unbound.UnboundLiteral;
