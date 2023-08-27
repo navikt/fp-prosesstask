@@ -4,7 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.concurrent.atomic.AtomicReference;
 
-import javax.persistence.PersistenceException;
+import jakarta.persistence.PersistenceException;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -23,7 +23,7 @@ class TaskManagerGenerateRunnableTasksIT {
     public static final JpaExtension repoRule = new JpaExtension();
 
     private static MemoryAppender logSniffer = MemoryAppender.sniff(TaskManagerGenerateRunnableTasks.class);
-    
+
     @AfterEach
     public void afterEach() {
         logSniffer.reset();
@@ -76,7 +76,7 @@ class TaskManagerGenerateRunnableTasksIT {
 
         // Act
         sut.run();
-        
+
         assertThat(logSniffer.search("PT-876628", Level.WARN)).isNotEmpty();
 
         assertThat(errorFuncException.get()).isInstanceOf(PersistenceException.class);

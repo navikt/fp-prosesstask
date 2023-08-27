@@ -6,7 +6,7 @@
 	<parent>
 		<groupId>no.nav.vedtak.prosesstask</groupId>
 		<artifactId>prosesstask-root</artifactId>
-        <version>0.0.0-SNAPSHOT</version>
+        <version>0.5.0-SNAPSHOT</version>
 	</parent>
 
 	<artifactId>prosesstask</artifactId>
@@ -14,7 +14,11 @@
 	<packaging>jar</packaging>
 
     <dependencies>
-		<dependency>
+        <dependency>
+            <groupId>jakarta.transaction</groupId>
+            <artifactId>jakarta.transaction-api</artifactId>
+        </dependency>
+        <dependency>
 			<groupId>no.nav.foreldrepenger.felles</groupId>
 			<artifactId>felles-log</artifactId>
 			<scope>provided</scope>
@@ -37,12 +41,12 @@
 		</dependency>
 
         <dependency>
-            <groupId>org.hibernate</groupId>
+            <groupId>org.hibernate.orm</groupId>
             <artifactId>hibernate-core</artifactId>
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>org.hibernate</groupId>
+            <groupId>org.hibernate.orm</groupId>
             <artifactId>hibernate-micrometer</artifactId>
             <scope>provided</scope>
         </dependency>

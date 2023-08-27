@@ -6,7 +6,7 @@
     <parent>
         <groupId>no.nav.vedtak.prosesstask</groupId>
         <artifactId>prosesstask-root</artifactId>
-        <version>0.0.0-SNAPSHOT</version>
+        <version>0.5.0-SNAPSHOT</version>
     </parent>
 
     <artifactId>prosesstask-rest-api</artifactId>
@@ -42,7 +42,7 @@
 
         <dependency>
             <groupId>io.swagger.core.v3</groupId>
-            <artifactId>swagger-annotations</artifactId>
+            <artifactId>swagger-annotations-jakarta</artifactId>
             <scope>provided</scope>
         </dependency>
     </dependencies>

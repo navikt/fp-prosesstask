@@ -1,7 +1,7 @@
 package no.nav.vedtak.felles.prosesstask.rest.dto;
 
-import javax.validation.constraints.Pattern;
-import javax.validation.constraints.Size;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
@@ -22,12 +22,12 @@ public class FeiletProsessTaskDataDto {
     @Size(max=100)
     @Pattern(regexp = "^[\\p{Alnum}_.\\-]*$")
     private String sisteKjøringServerProsess;
-    
+
     @JsonProperty(value="sisteFeilTekst")
     @Size(max=100_000)
     @Pattern(regexp = "^[\\p{Alnum}_.\\-]*$")
     private String sisteFeilTekst;
-    
+
     @JsonProperty(value="feiledeForsøk")
     private Integer feiledeForsøk;
 

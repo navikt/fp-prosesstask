@@ -19,26 +19,24 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import javax.enterprise.context.Dependent;
-import javax.enterprise.context.control.ActivateRequestContext;
-import javax.enterprise.inject.Any;
-import javax.enterprise.inject.Instance;
-import javax.inject.Inject;
-import javax.persistence.EntityManager;
-import javax.persistence.LockTimeoutException;
-import javax.persistence.Query;
-import javax.persistence.TemporalType;
-import javax.transaction.Transactional;
-
-import org.hibernate.FlushMode;
 import org.hibernate.ScrollMode;
 import org.hibernate.Session;
-import org.hibernate.jpa.QueryHints;
+import org.hibernate.jpa.HibernateHints;
 import org.hibernate.query.NativeQuery;
 import org.jboss.weld.interceptor.util.proxy.TargetInstanceProxy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import jakarta.enterprise.context.Dependent;
+import jakarta.enterprise.context.control.ActivateRequestContext;
+import jakarta.enterprise.inject.Any;
+import jakarta.enterprise.inject.Instance;
+import jakarta.inject.Inject;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.FlushModeType;
+import jakarta.persistence.LockTimeoutException;
+import jakarta.persistence.Query;
+import jakarta.transaction.Transactional;
 import no.nav.vedtak.exception.TekniskException;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskStatus;
@@ -55,7 +53,7 @@ public class TaskManagerRepositoryImpl {
     private static final String NESTE_KJØRING = "neste_kjoering";
 
     private static final Logger LOG = LoggerFactory.getLogger(TaskManagerRepositoryImpl.class);
-    private static final String JAVAX_PERSISTENCE_CACHE_STORE_MODE = "javax.persistence.cache.storeMode";
+    private static final String JAVAX_PERSISTENCE_CACHE_STORE_MODE = "jakarta.persistence.cache.storeMode";
     private static final String REFRESH = "REFRESH";
 
     private final String jvmUniqueProcessName = getJvmUniqueProcessName();
@@ -111,9 +109,9 @@ public class TaskManagerRepositoryImpl {
 
         var resultList = getEntityManagerAsSession()
                 .createNativeQuery(sqlForPolling, ProsessTaskEntitet.class) // NOSONAR  - statisk SQL
-                .setParameter(NESTE_KJØRING, etterTid, TemporalType.TIMESTAMP)
+                .setParameter(NESTE_KJØRING, etterTid)
                 .setParameter("skip_ids", Set.of(-1))
-                .setHint(QueryHints.HINT_CACHE_MODE, "IGNORE")
+                .setHint(HibernateHints.HINT_CACHE_MODE, "IGNORE")
                 .getResultList();
         return tilProsessTask(resultList);
     }
@@ -146,12 +144,11 @@ public class TaskManagerRepositoryImpl {
 
         var now = LocalDateTime.now();
         var status = taskStatus.getDbKode();
-        @SuppressWarnings("resource")
         var tasks = getEntityManagerAsSession().createNativeQuery(updateSql)
                 .setParameter("id", prosessTaskId)
                 .setParameter(STATUS, status)
-                .setParameter("status_ts", now, TemporalType.TIMESTAMP)
-                .setParameter("neste", nesteKjøringEtter, TemporalType.TIMESTAMP)
+                .setParameter("status_ts", now)
+                .setParameter("neste", nesteKjøringEtter)
                 .setParameter("feilkode", feilkode)
                 .setParameter("feiltekst", feiltekst)
                 .setParameter("forsoek", feilforsøk)
@@ -180,7 +177,7 @@ public class TaskManagerRepositoryImpl {
         var tasks = getEntityManagerAsSession().createNativeQuery(updateSql)
                 .setParameter("id", prosessTaskId)
                 .setParameter(STATUS, status)
-                .setParameter("status_ts", now, TemporalType.TIMESTAMP)
+                .setParameter("status_ts", now)
                 .executeUpdate();
 
     }
@@ -196,7 +193,7 @@ public class TaskManagerRepositoryImpl {
         @SuppressWarnings("unused")
         var tasks = getEntityManagerAsSession().createNativeQuery(updateSql)
                 .setParameter("id", prosessTaskId)
-                .setParameter("naa", now, TemporalType.TIMESTAMP)
+                .setParameter("naa", now)
                 .executeUpdate();
 
     }
@@ -251,10 +248,10 @@ public class TaskManagerRepositoryImpl {
         var timestamp = LocalDateTime.now();
         try (var results = getEntityManagerAsSession()
                 .createNativeQuery(getSqlForPolling(), ProsessTaskEntitet.class)
-                .setFlushMode(FlushMode.MANUAL)
+                .setFlushMode(FlushModeType.COMMIT)
                 // hent kun 1 av gangen for å la andre pollere slippe til
-                .setHint(QueryHints.HINT_FETCH_SIZE, 1)
-                .setParameter(NESTE_KJØRING, timestamp, TemporalType.TIMESTAMP)
+                .setHint(HibernateHints.HINT_FETCH_SIZE, 1)
+                .setParameter(NESTE_KJØRING, timestamp)
                 .setParameter("skip_ids", skipIds.isEmpty() ? Set.of(-1) : skipIds)
                 .scroll(ScrollMode.FORWARD_ONLY);) {
 
@@ -262,9 +259,8 @@ public class TaskManagerRepositoryImpl {
             var nyNesteTid = now.plusSeconds(waitTimeBeforeNextPollingAttemptSecs);
 
             while (results.next() && --numberOfTasksStillToGo >= 0) {
-                var resultObjects = results.get();
-                if (resultObjects.length > 0) {
-                    var pte = (ProsessTaskEntitet) resultObjects[0];
+                var pte = results.get();
+                if (pte != null) {
                     tasksToRun.add(pte);
                     oppdaterTaskPlukket(pte.getId(), nyNesteTid, now);
                     logTaskPollet(pte);
@@ -291,7 +287,7 @@ public class TaskManagerRepositoryImpl {
     }
 
     List<ProsessTaskData> tilProsessTask(List<ProsessTaskEntitet> resultList) {
-        return resultList.stream().map(ProsessTaskEntitet::tilProsessTask).collect(Collectors.toList());
+        return resultList.stream().map(ProsessTaskEntitet::tilProsessTask).toList();
     }
 
     Optional<ProsessTaskEntitet> finnOgLås(RunTaskInfo taskInfo) {
@@ -317,12 +313,12 @@ public class TaskManagerRepositoryImpl {
 
         @SuppressWarnings("resource")
         Query query = getEntityManagerAsSession().createNativeQuery(sql, ProsessTaskEntitet.class)
-                .setHint(org.hibernate.annotations.QueryHints.FETCH_SIZE, 1)
+                .setHint(HibernateHints.HINT_FETCH_SIZE, 1)
                 .setHint(JAVAX_PERSISTENCE_CACHE_STORE_MODE, REFRESH)
                 .setParameter("id", taskId)
                 .setParameter("taskType", taskType.value())
                 .setParameter(STATUS, status)
-                .setParameter("sisteTs", sistKjørtLowWatermark, TemporalType.TIMESTAMP);
+                .setParameter("sisteTs", sistKjørtLowWatermark);
 
         return query.getResultList().stream().findFirst();
     }
@@ -339,7 +335,7 @@ public class TaskManagerRepositoryImpl {
 
         @SuppressWarnings("resource")
         Query query = getEntityManagerAsSession().createNativeQuery(sql, ProsessTaskEntitet.class)
-                .setHint(org.hibernate.annotations.QueryHints.FETCH_SIZE, 1)
+                .setHint(HibernateHints.HINT_FETCH_SIZE, 1)
                 .setHint(JAVAX_PERSISTENCE_CACHE_STORE_MODE, REFRESH)
                 .setParameter("id", blokkerendeTaskId)
                 .setParameter("statuser", ikkeKjørtStatuser);
@@ -384,7 +380,7 @@ public class TaskManagerRepositoryImpl {
         var now = LocalDateTime.now();
         @SuppressWarnings({ "resource", "cast" })
         var result = getEntityManagerAsSession().createNativeQuery(sql, StartupData.class)
-                .setParameter("inputTid", now, TemporalType.TIMESTAMP)
+                .setParameter("inputTid", now)
                 .getSingleResult();
 
         var hibernateTz = entityManager.getEntityManagerFactory().getProperties().get("hibernate.jdbc.time_zone");
@@ -430,7 +426,7 @@ public class TaskManagerRepositoryImpl {
         Map<ProsessTaskStatus, Integer> resultat = new EnumMap<>(ProsessTaskStatus.class);
         var query = entityManager
             .createNativeQuery("select status, count(1) from prosess_task where status in (:statuses) group by status")
-            .setHint(QueryHints.HINT_READONLY, "true")
+            .setHint(HibernateHints.HINT_READ_ONLY, "true")
             .setParameter("statuses", monitorer);
         @SuppressWarnings("unchecked")
         List<Object[]> resultatList = query.getResultList();
@@ -451,7 +447,7 @@ public class TaskManagerRepositoryImpl {
         var sql = " select pte.* from PROSESS_TASK pte WHERE pte.id=:id";
         @SuppressWarnings("resource")
         Query query = getEntityManagerAsSession().createNativeQuery(sql, ProsessTaskEntitet.class)
-                .setHint(org.hibernate.annotations.QueryHints.FETCH_SIZE, 1)
+                .setHint(HibernateHints.HINT_FETCH_SIZE, 1)
                 .setHint(JAVAX_PERSISTENCE_CACHE_STORE_MODE, REFRESH)
                 .setParameter("id", id);
         return (ProsessTaskEntitet) query.getSingleResult();
