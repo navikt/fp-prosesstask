@@ -53,7 +53,7 @@
 		<sonar.projectName>fp-prosesstask</sonar.projectName>
 		<sonar.projectKey>navikt_fp-prosesstask</sonar.projectKey>
 
-		<felles.version>5.0.0</felles.version>
+		<felles.version>5.1.0</felles.version>
 
         <jakarta.jakartaee-bom.version>9.1.0</jakarta.jakartaee-bom.version>
         <hibernate-core.version>6.1.7.Final</hibernate-core.version>
@@ -204,7 +204,7 @@
             <dependency>
                 <groupId>org.slf4j</groupId>
                 <artifactId>slf4j-api</artifactId>
-                <version>2.0.7</version>
+                <version>2.0.9</version>
             </dependency>
 
             <!-- Test-->
@@ -216,7 +216,7 @@
             <dependency>
                 <groupId>org.flywaydb</groupId>
                 <artifactId>flyway-core</artifactId>
-                <version>9.21.2</version>
+                <version>9.22.0</version>
             </dependency>
             <dependency>
                 <groupId>org.postgresql</groupId>
