@@ -14,7 +14,6 @@ import org.slf4j.LoggerFactory;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTask;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskHandler;
-import no.nav.vedtak.felles.prosesstask.api.TaskMonitor;
 import no.nav.vedtak.felles.prosesstask.api.TaskType;
 import no.nav.vedtak.felles.prosesstask.impl.cron.CronExpression;
 import no.nav.vedtak.felles.prosesstask.spi.ProsessTaskRetryPolicy;
@@ -87,15 +86,14 @@ public class ProsessTaskHandlerRef implements AutoCloseable {
         }
 
         if (bean.getClass().isAnnotationPresent(Dependent.class)) {
-            // må closes hvis @Dependent scoped siden vi slår opp. ApplicationScoped alltid
-            // ok. RequestScope også ok siden vi kjører med det.
+            // må closes hvis @Dependent scoped siden vi slår opp. ApplicationScoped alltid ok. RequestScope også ok siden vi kjører med det.
             CDI.current().destroy(bean);
         }
     }
 
     public void doTask(ProsessTaskData data) {
         LOG.info("Starter task {}", data.getTaskType());
-        TaskMonitor.TASK_TIMER.record(() -> bean.doTask(data));
+        bean.doTask(data);
         LOG.info("Stoppet task {}", data.getTaskType());
     }
 

@@ -7,14 +7,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import io.micrometer.core.instrument.Metrics;
 import io.micrometer.core.instrument.Tags;
-import io.micrometer.core.instrument.Timer;
 
 public class TaskMonitor {
 
-    public static final String TASK_LENGDE = "prosesstask.lengde";
     public static final String TASK_ANTALL = "prosesstask.antall";
-
-    public static final Timer TASK_TIMER = Metrics.timer(TASK_LENGDE);
 
     public static final Map<ProsessTaskStatus, AtomicInteger> TASK_GAUGES = Map.of(
         ProsessTaskStatus.KLAR, statusGauge(ProsessTaskStatus.KLAR),
@@ -24,7 +20,7 @@ public class TaskMonitor {
     );
 
     private TaskMonitor() {
-        
+
     }
 
     public static void setStatusCount(ProsessTaskStatus status, Integer antall) {
