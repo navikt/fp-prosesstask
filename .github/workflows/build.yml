@@ -26,7 +26,6 @@ jobs:
     uses: navikt/fp-gha-workflows/.github/workflows/build-feature-postgres.yml@main
     with:
       postgres-user: unittest
-      java-version: 21
     secrets: inherit
 
   release-drafter:

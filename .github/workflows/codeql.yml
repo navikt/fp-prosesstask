@@ -17,5 +17,4 @@ jobs:
      security-events: write
    uses: navikt/fp-gha-workflows/.github/workflows/codeql.yml@main
    with:
-     java-version: 21
    secrets: inherit
