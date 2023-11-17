@@ -9,4 +9,4 @@ services:
       - "5432:5432"
     volumes:
       - ./postgres-init:/docker-entrypoint-initdb.d/
-    container_name: postgres-pt
+    container_name: postgres
