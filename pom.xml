@@ -53,10 +53,10 @@
 		<sonar.projectName>fp-prosesstask</sonar.projectName>
 		<sonar.projectKey>navikt_fp-prosesstask</sonar.projectKey>
 
-		<felles.version>6.0.0</felles.version>
+		<felles.version>7.0.0</felles.version>
 
-        <jakarta.jakartaee-bom.version>9.1.0</jakarta.jakartaee-bom.version>
-        <hibernate-core.version>6.1.7.Final</hibernate-core.version>
+        <jakarta.jakartaee-bom.version>10.0.0</jakarta.jakartaee-bom.version>
+        <hibernate-core.version>6.3.2.Final</hibernate-core.version>
     </properties>
 
 	<repositories>
@@ -69,6 +69,11 @@
 
 	<dependencyManagement>
 		<dependencies>
+            <dependency>
+                <groupId>jakarta.enterprise</groupId>
+                <artifactId>jakarta.enterprise.cdi-api</artifactId>
+                <version>4.0.1</version>
+            </dependency>
             <!-- Jakarta EE API BOM -->
             <dependency>
                 <groupId>jakarta.platform</groupId>
@@ -134,7 +139,7 @@
             <dependency>
                 <groupId>org.jboss.weld</groupId>
                 <artifactId>weld-core-bom</artifactId>
-                <version>4.0.3.Final</version>
+                <version>5.1.2.Final</version>
                 <scope>import</scope>
                 <type>pom</type>
             </dependency>
@@ -154,7 +159,7 @@
             <dependency>
                 <groupId>org.glassfish.jaxb</groupId>
                 <artifactId>jaxb-bom</artifactId>
-                <version>3.0.1</version>
+                <version>4.0.4</version>
                 <scope>import</scope>
                 <type>pom</type>
             </dependency>
@@ -163,7 +168,14 @@
             <dependency>
                 <groupId>org.eclipse.jetty</groupId>
                 <artifactId>jetty-bom</artifactId>
-                <version>11.0.18</version>
+                <version>12.0.3</version>
+                <scope>import</scope>
+                <type>pom</type>
+            </dependency>
+            <dependency>
+                <groupId>org.eclipse.jetty.ee10</groupId>
+                <artifactId>jetty-ee10-bom</artifactId>
+                <version>12.0.3</version>
                 <scope>import</scope>
                 <type>pom</type>
             </dependency>
@@ -172,7 +184,7 @@
             <dependency>
                 <groupId>com.fasterxml.jackson</groupId>
                 <artifactId>jackson-bom</artifactId>
-                <version>2.15.2</version>
+                <version>2.16.0</version>
                 <scope>import</scope>
                 <type>pom</type>
             </dependency>
@@ -190,7 +202,7 @@
             <dependency>
                 <groupId>org.mockito</groupId>
                 <artifactId>mockito-bom</artifactId>
-                <version>5.7.0</version>
+                <version>5.8.0</version>
                 <scope>import</scope>
                 <type>pom</type>
             </dependency>
@@ -198,7 +210,7 @@
             <dependency>
                 <groupId>net.bytebuddy</groupId>
                 <artifactId>byte-buddy</artifactId>
-                <version>1.14.9</version>
+                <version>1.14.10</version>
             </dependency>
 
             <dependency>
@@ -223,13 +235,13 @@
             <dependency>
                 <groupId>org.flywaydb</groupId>
                 <artifactId>flyway-database-postgresql</artifactId>
-                <version>10.0.1</version>
+                <version>10.1.0</version>
             </dependency>
 
             <dependency>
                 <groupId>org.postgresql</groupId>
                 <artifactId>postgresql</artifactId>
-                <version>42.6.0</version>
+                <version>42.7.0</version>
             </dependency>
             <dependency>
                 <groupId>org.assertj</groupId>
@@ -239,7 +251,7 @@
             <dependency>
                 <groupId>ch.qos.logback</groupId>
                 <artifactId>logback-classic</artifactId>
-                <version>1.4.11</version>
+                <version>1.4.14</version>
             </dependency>
         </dependencies>
 	</dependencyManagement>
@@ -254,8 +266,8 @@
 
 		<!-- test avhengigheter -->
 		<dependency>
-			<groupId>org.eclipse.jetty</groupId>
-			<artifactId>jetty-plus</artifactId>
+			<groupId>org.eclipse.jetty.ee10</groupId>
+			<artifactId>jetty-ee10-plus</artifactId>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
@@ -410,7 +422,7 @@
                 <plugin>
                     <groupId>io.smallrye</groupId>
                     <artifactId>jandex-maven-plugin</artifactId>
-                    <version>3.1.5</version>
+                    <version>3.1.6</version>
                     <executions>
                         <execution>
                             <id>make-index</id>
@@ -419,9 +431,6 @@
                             </goals>
                         </execution>
                     </executions>
-                    <configuration>
-                        <indexVersion>10</indexVersion>
-                    </configuration>
                 </plugin>
 
                 <plugin>
