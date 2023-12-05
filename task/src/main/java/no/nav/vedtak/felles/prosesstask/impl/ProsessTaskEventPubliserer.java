@@ -39,8 +39,8 @@ public class ProsessTaskEventPubliserer {
         } catch (RuntimeException e) {
             // logger og svelger exception her. Feil oppstått i event observer
             String orgExceptionMessage = orgException == null ? null : String.valueOf(orgException);
-            LOG.warn("PT-314162 Pollet task for kjøring: id={}, type={}, originalException={}", data.getId(), data.getTaskType(), orgExceptionMessage,
-                    e);
+            LOG.warn("PT-314162 Kunne ikke publisere ProsessTaskEvent: id={}, type={}, statusFør={}, statusEtter={} originalException={}",
+                data.getId(), data.getTaskType(), gammelStatus, nyStatus, orgExceptionMessage, e);
         }
 
     }
