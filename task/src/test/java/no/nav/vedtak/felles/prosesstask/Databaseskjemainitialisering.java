@@ -6,7 +6,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import javax.naming.NamingException;
 import javax.sql.DataSource;
 
-import org.eclipse.jetty.plus.jndi.EnvEntry;
+import org.eclipse.jetty.ee10.plus.jndi.EnvEntry;
 import org.flywaydb.core.Flyway;
 import org.flywaydb.core.api.FlywayException;
 import org.flywaydb.core.api.configuration.ClassicConfiguration;
@@ -58,10 +58,10 @@ public final class Databaseskjemainitialisering {
 
         try {
 
-            new EnvEntry("jdbc/defaultDS", ds); 
+            new EnvEntry("jdbc/defaultDS", ds);
             return ds;
         } catch (NamingException e) {
-            throw new IllegalStateException("Feil under registrering av JDNI-entry for default datasource", e); 
+            throw new IllegalStateException("Feil under registrering av JDNI-entry for default datasource", e);
         }
     }
 
