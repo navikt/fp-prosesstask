@@ -168,14 +168,14 @@
             <dependency>
                 <groupId>org.eclipse.jetty</groupId>
                 <artifactId>jetty-bom</artifactId>
-                <version>12.0.3</version>
+                <version>12.0.4</version>
                 <scope>import</scope>
                 <type>pom</type>
             </dependency>
             <dependency>
                 <groupId>org.eclipse.jetty.ee10</groupId>
                 <artifactId>jetty-ee10-bom</artifactId>
-                <version>12.0.3</version>
+                <version>12.0.4</version>
                 <scope>import</scope>
                 <type>pom</type>
             </dependency>
