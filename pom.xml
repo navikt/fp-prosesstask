@@ -53,7 +53,7 @@
 		<sonar.projectName>fp-prosesstask</sonar.projectName>
 		<sonar.projectKey>navikt_fp-prosesstask</sonar.projectKey>
 
-		<felles.version>7.0.10</felles.version>
+		<felles.version>7.1.0</felles.version>
 
         <jakarta.jakartaee-bom.version>10.0.0</jakarta.jakartaee-bom.version>
         <hibernate-core.version>6.4.4.Final</hibernate-core.version>
@@ -118,11 +118,6 @@
             <dependency>
                 <groupId>no.nav.foreldrepenger.felles</groupId>
                 <artifactId>felles-util</artifactId>
-                <version>${felles.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>no.nav.foreldrepenger.felles.sikkerhet</groupId>
-                <artifactId>felles-sikkerhet</artifactId>
                 <version>${felles.version}</version>
             </dependency>
             <dependency>
