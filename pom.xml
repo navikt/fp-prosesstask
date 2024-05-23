@@ -70,11 +70,6 @@
 
 	<dependencyManagement>
 		<dependencies>
-            <dependency>
-                <groupId>jakarta.enterprise</groupId>
-                <artifactId>jakarta.enterprise.cdi-api</artifactId>
-                <version>4.0.1</version>
-            </dependency>
             <!-- Jakarta EE API BOM -->
             <dependency>
                 <groupId>jakarta.platform</groupId>
@@ -253,7 +248,11 @@
 	</dependencyManagement>
 
 	<dependencies>
-		<!-- trengs for workaround for HHH-11020 for å kunne kalle EntityManager.unwrap -->
+        <dependency>
+            <groupId>jakarta.inject</groupId>
+            <artifactId>jakarta.inject-api</artifactId>
+            <scope>provided</scope>
+        </dependency>
 		<dependency>
 			<groupId>org.jboss.weld.se</groupId>
 			<artifactId>weld-se-core</artifactId>
