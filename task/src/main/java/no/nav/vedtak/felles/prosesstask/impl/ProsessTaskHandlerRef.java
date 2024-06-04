@@ -3,14 +3,13 @@ package no.nav.vedtak.felles.prosesstask.impl;
 import java.lang.annotation.Annotation;
 import java.util.Set;
 
-import jakarta.enterprise.context.Dependent;
-import jakarta.enterprise.inject.spi.CDI;
-import jakarta.enterprise.util.AnnotationLiteral;
-
 import org.jboss.weld.interceptor.util.proxy.TargetInstanceProxy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import jakarta.enterprise.context.Dependent;
+import jakarta.enterprise.inject.spi.CDI;
+import jakarta.enterprise.util.AnnotationLiteral;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTask;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskHandler;
@@ -109,6 +108,11 @@ public class ProsessTaskHandlerRef implements AutoCloseable {
         @Override
         public String value() {
             return taskType;
+        }
+
+        @Override
+        public int prioritet() {
+            return 1;
         }
 
         @Override

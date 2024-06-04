@@ -20,7 +20,7 @@ public class ProsessTaskDataBuilder {
     }
 
     public static ProsessTaskDataBuilder forProsessTask(Class<? extends ProsessTaskHandler> clazz) {
-        return new ProsessTaskDataBuilder(TaskType.forProsessTask(clazz));
+        return new ProsessTaskDataBuilder(TaskType.forProsessTask(clazz)).medPrioritet(TaskType.prioritet(clazz));
     }
 
     public static ProsessTaskDataBuilder forTaskType(TaskType taskType) {

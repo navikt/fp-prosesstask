@@ -49,7 +49,9 @@ public class ProsessTaskData implements ProsessTaskInfo {
     }
 
     public static ProsessTaskData forProsessTask(Class<? extends ProsessTaskHandler> clazz) {
-        return new ProsessTaskData(TaskType.forProsessTask(clazz));
+        var prosessTaskData = new ProsessTaskData(TaskType.forProsessTask(clazz));
+        prosessTaskData.setPrioritet(TaskType.prioritet(clazz));
+        return prosessTaskData;
     }
 
     public static ProsessTaskData forTaskType(TaskType taskType) {
