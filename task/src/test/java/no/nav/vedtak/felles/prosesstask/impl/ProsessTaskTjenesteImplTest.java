@@ -37,7 +37,7 @@ class ProsessTaskTjenesteImplTest {
 
     private ProsessTaskTjeneste prosessTaskTjeneste;
 
-    @ProsessTask(TASK_TYPE_NAME_OPPR)
+    @ProsessTask(value = TASK_TYPE_NAME_OPPR, prioritet = 3)
     private static class DummyHandlerOpprett implements ProsessTaskHandler {
         @Override
         public void doTask(ProsessTaskData prosessTaskData) {
@@ -61,6 +61,8 @@ class ProsessTaskTjenesteImplTest {
                 .medProperty(REQUIRED_PROPERTY, "Verdi")
                 .build();
 
+        assertThat(ptd.getPriority()).isEqualTo(TaskType.prioritet(DummyHandlerOpprett.class));
+
         when(prosessTaskRepositoryMock.lagre(any(ProsessTaskData.class))).thenReturn("gruppe-id");
 
         prosessTaskTjeneste.lagreValidert(ptd);
@@ -72,6 +74,7 @@ class ProsessTaskTjenesteImplTest {
 
         verify(prosessTaskRepositoryMock, times(1)).lagre(any(ProsessTaskGruppe.class));
         assertThat(dataTilPersistering.getTasks().get(0).task().taskType()).isEqualTo(TaskType.forProsessTask(DummyHandlerOpprett.class));
+        assertThat(dataTilPersistering.getTasks().get(0).task().getPriority()).isEqualTo(TaskType.prioritet(DummyHandlerOpprett.class));
     }
 
     @Test

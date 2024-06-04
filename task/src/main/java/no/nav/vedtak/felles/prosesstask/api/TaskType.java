@@ -17,4 +17,8 @@ public record TaskType(String value) {
     public static TaskType forProsessTask(Class<? extends ProsessTaskHandler> clazz) {
         return new TaskType(clazz.getAnnotation(ProsessTask.class).value());
     }
+
+    public static int prioritet(Class<? extends ProsessTaskHandler> clazz) {
+        return clazz.getAnnotation(ProsessTask.class).prioritet();
+    }
 }

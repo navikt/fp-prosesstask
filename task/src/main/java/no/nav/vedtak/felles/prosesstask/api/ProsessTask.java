@@ -51,6 +51,12 @@ public @interface ProsessTask {
     String value();
 
     /**
+     * Standard prioritet for task type
+     */
+    @Nonbinding
+    int prioritet() default 1;
+
+    /**
      * Cron-expression to schedule next instance of a repeating task.
      */
     @Nonbinding
