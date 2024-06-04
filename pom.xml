@@ -53,7 +53,7 @@
 		<sonar.projectName>fp-prosesstask</sonar.projectName>
 		<sonar.projectKey>navikt_fp-prosesstask</sonar.projectKey>
 
-		<felles.version>7.1.5</felles.version>
+		<felles.version>7.2.0</felles.version>
 
         <jakarta.jakartaee-bom.version>10.0.0</jakarta.jakartaee-bom.version>
         <hibernate-core.version>6.5.2.Final</hibernate-core.version>
@@ -70,6 +70,11 @@
 
 	<dependencyManagement>
 		<dependencies>
+            <dependency>
+                <groupId>jakarta.enterprise</groupId>
+                <artifactId>jakarta.enterprise.cdi-api</artifactId>
+                <version>4.0.1</version>
+            </dependency>
             <!-- Jakarta EE API BOM -->
             <dependency>
                 <groupId>jakarta.platform</groupId>
@@ -249,11 +254,6 @@
 
 	<dependencies>
         <dependency>
-            <groupId>jakarta.inject</groupId>
-            <artifactId>jakarta.inject-api</artifactId>
-            <scope>provided</scope>
-        </dependency>
-		<dependency>
 			<groupId>org.jboss.weld.se</groupId>
 			<artifactId>weld-se-core</artifactId>
 			<scope>provided</scope>
