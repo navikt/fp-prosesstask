@@ -93,7 +93,7 @@ public class TaskManagerRepositoryImpl {
     private static synchronized String getSqlForPollingTemplate(EntityManager entityManager) {
         if (DatabaseUtil.isPostgres(entityManager)) {
             if (POSTGRESQL_FRA_FIL == null) {
-                POSTGRESQL_FRA_FIL = getSqlFraFil(TaskManager.class.getSimpleName() + "postgres_pollTask.sql");
+                POSTGRESQL_FRA_FIL = getSqlFraFil(TaskManager.class.getSimpleName() + "_postgres_pollTask.sql");
             }
             return POSTGRESQL_FRA_FIL;
         } else {
