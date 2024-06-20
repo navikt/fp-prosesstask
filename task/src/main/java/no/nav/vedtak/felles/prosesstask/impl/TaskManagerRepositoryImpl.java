@@ -56,8 +56,12 @@ public class TaskManagerRepositoryImpl {
     private static final String JAVAX_PERSISTENCE_CACHE_STORE_MODE = "jakarta.persistence.cache.storeMode";
     private static final String REFRESH = "REFRESH";
 
+    private static String SQL_FRA_FIL;
+
+    private static String POSTGRESQL_FRA_FIL;
+
     private final String jvmUniqueProcessName = getJvmUniqueProcessName();
-    private final String sqlFraFil = getSqlFraFil(TaskManager.class.getSimpleName() + "_pollTask.sql");
+    private String sqlFraFil;
 
     private final EntityManager entityManager;
 
@@ -80,7 +84,24 @@ public class TaskManagerRepositoryImpl {
     }
 
     String getSqlForPollingTemplate() {
+        if (sqlFraFil == null) {
+            sqlFraFil = getSqlForPollingTemplate(entityManager);
+        }
         return sqlFraFil;
+    }
+
+    private static synchronized String getSqlForPollingTemplate(EntityManager entityManager) {
+        if (DatabaseUtil.isPostgres(entityManager)) {
+            if (POSTGRESQL_FRA_FIL == null) {
+                POSTGRESQL_FRA_FIL = getSqlFraFil(TaskManager.class.getSimpleName() + "_postgres_pollTask.sql");
+            }
+            return POSTGRESQL_FRA_FIL;
+        } else {
+            if (SQL_FRA_FIL == null) {
+                SQL_FRA_FIL = getSqlFraFil(TaskManager.class.getSimpleName() + "_pollTask.sql");
+            }
+            return SQL_FRA_FIL;
+        }
     }
 
     static String getSqlFraFil(String filNavn) {
