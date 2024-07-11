@@ -1,7 +1,5 @@
 package no.nav.vedtak.felles.prosesstask.impl;
 
-import java.time.LocalDateTime;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
@@ -20,7 +18,7 @@ class StartupData {
     String inputtid;
 
     @Column(name="inputtid2")
-    LocalDateTime inputtid2;
+    String inputtid2;
 
     @Column(name="drift")
     String drift;
@@ -29,7 +27,7 @@ class StartupData {
         // for hibernate
     }
 
-    public StartupData(String dbtz, String dbtid, String inputtid, LocalDateTime inputtid2, String drift) {
+    public StartupData(String dbtz, String dbtid, String inputtid, String inputtid2, String drift) {
         this.dbtz = dbtz;
         this.dbtid = dbtid;
         this.inputtid = inputtid;
