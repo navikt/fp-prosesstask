@@ -28,4 +28,12 @@ class StartupData {
     StartupData() {
         // for hibernate
     }
+
+    public StartupData(String dbtz, String dbtid, String inputtid, LocalDateTime inputtid2, String drift) {
+        this.dbtz = dbtz;
+        this.dbtid = dbtid;
+        this.inputtid = inputtid;
+        this.inputtid2 = inputtid2;
+        this.drift = drift;
+    }
 }
