@@ -386,13 +386,13 @@ public class TaskManagerRepositoryImpl {
                     + "  to_char(current_timestamp, 'YYYY-MM-DD HH24:MI:SS.US+TZ') as dbtid,"
                     + "  to_char(cast(:inputTid as timestamp with time zone), 'YYYY-MM-DD HH24:MI:SS.US+TZ') as inputtid,"
                     + "  :inputTid as inputtid2,"
-                    + "  (current_timestamp - :inputTid) as drift";
+                    + "  to_char((current_timestamp - :inputTid), 'YYYY-MM-DD HH24:MI:SS.US') as drift";
         } else if (DatabaseUtil.isOracle(entityManager)) {
             sql = "select DBTIMEZONE as dbtz,"
                     + "  to_char(current_timestamp, 'YYYY-MM-DD HH24:MI:SSxFF6+TZH:TZM') as dbtid,"
                     + "  to_char(cast(:inputTid as timestamp with time zone), 'YYYY-MM-DD HH24:MI:SSxFF6+TZH:TZM') as inputtid,"
                     + "  :inputTid as inputtid2,"
-                    + "  (current_timestamp - :inputTid) as drift"
+                    + "  to_char((current_timestamp - :inputTid), 'YYYY-MM-DD HH24:MI:SSxFF6') as drift"
                     + " from dual";
         } else {
             throw new UnsupportedOperationException("Unsupported Database: " + DatabaseUtil.getDialect(entityManager));
