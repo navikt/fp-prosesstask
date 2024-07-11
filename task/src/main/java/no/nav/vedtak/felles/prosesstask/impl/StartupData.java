@@ -25,4 +25,7 @@ class StartupData {
     @Column(name="drift")
     String drift;
 
+    StartupData() {
+        // for hibernate
+    }
 }
