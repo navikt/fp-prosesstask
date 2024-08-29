@@ -135,7 +135,7 @@
             <dependency>
                 <groupId>org.jboss.weld</groupId>
                 <artifactId>weld-core-bom</artifactId>
-                <version>5.1.2.Final</version>
+                <version>5.1.3.Final</version>
                 <scope>import</scope>
                 <type>pom</type>
             </dependency>
@@ -198,7 +198,7 @@
             <dependency>
                 <groupId>org.mockito</groupId>
                 <artifactId>mockito-bom</artifactId>
-                <version>5.12.0</version>
+                <version>5.13.0</version>
                 <scope>import</scope>
                 <type>pom</type>
             </dependency>
@@ -310,7 +310,7 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-surefire-plugin</artifactId>
-                    <version>3.4.0</version>
+                    <version>3.5.0</version>
                     <configuration>
                         <!-- Må ha @{argLine} ellers blir properties satt av jacoco-maven-plugin overkrevet -->
                         <argLine>@{argLine} ${argLine}</argLine>
@@ -397,7 +397,7 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-failsafe-plugin</artifactId>
-                    <version>3.4.0</version>
+                    <version>3.5.0</version>
                     <executions>
                         <execution>
                             <id>failsafe-integration-test</id>
