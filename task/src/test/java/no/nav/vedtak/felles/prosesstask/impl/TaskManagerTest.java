@@ -6,14 +6,14 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
-import no.nav.vedtak.felles.prosesstask.JpaExtension;
+import no.nav.vedtak.felles.prosesstask.JpaTestcontainerExtension;
 import no.nav.vedtak.felles.testutilities.cdi.CdiAwareExtension;
 
 @ExtendWith(CdiAwareExtension.class)
 class TaskManagerTest {
 
     @RegisterExtension
-    public static final JpaExtension repoRule = new JpaExtension();
+    public static final JpaTestcontainerExtension repoRule = new JpaTestcontainerExtension();
 
     @Inject
     private TaskManagerRepositoryImpl taskManagerRepository;

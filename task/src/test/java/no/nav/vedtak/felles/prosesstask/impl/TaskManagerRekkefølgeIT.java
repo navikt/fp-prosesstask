@@ -10,7 +10,7 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
-import no.nav.vedtak.felles.prosesstask.JpaExtension;
+import no.nav.vedtak.felles.prosesstask.JpaTestcontainerExtension;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskGruppe;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskStatus;
@@ -20,7 +20,7 @@ import no.nav.vedtak.felles.prosesstask.api.TaskType;
 class TaskManagerRekkefølgeIT {
 
     @RegisterExtension
-    public static final JpaExtension repoRule = new JpaExtension();
+    public static final JpaTestcontainerExtension repoRule = new JpaTestcontainerExtension();
 
     private ProsessTaskRepository repo = new ProsessTaskRepository(repoRule.getEntityManager(), null, null);
 

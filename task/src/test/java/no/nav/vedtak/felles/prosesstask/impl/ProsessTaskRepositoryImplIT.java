@@ -13,7 +13,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.mockito.Mockito;
 
-import no.nav.vedtak.felles.prosesstask.JpaExtension;
+import no.nav.vedtak.felles.prosesstask.JpaTestcontainerExtension;
 import no.nav.vedtak.felles.prosesstask.api.CommonTaskProperties;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskStatus;
@@ -25,13 +25,13 @@ class ProsessTaskRepositoryImplIT {
     private static final TaskType TASK_TYPE_2 = new TaskType("hello.world2");
 
     @RegisterExtension
-    public static final JpaExtension repoRule = new JpaExtension();
+    public static final JpaTestcontainerExtension repoRule = new JpaTestcontainerExtension();
 
     private static final LocalDateTime NÅ = LocalDateTime.now().truncatedTo(ChronoUnit.MILLIS);
     private final LocalDateTime nesteKjøringEtter = NÅ.plusHours(1);
-    
+
     private final AtomicLong ids= new AtomicLong(1);
-    
+
     private ProsessTaskRepository prosessTaskRepository;
 
     @BeforeEach
@@ -100,7 +100,7 @@ class ProsessTaskRepositoryImplIT {
         lagre(lagTestEntitet(ProsessTaskStatus.KLAR, NÅ.minusHours(6), TASK_TYPE_2));
         flushAndClear();
     }
-    
+
     private void flushAndClear() {
         var em = repoRule.getEntityManager();
         em.flush();

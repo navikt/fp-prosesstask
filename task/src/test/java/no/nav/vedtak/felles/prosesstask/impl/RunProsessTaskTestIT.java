@@ -20,7 +20,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
-import no.nav.vedtak.felles.prosesstask.JpaExtension;
+import no.nav.vedtak.felles.prosesstask.JpaTestcontainerExtension;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTask;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskDispatcher;
@@ -41,7 +41,7 @@ class RunProsessTaskTestIT {
     private static final TaskType TASK3 = new TaskType("mytask3");
 
     @RegisterExtension
-    public static final JpaExtension repoRule = new JpaExtension();
+    public static final JpaTestcontainerExtension repoRule = new JpaTestcontainerExtension();
 
     @Inject
     private TaskManager taskManager;

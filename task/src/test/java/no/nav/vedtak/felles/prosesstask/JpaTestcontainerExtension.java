@@ -1,16 +1,23 @@
 package no.nav.vedtak.felles.prosesstask;
 
-import jakarta.persistence.EntityManager;
+import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.utility.DockerImageName;
 
+import jakarta.persistence.EntityManager;
+import no.nav.foreldrepenger.konfig.Environment;
 import no.nav.vedtak.felles.jpa.TransactionHandler;
 import no.nav.vedtak.felles.jpa.TransactionHandler.Work;
 import no.nav.vedtak.felles.testutilities.db.EntityManagerAwareExtension;
 
-public class JpaExtension extends EntityManagerAwareExtension {
+public class JpaTestcontainerExtension extends EntityManagerAwareExtension {
+
+    private static final String TEST_DB_CONTAINER = Environment.current().getProperty("testcontainer.test.db", String.class, "postgres:15-alpine");
+    private static final PostgreSQLContainer TEST_DATABASE;
 
     static {
-        Databaseskjemainitialisering.migrerUnittestSkjemaer();
-        Databaseskjemainitialisering.settJdniOppslag();
+        TEST_DATABASE = new PostgreSQLContainer<>(DockerImageName.parse(TEST_DB_CONTAINER)).withReuse(true);
+        TEST_DATABASE.start();
+        TestDatabaseInit.settOppDatasourceOgMigrer(TEST_DATABASE.getJdbcUrl(), TEST_DATABASE.getUsername(), TEST_DATABASE.getPassword());
     }
 
     /** Kan brukes til å kjøre egne ting i tx. */

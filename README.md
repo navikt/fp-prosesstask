@@ -265,6 +265,6 @@ Når en tasks polles (gjøres klart til å kjøres) vil det flagges et vindu på
 ### Licenses and attribution
 *For updated information, always see LICENSE first!*
 
-### For NAV-ansatte
+### For Nav-ansatte
 Interne henvendelser kan sendes via Slack i kanalen **#teamforeldrepenger**.
 

@@ -24,7 +24,7 @@ import org.mockito.quality.Strictness;
 import org.slf4j.LoggerFactory;
 
 import ch.qos.logback.classic.Logger;
-import no.nav.vedtak.felles.prosesstask.JpaExtension;
+import no.nav.vedtak.felles.prosesstask.JpaTestcontainerExtension;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskStatus;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskTjeneste;
@@ -39,7 +39,7 @@ class ProsessTaskHendelseMottakImplTest {
     private static final String HENDELSE_KEY = "ØKONOMI_OPPDRAG_KVITTERING";
 
     @RegisterExtension
-    public static final JpaExtension repoRule = new JpaExtension();
+    public static final JpaTestcontainerExtension repoRule = new JpaTestcontainerExtension();
 
     private MemoryAppender logSniffer = MemoryAppender.sniff(TaskManager.class);
 
