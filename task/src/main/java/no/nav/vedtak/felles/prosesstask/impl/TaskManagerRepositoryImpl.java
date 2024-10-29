@@ -456,9 +456,8 @@ public class TaskManagerRepositoryImpl {
     }
 
     private int intValueFromCount(Object o) {
-        return o instanceof BigInteger bi ? bi.intValue() : (o instanceof BigDecimal bd ? bd.intValue() : 0);
+        return o instanceof Number number ? number.intValue() : 0;
     }
-
 
     static synchronized String getJvmUniqueProcessName() {
         return ManagementFactory.getRuntimeMXBean().getName();
