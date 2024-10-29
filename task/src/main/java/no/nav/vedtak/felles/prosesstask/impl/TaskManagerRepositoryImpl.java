@@ -2,8 +2,6 @@ package no.nav.vedtak.felles.prosesstask.impl;
 
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
-import java.math.BigDecimal;
-import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
