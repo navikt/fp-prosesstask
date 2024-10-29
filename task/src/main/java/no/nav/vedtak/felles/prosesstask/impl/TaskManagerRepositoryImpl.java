@@ -2,8 +2,6 @@ package no.nav.vedtak.felles.prosesstask.impl;
 
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
-import java.math.BigDecimal;
-import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
@@ -456,9 +454,8 @@ public class TaskManagerRepositoryImpl {
     }
 
     private int intValueFromCount(Object o) {
-        return o instanceof BigInteger bi ? bi.intValue() : (o instanceof BigDecimal bd ? bd.intValue() : 0);
+        return o instanceof Number number ? number.intValue() : 0;
     }
-
 
     static synchronized String getJvmUniqueProcessName() {
         return ManagementFactory.getRuntimeMXBean().getName();
