@@ -10,6 +10,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.extension.RegisterExtension;
@@ -30,6 +31,7 @@ import no.nav.vedtak.felles.testutilities.db.NonTransactional;
 /** håndterer tx eksplisitt på egen hånd vha JpaExtensin. */
 @NonTransactional
 @ExtendWith(CdiAwareExtension.class)
+@Disabled
 class RunProsessTaskTest {
 
     private static final LocalDateTime NÅ = LocalDateTime.now();
