@@ -4,23 +4,21 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.concurrent.atomic.AtomicReference;
 
-import jakarta.persistence.PersistenceException;
-
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.mockito.Mockito;
 
 import ch.qos.logback.classic.Level;
-import no.nav.vedtak.felles.prosesstask.JpaTestcontainerExtension;
+import jakarta.persistence.PersistenceException;
+import no.nav.vedtak.felles.prosesstask.JpaOracleTestcontainerExtension;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
 import no.nav.vedtak.felles.prosesstask.api.TaskType;
 
-class TaskManagerGenerateRunnableTasksIT {
-
+class TaskManagerGenerateRunnableTasksITTest {
 
     @RegisterExtension
-    public static final JpaTestcontainerExtension repoRule = new JpaTestcontainerExtension();
+    public static final JpaOracleTestcontainerExtension repoRule = new JpaOracleTestcontainerExtension();
 
     private static MemoryAppender logSniffer = MemoryAppender.sniff(TaskManagerGenerateRunnableTasks.class);
 

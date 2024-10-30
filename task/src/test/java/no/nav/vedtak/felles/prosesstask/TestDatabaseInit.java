@@ -20,19 +20,19 @@ import no.nav.foreldrepenger.konfig.Environment;
  */
 public final class TestDatabaseInit {
     private static final AtomicBoolean GUARD_UNIT_TEST_SKJEMAER = new AtomicBoolean();
-    private static final String DB_SCRIPT_LOCATION = "/db/migration/defaultDS/";
+    private static final String DB_SCRIPT_LOCATION = "db/migration";
 
     @SuppressWarnings("resource")
-    public static void settOppDatasourceOgMigrer(String jdbcUrl, String username, String password) {
+    public static void settOppDatasourceOgMigrer(String jdbcUrl, String username, String password, String databaseNavn) {
         var ds = createDatasource(jdbcUrl, username, password);
         settJdniOppslag(ds);
         if (GUARD_UNIT_TEST_SKJEMAER.compareAndSet(false, true)) {
             var flyway = Flyway.configure()
-                .dataSource(ds)
-                .locations(getScriptLocation())
-                .baselineOnMigrate(true)
-                .cleanDisabled(false)
-                .load();
+                    .dataSource(ds)
+                    .locations(getScriptLocation(databaseNavn))
+                    .baselineOnMigrate(true)
+                    .cleanDisabled(false)
+                    .load();
             try {
                 flyway.migrate();
             } catch (FlywayException fwe) {
@@ -47,19 +47,19 @@ public final class TestDatabaseInit {
         }
     }
 
-    private static String getScriptLocation() {
+    private static String getScriptLocation(String databaseNavn) {
         if (Environment.current().getProperty("maven.cmd.line.args") != null) {
-            return classpathScriptLocation();
+            return classpathScriptLocation(databaseNavn);
         }
-        return fileScriptLocation();
+        return fileScriptLocation(databaseNavn);
     }
 
-    private static String classpathScriptLocation() {
-        return "classpath:" + DB_SCRIPT_LOCATION;
+    private static String classpathScriptLocation(String databaseNavn) {
+        return String.format("classpath:/%s/%s/", DB_SCRIPT_LOCATION, databaseNavn);
     }
 
-    private static String fileScriptLocation() {
-        var relativePath = "task/src/test/resources" + DB_SCRIPT_LOCATION;
+    private static String fileScriptLocation(String databaseNavn) {
+        var relativePath = String.format("task/src/test/resources/%s/%s", DB_SCRIPT_LOCATION, databaseNavn);
         var baseDir = new File(".").getAbsoluteFile();
         var location = new File(baseDir, relativePath);
         while (!location.exists()) {

@@ -4,20 +4,26 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.extension.ExtendWith;
 
-import no.nav.vedtak.felles.prosesstask.JpaTestcontainerExtension;
+import no.nav.vedtak.felles.prosesstask.JpaOracleTestcontainerExtension;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskGruppe;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskStatus;
 import no.nav.vedtak.felles.prosesstask.api.TaskType;
+import no.nav.vedtak.felles.testutilities.db.EntityManagerAwareTest;
 
-class OpprettProsessTaskIT {
+@ExtendWith(JpaOracleTestcontainerExtension.class)
+class OpprettProsessTaskITTest extends EntityManagerAwareTest {
 
-    @RegisterExtension
-    public static final JpaTestcontainerExtension repoRule = new JpaTestcontainerExtension();
-    private final ProsessTaskRepository repo = new ProsessTaskRepository(repoRule.getEntityManager(), null, null);
+    private ProsessTaskRepository repo;
+
+    @BeforeEach
+    void setUp() {
+        repo = new ProsessTaskRepository(getEntityManager(), null, null);
+    }
 
     @Test
     void skal_lagre_ProsessTask() {
@@ -38,7 +44,7 @@ class OpprettProsessTaskIT {
 
         // Act
         repo.lagre(sammensatt);
-        repoRule.getEntityManager().flush();
+        getEntityManager().flush();
 
         var list = repo.finnAlle(List.of(ProsessTaskStatus.KLAR));
         assertThat(list).hasSize(2).containsOnly(pt1, pt2);

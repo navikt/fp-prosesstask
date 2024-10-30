@@ -58,6 +58,7 @@
         <jakarta.jakartaee-bom.version>10.0.0</jakarta.jakartaee-bom.version>
         <hibernate-core.version>6.6.1.Final</hibernate-core.version>
         <jetty.version>12.0.14</jetty.version>
+        <flyway.version>10.20.1</flyway.version>
     </properties>
 
 	<repositories>
@@ -231,13 +232,23 @@
             <dependency>
                 <groupId>org.flywaydb</groupId>
                 <artifactId>flyway-database-postgresql</artifactId>
-                <version>10.20.1</version>
+                <version>${flyway.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.flywaydb</groupId>
+                <artifactId>flyway-database-oracle</artifactId>
+                <version>${flyway.version}</version>
             </dependency>
 
             <dependency>
                 <groupId>org.postgresql</groupId>
                 <artifactId>postgresql</artifactId>
                 <version>42.7.4</version>
+            </dependency>
+            <dependency>
+                <groupId>com.oracle.ojdbc</groupId>
+                <artifactId>ojdbc8</artifactId>
+                <version>19.3.0.0</version>
             </dependency>
             <dependency>
                 <groupId>org.assertj</groupId>
@@ -290,6 +301,11 @@
         <dependency>
             <groupId>org.testcontainers</groupId>
             <artifactId>postgresql</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>oracle-free</artifactId>
             <scope>test</scope>
         </dependency>
 	</dependencies>

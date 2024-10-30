@@ -10,17 +10,17 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
-import no.nav.vedtak.felles.prosesstask.JpaTestcontainerExtension;
+import no.nav.vedtak.felles.prosesstask.JpaPostgresTestcontainerExtension;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskGruppe;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskStatus;
 import no.nav.vedtak.felles.prosesstask.api.TaskMonitor;
 import no.nav.vedtak.felles.prosesstask.api.TaskType;
 
-class TaskManagerRekkefølgeIT {
+class TaskManagerRekkefølgeITTest {
 
     @RegisterExtension
-    public static final JpaTestcontainerExtension repoRule = new JpaTestcontainerExtension();
+    public static final JpaPostgresTestcontainerExtension repoRule = new JpaPostgresTestcontainerExtension();
 
     private ProsessTaskRepository repo = new ProsessTaskRepository(repoRule.getEntityManager(), null, null);
 
@@ -46,6 +46,7 @@ class TaskManagerRekkefølgeIT {
 
         // Act
         repo.lagre(sammensatt);
+        repo.flushAndClear();
         var monitor = taskManagerRepo.countTasksForStatus(TaskMonitor.monitoredStatuses());
         assertThat(monitor).containsEntry(ProsessTaskStatus.KLAR, 3);
         assertThat(monitor.get(ProsessTaskStatus.VENTER_SVAR)).isNull();

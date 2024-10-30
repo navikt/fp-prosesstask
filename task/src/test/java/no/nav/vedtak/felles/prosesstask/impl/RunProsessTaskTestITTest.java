@@ -9,18 +9,17 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.enterprise.inject.spi.CDI;
-import jakarta.inject.Inject;
-import jakarta.persistence.EntityManager;
-
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
-import no.nav.vedtak.felles.prosesstask.JpaTestcontainerExtension;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.inject.spi.CDI;
+import jakarta.inject.Inject;
+import jakarta.persistence.EntityManager;
+import no.nav.vedtak.felles.prosesstask.JpaPostgresTestcontainerExtension;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTask;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskDispatcher;
@@ -32,7 +31,7 @@ import no.nav.vedtak.felles.testutilities.db.NonTransactional;
 /** håndterer tx eksplisitt på egen hånd vha JpaExtensin. */
 @NonTransactional
 @ExtendWith(CdiAwareExtension.class)
-class RunProsessTaskTestIT {
+class RunProsessTaskTestITTest {
 
     private static final LocalDateTime NÅ = LocalDateTime.now();
     private static final String TASK1_NAME = "mytask1";
@@ -41,7 +40,7 @@ class RunProsessTaskTestIT {
     private static final TaskType TASK3 = new TaskType("mytask3");
 
     @RegisterExtension
-    public static final JpaTestcontainerExtension repoRule = new JpaTestcontainerExtension();
+    public static final JpaPostgresTestcontainerExtension repoRule = new JpaPostgresTestcontainerExtension();
 
     @Inject
     private TaskManager taskManager;
