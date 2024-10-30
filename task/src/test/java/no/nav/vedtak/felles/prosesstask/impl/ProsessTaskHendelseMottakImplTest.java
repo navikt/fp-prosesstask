@@ -8,8 +8,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Properties;
 
-import no.nav.vedtak.felles.testutilities.db.EntityManagerAwareTest;
-
 import org.assertj.core.api.Assertions;
 import org.hibernate.exception.JDBCConnectionException;
 import org.junit.jupiter.api.AfterEach;
@@ -23,14 +21,15 @@ import org.mockito.quality.Strictness;
 import org.slf4j.LoggerFactory;
 
 import ch.qos.logback.classic.Logger;
-import no.nav.vedtak.felles.prosesstask.JpaOracleTestcontainerExtension;
+import no.nav.vedtak.felles.prosesstask.JpaPostgresTestcontainerExtension;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskStatus;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskTjeneste;
+import no.nav.vedtak.felles.testutilities.db.EntityManagerAwareTest;
 import no.nav.vedtak.log.util.MemoryAppender;
 
 @ExtendWith(MockitoExtension.class)
-@ExtendWith(JpaOracleTestcontainerExtension.class)
+@ExtendWith(JpaPostgresTestcontainerExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
 class ProsessTaskHendelseMottakImplTest extends EntityManagerAwareTest {
 

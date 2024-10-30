@@ -7,8 +7,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 import no.nav.vedtak.felles.prosesstask.JpaPostgresTestcontainerExtension;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
@@ -16,17 +17,22 @@ import no.nav.vedtak.felles.prosesstask.api.ProsessTaskGruppe;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskStatus;
 import no.nav.vedtak.felles.prosesstask.api.TaskMonitor;
 import no.nav.vedtak.felles.prosesstask.api.TaskType;
+import no.nav.vedtak.felles.testutilities.db.EntityManagerAwareTest;
 
-class TaskManagerRekkefølgeITTest {
+@ExtendWith(JpaPostgresTestcontainerExtension.class)
+class TaskManagerRekkefølgeITTest extends EntityManagerAwareTest {
 
-    @RegisterExtension
-    public static final JpaPostgresTestcontainerExtension repoRule = new JpaPostgresTestcontainerExtension();
+    private ProsessTaskRepository repo;
 
-    private ProsessTaskRepository repo = new ProsessTaskRepository(repoRule.getEntityManager(), null, null);
-
-    private TaskManagerRepositoryImpl taskManagerRepo = new TaskManagerRepositoryImpl(repoRule.getEntityManager());
+    private TaskManagerRepositoryImpl taskManagerRepo;
 
     private LocalDateTime now = LocalDateTime.now();
+
+    @BeforeEach
+    void setUp() {
+        repo = new ProsessTaskRepository(getEntityManager(), null, null);
+        taskManagerRepo = new TaskManagerRepositoryImpl(getEntityManager());
+    }
 
     @Test
     void skal_finne_sql_for_polling() throws Exception {

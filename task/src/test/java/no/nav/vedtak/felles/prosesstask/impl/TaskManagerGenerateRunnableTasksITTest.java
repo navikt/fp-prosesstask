@@ -6,7 +6,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
 
 import ch.qos.logback.classic.Level;
@@ -14,11 +14,10 @@ import jakarta.persistence.PersistenceException;
 import no.nav.vedtak.felles.prosesstask.JpaOracleTestcontainerExtension;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
 import no.nav.vedtak.felles.prosesstask.api.TaskType;
+import no.nav.vedtak.felles.testutilities.db.EntityManagerAwareTest;
 
-class TaskManagerGenerateRunnableTasksITTest {
-
-    @RegisterExtension
-    public static final JpaOracleTestcontainerExtension repoRule = new JpaOracleTestcontainerExtension();
+@ExtendWith(JpaOracleTestcontainerExtension.class)
+class TaskManagerGenerateRunnableTasksITTest extends EntityManagerAwareTest {
 
     private static MemoryAppender logSniffer = MemoryAppender.sniff(TaskManagerGenerateRunnableTasks.class);
 
@@ -28,7 +27,7 @@ class TaskManagerGenerateRunnableTasksITTest {
     }
 
     @Test
-    void skal_fange_PersistenceException_og_legge_til_errorCallback() throws Exception {
+    void skal_fange_PersistenceException_og_legge_til_errorCallback() {
         ProsessTaskData data = ProsessTaskData.forTaskType(new TaskType("hello.world"));
         data.setId(99L);
         ProsessTaskEntitet pte = new ProsessTaskEntitet();

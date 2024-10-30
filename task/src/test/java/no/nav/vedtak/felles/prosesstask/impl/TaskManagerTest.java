@@ -1,24 +1,24 @@
 package no.nav.vedtak.felles.prosesstask.impl;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.jupiter.api.extension.RegisterExtension;
 
-import jakarta.inject.Inject;
 import no.nav.vedtak.felles.prosesstask.JpaPostgresTestcontainerExtension;
-import no.nav.vedtak.felles.testutilities.cdi.CdiAwareExtension;
+import no.nav.vedtak.felles.testutilities.db.EntityManagerAwareTest;
 
-@ExtendWith(CdiAwareExtension.class)
-class TaskManagerTest {
+@ExtendWith(JpaPostgresTestcontainerExtension.class)
+class TaskManagerTest extends EntityManagerAwareTest {
 
-    @RegisterExtension
-    public static final JpaPostgresTestcontainerExtension repoRule = new JpaPostgresTestcontainerExtension();
-
-    @Inject
     private TaskManagerRepositoryImpl taskManagerRepository;
 
+    @BeforeEach
+    void setUp() {
+        taskManagerRepository = new TaskManagerRepositoryImpl(getEntityManager());
+    }
+
     @Test
-    void sjekk_startup() throws Exception {
+    void sjekk_startup() {
         taskManagerRepository.verifyStartup();
     }
 }

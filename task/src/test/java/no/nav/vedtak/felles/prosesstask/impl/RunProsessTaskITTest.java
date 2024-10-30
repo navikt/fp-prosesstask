@@ -8,31 +8,34 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.jupiter.api.extension.RegisterExtension;
 
 import no.nav.vedtak.felles.jpa.savepoint.SavepointRolledbackException;
-import no.nav.vedtak.felles.prosesstask.JpaOracleTestcontainerExtension;
+import no.nav.vedtak.felles.prosesstask.JpaPostgresTestcontainerExtension;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTask;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskDispatcher;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskHandler;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskStatus;
 import no.nav.vedtak.felles.prosesstask.api.TaskType;
-import no.nav.vedtak.felles.testutilities.cdi.CdiAwareExtension;
+import no.nav.vedtak.felles.testutilities.db.EntityManagerAwareTest;
 
-@ExtendWith(CdiAwareExtension.class)
-class RunProsessTaskITTest {
+@ExtendWith(JpaPostgresTestcontainerExtension.class)
+class RunProsessTaskITTest extends EntityManagerAwareTest {
 
-    @RegisterExtension
-    public static final JpaOracleTestcontainerExtension repoRule = new JpaOracleTestcontainerExtension();
+    private ProsessTaskRepository repo;
 
-    private final ProsessTaskRepository repo = new ProsessTaskRepository(repoRule.getEntityManager(), null, null);
-
-    private final TaskManagerRepositoryImpl taskManagerRepo = new TaskManagerRepositoryImpl(repoRule.getEntityManager());
+    private TaskManagerRepositoryImpl taskManagerRepo;
 
     LocalDateTime now = LocalDateTime.now();
+
+    @BeforeEach
+    void setUp() {
+        repo = new ProsessTaskRepository(getEntityManager(), null, null);
+        taskManagerRepo = new TaskManagerRepositoryImpl(getEntityManager());
+    }
 
     @Test
     void skal_kjøre_en_task() throws Exception {
