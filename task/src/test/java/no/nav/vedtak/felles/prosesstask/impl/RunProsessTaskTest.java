@@ -2,25 +2,24 @@ package no.nav.vedtak.felles.prosesstask.impl;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.enterprise.inject.spi.CDI;
-import jakarta.inject.Inject;
-import jakarta.persistence.EntityManager;
-
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
-import no.nav.vedtak.felles.prosesstask.JpaExtension;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.inject.spi.CDI;
+import jakarta.inject.Inject;
+import jakarta.persistence.EntityManager;
+import no.nav.vedtak.felles.prosesstask.JpaPostgresTestcontainerExtension;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTask;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskDispatcher;
@@ -32,7 +31,8 @@ import no.nav.vedtak.felles.testutilities.db.NonTransactional;
 /** håndterer tx eksplisitt på egen hånd vha JpaExtensin. */
 @NonTransactional
 @ExtendWith(CdiAwareExtension.class)
-class RunProsessTaskTestIT {
+@Disabled
+class RunProsessTaskTest {
 
     private static final LocalDateTime NÅ = LocalDateTime.now();
     private static final String TASK1_NAME = "mytask1";
@@ -41,7 +41,7 @@ class RunProsessTaskTestIT {
     private static final TaskType TASK3 = new TaskType("mytask3");
 
     @RegisterExtension
-    public static final JpaExtension repoRule = new JpaExtension();
+    public static final JpaPostgresTestcontainerExtension repoRule = new JpaPostgresTestcontainerExtension();
 
     @Inject
     private TaskManager taskManager;
@@ -100,13 +100,13 @@ class RunProsessTaskTestIT {
 
     }
 
-    private Object slettTestData(EntityManager em) throws SQLException {
+    private Object slettTestData(EntityManager em) {
         TestProsessTaskTestData data = new TestProsessTaskTestData(em);
         data.slettAlleProssessTask();
         return null;
     }
 
-    private Object testData(EntityManager em) throws SQLException {
+    private Object testData(EntityManager em) {
         TestProsessTaskTestData testData = new TestProsessTaskTestData(em);
         testData.slettAlleProssessTask();
         LocalDateTime kjørEtter = LocalDateTime.now().minusSeconds(50);

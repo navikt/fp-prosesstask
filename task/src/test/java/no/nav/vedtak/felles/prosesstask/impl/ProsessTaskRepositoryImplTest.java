@@ -10,35 +10,34 @@ import java.util.concurrent.atomic.AtomicLong;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
 
-import no.nav.vedtak.felles.prosesstask.JpaExtension;
+import no.nav.vedtak.felles.prosesstask.JpaOracleTestcontainerExtension;
 import no.nav.vedtak.felles.prosesstask.api.CommonTaskProperties;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskStatus;
 import no.nav.vedtak.felles.prosesstask.api.TaskType;
+import no.nav.vedtak.felles.testutilities.db.EntityManagerAwareTest;
 
-class ProsessTaskRepositoryImplIT {
+@ExtendWith(JpaOracleTestcontainerExtension.class)
+class ProsessTaskRepositoryImplTest extends EntityManagerAwareTest {
 
     private static final TaskType TASK_TYPE = new TaskType("hello.world");
     private static final TaskType TASK_TYPE_2 = new TaskType("hello.world2");
 
-    @RegisterExtension
-    public static final JpaExtension repoRule = new JpaExtension();
-
     private static final LocalDateTime NÅ = LocalDateTime.now().truncatedTo(ChronoUnit.MILLIS);
     private final LocalDateTime nesteKjøringEtter = NÅ.plusHours(1);
-    
+
     private final AtomicLong ids= new AtomicLong(1);
-    
+
     private ProsessTaskRepository prosessTaskRepository;
 
     @BeforeEach
     public void setUp() {
         ProsessTaskEventPubliserer prosessTaskEventPubliserer = Mockito.mock(ProsessTaskEventPubliserer.class);
         Mockito.doNothing().when(prosessTaskEventPubliserer).fireEvent(Mockito.any(ProsessTaskData.class), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any());
-        prosessTaskRepository = new ProsessTaskRepository(repoRule.getEntityManager(), null, prosessTaskEventPubliserer);
+        prosessTaskRepository = new ProsessTaskRepository(getEntityManager(), null, prosessTaskEventPubliserer);
 
         lagTestData();
     }
@@ -90,7 +89,6 @@ class ProsessTaskRepositoryImplIT {
     }
 
     private void lagTestData() {
-
         lagre(lagTestEntitet(ProsessTaskStatus.FERDIG, NÅ.minusHours(2), TASK_TYPE));
         lagre(lagTestEntitet(ProsessTaskStatus.KJOERT, NÅ.minusMinutes(59), TASK_TYPE));
         lagre(lagTestEntitet(ProsessTaskStatus.VENTER_SVAR, NÅ.minusHours(3), TASK_TYPE));
@@ -100,15 +98,15 @@ class ProsessTaskRepositoryImplIT {
         lagre(lagTestEntitet(ProsessTaskStatus.KLAR, NÅ.minusHours(6), TASK_TYPE_2));
         flushAndClear();
     }
-    
+
     private void flushAndClear() {
-        var em = repoRule.getEntityManager();
+        var em = getEntityManager();
         em.flush();
         em.clear();
     }
 
     private void lagre(Object entity) {
-        var em = repoRule.getEntityManager();
+        var em = getEntityManager();
         em.persist(entity);
     }
 
@@ -125,7 +123,6 @@ class ProsessTaskRepositoryImplIT {
         data.setNesteKjøringEtter(nesteKjøringEtter);
         data.setPrioritet(2);
         data.setSekvens("123");
-        data.setId(ids.incrementAndGet());
 
         if (sistKjørt != null) {
             data.setSistKjørt(sistKjørt);
@@ -133,7 +130,7 @@ class ProsessTaskRepositoryImplIT {
 
         ProsessTaskEntitet pte = new ProsessTaskEntitet();
         pte.setOpprettetTid(LocalDateTime.now());
-        return pte.kopierFraEksisterende(data);
+        return pte.kopierFraNy(data);
     }
 
 }

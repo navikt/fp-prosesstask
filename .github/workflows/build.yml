@@ -23,9 +23,7 @@ jobs:
     name: Build
     permissions:
       contents: read
-    uses: navikt/fp-gha-workflows/.github/workflows/build-feature-postgres.yml@main
-    with:
-      postgres-user: unittest
+    uses: navikt/fp-gha-workflows/.github/workflows/build-feature.yml@main
     secrets: inherit
 
   release-drafter:
