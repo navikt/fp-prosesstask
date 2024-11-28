@@ -22,11 +22,6 @@ public class ProsessTaskData implements ProsessTaskInfo {
     public static final String MANGLER_PROPS = "PT-492717";
     public static final Pattern VALID_KEY_PATTERN = Pattern.compile("[a-zA-Z0-9_\\.]+$");
 
-    private static final String SAKSNUMMER = "saksnummer";
-    private static final String FAGSAK_ID = "fagsakId";
-    private static final String BEHANDLING_ID = "behandlingId";
-    private static final String AKTØR_ID = "aktørId";
-
     private final Properties props = new Properties();
     private final TaskType taskType;
     private int antallFeiledeForsøk;
@@ -317,30 +312,52 @@ public class ProsessTaskData implements ProsessTaskInfo {
     }
 
     public void setSaksnummer(String saksnummer) {
-        setProperty(CommonTaskProperties.SAKSNUMMER, Objects.requireNonNull(saksnummer, SAKSNUMMER));
+        setProperty(CommonTaskProperties.SAKSNUMMER, Objects.requireNonNull(saksnummer, CommonTaskProperties.SAKSNUMMER));
     }
 
+    /**
+     * Convenience API - setBehandling/setFagsak med flere parametere
+     *
+     * saksnummer   offisielt saksnummer
+     * fagsakId     intern tabell-Id for sak - trengs en stund pga taskrammeverk for saksrekkefølge
+     * behandlingId angitt behandlingId definert av fagsystem (kan være Long, UUID, etc)
+     */
+
+    @Deprecated(forRemoval = true) // Fagsakprosesstask må fikses - PTv2
     public void setBehandling(Long fagsakId, Long behandlingId) {
-        Objects.requireNonNull(fagsakId, FAGSAK_ID);
-        Objects.requireNonNull(behandlingId, BEHANDLING_ID);
+        Objects.requireNonNull(fagsakId, CommonTaskProperties.FAGSAK_ID);
+        Objects.requireNonNull(behandlingId, CommonTaskProperties.BEHANDLING_ID);
 
         setFagsakId(fagsakId);
         setBehandlingId(behandlingId.toString());
     }
 
+    @Deprecated(forRemoval = true) // Fagsakprosesstask må fikses - PTv2
+    public void setBehandling(String saksnummer, Long fagsakId, Long behandlingId) {
+        Objects.requireNonNull(saksnummer, CommonTaskProperties.SAKSNUMMER);
+        Objects.requireNonNull(fagsakId, CommonTaskProperties.FAGSAK_ID);
+        Objects.requireNonNull(behandlingId, CommonTaskProperties.BEHANDLING_ID);
+
+        setSaksnummer(saksnummer);
+        setFagsakId(fagsakId);
+        setBehandlingId(behandlingId.toString());
+    }
+
+    @Deprecated(forRemoval = true) // Impending removal next release
     public void setBehandling(Long fagsakId, Long behandlingId, String aktørId) {
-        Objects.requireNonNull(fagsakId, FAGSAK_ID);
-        Objects.requireNonNull(behandlingId, BEHANDLING_ID);
-        Objects.requireNonNull(aktørId, AKTØR_ID);
+        Objects.requireNonNull(fagsakId, CommonTaskProperties.FAGSAK_ID);
+        Objects.requireNonNull(behandlingId, CommonTaskProperties.BEHANDLING_ID);
+        Objects.requireNonNull(aktørId, CommonTaskProperties.AKTØR_ID);
 
         setFagsakId(fagsakId);
         setBehandlingId(behandlingId.toString());
         setAktørId(aktørId);
     }
 
+    @Deprecated(forRemoval = true) // Impending removal next release
     public void setBehandling(String saksnummer, String behandlingId) {
-        Objects.requireNonNull(saksnummer, SAKSNUMMER);
-        Objects.requireNonNull(behandlingId, BEHANDLING_ID);
+        Objects.requireNonNull(saksnummer, CommonTaskProperties.SAKSNUMMER);
+        Objects.requireNonNull(behandlingId, CommonTaskProperties.BEHANDLING_ID);
 
         setSaksnummer(saksnummer);
         setBehandlingId(behandlingId);
@@ -353,22 +370,33 @@ public class ProsessTaskData implements ProsessTaskInfo {
      * @param behandlingId angitt behandlingId definert av fagsystem (kan være Long, UUID, etc)
      * @param aktørId angitt AktørId gyldig i AktørRegisteret.
      */
+    @Deprecated(forRemoval = true) // Impending removal next release
     public void setBehandling(String saksnummer, String behandlingId, String aktørId) {
-        Objects.requireNonNull(saksnummer, SAKSNUMMER);
-        Objects.requireNonNull(behandlingId, BEHANDLING_ID);
-        Objects.requireNonNull(aktørId, AKTØR_ID);
+        Objects.requireNonNull(saksnummer, CommonTaskProperties.SAKSNUMMER);
+        Objects.requireNonNull(behandlingId, CommonTaskProperties.BEHANDLING_ID);
+        Objects.requireNonNull(aktørId, CommonTaskProperties.AKTØR_ID);
 
         setSaksnummer(saksnummer);
         setBehandlingId(behandlingId);
         setAktørId(aktørId);
     }
 
+    @Deprecated(forRemoval = true) // Impending removal next release
     public void setFagsak(Long fagsakId, String aktørId) {
-        Objects.requireNonNull(fagsakId, FAGSAK_ID);
-        Objects.requireNonNull(aktørId, AKTØR_ID);
+        Objects.requireNonNull(fagsakId, CommonTaskProperties.FAGSAK_ID);
+        Objects.requireNonNull(aktørId, CommonTaskProperties.AKTØR_ID);
 
         setFagsakId(fagsakId);
         setAktørId(aktørId);
+    }
+
+    @Deprecated(forRemoval = true) // Fagsakprosesstask må fikses - PTv2
+    public void setFagsak(String saksnummer, Long fagsakId) {
+        Objects.requireNonNull(saksnummer, CommonTaskProperties.SAKSNUMMER);
+        Objects.requireNonNull(fagsakId, CommonTaskProperties.FAGSAK_ID);
+
+        setSaksnummer(saksnummer);
+        setFagsakId(fagsakId);
     }
 
     public void setOpprettetTid(LocalDateTime opprettetTid) {
