@@ -69,8 +69,22 @@ public class ProsessTaskGruppe {
 
     public static record Entry(String sekvens, ProsessTaskData task) {}
 
+    @Deprecated(forRemoval = true) // Immediate next patch
     public void setBehandling(Long fagsakId, Long behandlingId, String aktørId) {
         this.getTasks().forEach(e -> e.task().setBehandling(fagsakId, behandlingId, aktørId));
+    }
+
+    @Deprecated(forRemoval = true) // Immediate next patch
+    public void setBehandling(Long fagsakId, Long behandlingId) {
+        this.getTasks().forEach(e -> e.task().setBehandling(fagsakId, behandlingId));
+    }
+
+    public void setBehandling(String saksnummer, Long fagsakId, Long behandlingId) {
+        this.getTasks().forEach(e -> e.task().setBehandling(saksnummer, fagsakId, behandlingId));
+    }
+
+    public void setFagsak(String saksnummer, Long fagsakId) {
+        this.getTasks().forEach(e -> e.task().setFagsak(saksnummer, fagsakId));
     }
 
     public void setCallId(String callId) {
