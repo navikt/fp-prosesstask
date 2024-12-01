@@ -6,6 +6,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import org.slf4j.MDC;
 
@@ -69,22 +70,22 @@ public class ProsessTaskGruppe {
 
     public static record Entry(String sekvens, ProsessTaskData task) {}
 
-    @Deprecated(forRemoval = true) // Immediate next patch
-    public void setBehandling(Long fagsakId, Long behandlingId, String aktørId) {
-        this.getTasks().forEach(e -> e.task().setBehandling(fagsakId, behandlingId, aktørId));
-    }
-
-    @Deprecated(forRemoval = true) // Immediate next patch
-    public void setBehandling(Long fagsakId, Long behandlingId) {
-        this.getTasks().forEach(e -> e.task().setBehandling(fagsakId, behandlingId));
-    }
-
+    // FagsakId med inntil videre pga FagsakProsessTask i enkelte apps
     public void setBehandling(String saksnummer, Long fagsakId, Long behandlingId) {
         this.getTasks().forEach(e -> e.task().setBehandling(saksnummer, fagsakId, behandlingId));
     }
 
     public void setFagsak(String saksnummer, Long fagsakId) {
         this.getTasks().forEach(e -> e.task().setFagsak(saksnummer, fagsakId));
+    }
+
+    // For bruk der FagsakProsessTask ikke er aktuell
+    public void setBehandlingUuid(UUID behandlingUuid) {
+        this.getTasks().forEach(e -> e.task().setBehandlingUUid(behandlingUuid));
+    }
+
+    public void setSaksnummer(String saksnummer) {
+        this.getTasks().forEach(e -> e.task().setSaksnummer(saksnummer));
     }
 
     public void setCallId(String callId) {
