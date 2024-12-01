@@ -345,6 +345,18 @@ public class ProsessTaskData implements ProsessTaskInfo {
         setBehandlingId(behandlingId.toString());
     }
 
+    public void setBehandling(String saksnummer, Long fagsakId, UUID behandlingUuid, Long behandlingId) {
+        Objects.requireNonNull(saksnummer, CommonTaskProperties.SAKSNUMMER);
+        Objects.requireNonNull(fagsakId, FAGSAK_ID);
+        Objects.requireNonNull(behandlingId, CommonTaskProperties.BEHANDLING_ID);
+        Objects.requireNonNull(behandlingUuid, CommonTaskProperties.BEHANDLING_UUID);
+
+        setSaksnummer(saksnummer);
+        setFagsakId(fagsakId);
+        setBehandlingUUid(behandlingUuid);
+        setBehandlingId(behandlingId.toString());
+    }
+
     // @Deprecated(forRemoval = true) // Fagsakprosesstask må fikses før fjerning
     public void setFagsak(String saksnummer, Long fagsakId) {
         Objects.requireNonNull(saksnummer, CommonTaskProperties.SAKSNUMMER);
