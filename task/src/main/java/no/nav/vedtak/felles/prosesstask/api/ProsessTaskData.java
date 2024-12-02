@@ -22,6 +22,18 @@ public class ProsessTaskData implements ProsessTaskInfo {
     public static final String MANGLER_PROPS = "PT-492717";
     public static final Pattern VALID_KEY_PATTERN = Pattern.compile("[a-zA-Z0-9_\\.]+$");
 
+    /**
+     * Erstatt med saksnummer
+     * @deprecated use saksnummer
+     */
+    // @Deprecated(forRemoval = true) - venter til FagsakProsesstask fikset
+    private static final String FAGSAK_ID = "fagsakId";
+
+    /*
+     * Reservert for tasks med status VENTER_SVAR
+     */
+    private static final String HENDELSE_PROPERTY = "hendelse";
+
     private final Properties props = new Properties();
     private final TaskType taskType;
     private int antallFeiledeForsøk;
@@ -41,6 +53,7 @@ public class ProsessTaskData implements ProsessTaskInfo {
 
     ProsessTaskData(TaskType taskType) {
         this.taskType = taskType;
+        Optional.ofNullable(MDC.get(CallId.CALL_ID)).filter(c -> !c.isEmpty()).ifPresent(this::setCallId);
     }
 
     public static ProsessTaskData forProsessTask(Class<? extends ProsessTaskHandler> clazz) {
@@ -109,11 +122,11 @@ public class ProsessTaskData implements ProsessTaskInfo {
 
     @Override
     public Optional<String> getVentetHendelse() {
-        return Optional.ofNullable(getPropertyValue(CommonTaskProperties.HENDELSE_PROPERTY));
+        return Optional.ofNullable(getPropertyValue(HENDELSE_PROPERTY));
     }
 
     void setVentetHendelse(String hendelse) {
-        setProperty(CommonTaskProperties.HENDELSE_PROPERTY, hendelse);
+        setProperty(HENDELSE_PROPERTY, hendelse);
     }
 
     @Override
@@ -281,11 +294,10 @@ public class ProsessTaskData implements ProsessTaskInfo {
 
     @Override
     public UUID getBehandlingUuid() {
-        var uuidString = getPropertyValue(CommonTaskProperties.BEHANDLING_UUID);
-        return uuidString != null ? UUID.fromString(uuidString) : null;
+        return Optional.ofNullable(getPropertyValue(CommonTaskProperties.BEHANDLING_UUID)).map(UUID::fromString).orElse(null);
     }
 
-    protected void setBehandlingUUid(UUID uuid) {
+    public void setBehandlingUUid(UUID uuid) {
         setProperty(CommonTaskProperties.BEHANDLING_UUID, uuid.toString());
     }
 
@@ -295,7 +307,7 @@ public class ProsessTaskData implements ProsessTaskInfo {
     @Deprecated(forRemoval = true)
     @Override
     public Long getFagsakId() {
-        return getPropertyValue(CommonTaskProperties.FAGSAK_ID) != null ? Long.valueOf(getPropertyValue(CommonTaskProperties.FAGSAK_ID)) : null;
+        return Optional.ofNullable(getPropertyValue(FAGSAK_ID)).map(Long::valueOf).orElse(null);
     }
 
     /**
@@ -303,7 +315,7 @@ public class ProsessTaskData implements ProsessTaskInfo {
      */
     @Deprecated(forRemoval = true)
     public void setFagsakId(Long id) {
-        setProperty(CommonTaskProperties.FAGSAK_ID, id.toString());
+        setProperty(FAGSAK_ID, id.toString());
     }
 
     @Override
@@ -323,19 +335,10 @@ public class ProsessTaskData implements ProsessTaskInfo {
      * behandlingId angitt behandlingId definert av fagsystem (kan være Long, UUID, etc)
      */
 
-    @Deprecated(forRemoval = true) // Fagsakprosesstask må fikses - PTv2
-    public void setBehandling(Long fagsakId, Long behandlingId) {
-        Objects.requireNonNull(fagsakId, CommonTaskProperties.FAGSAK_ID);
-        Objects.requireNonNull(behandlingId, CommonTaskProperties.BEHANDLING_ID);
-
-        setFagsakId(fagsakId);
-        setBehandlingId(behandlingId.toString());
-    }
-
-    @Deprecated(forRemoval = true) // Fagsakprosesstask må fikses - PTv2
+    // @Deprecated(forRemoval = true) // Fagsakprosesstask må fikses før fjerning
     public void setBehandling(String saksnummer, Long fagsakId, Long behandlingId) {
         Objects.requireNonNull(saksnummer, CommonTaskProperties.SAKSNUMMER);
-        Objects.requireNonNull(fagsakId, CommonTaskProperties.FAGSAK_ID);
+        Objects.requireNonNull(fagsakId, FAGSAK_ID);
         Objects.requireNonNull(behandlingId, CommonTaskProperties.BEHANDLING_ID);
 
         setSaksnummer(saksnummer);
@@ -343,57 +346,22 @@ public class ProsessTaskData implements ProsessTaskInfo {
         setBehandlingId(behandlingId.toString());
     }
 
-    @Deprecated(forRemoval = true) // Impending removal next release
-    public void setBehandling(Long fagsakId, Long behandlingId, String aktørId) {
-        Objects.requireNonNull(fagsakId, CommonTaskProperties.FAGSAK_ID);
+    public void setBehandling(String saksnummer, Long fagsakId, UUID behandlingUuid, Long behandlingId) {
+        Objects.requireNonNull(saksnummer, CommonTaskProperties.SAKSNUMMER);
+        Objects.requireNonNull(fagsakId, FAGSAK_ID);
         Objects.requireNonNull(behandlingId, CommonTaskProperties.BEHANDLING_ID);
-        Objects.requireNonNull(aktørId, CommonTaskProperties.AKTØR_ID);
+        Objects.requireNonNull(behandlingUuid, CommonTaskProperties.BEHANDLING_UUID);
 
+        setSaksnummer(saksnummer);
         setFagsakId(fagsakId);
+        setBehandlingUUid(behandlingUuid);
         setBehandlingId(behandlingId.toString());
-        setAktørId(aktørId);
     }
 
-    @Deprecated(forRemoval = true) // Impending removal next release
-    public void setBehandling(String saksnummer, String behandlingId) {
-        Objects.requireNonNull(saksnummer, CommonTaskProperties.SAKSNUMMER);
-        Objects.requireNonNull(behandlingId, CommonTaskProperties.BEHANDLING_ID);
-
-        setSaksnummer(saksnummer);
-        setBehandlingId(behandlingId);
-    }
-
-    /**
-     * Convenience API - Angi (optional) hvilken behandling/sak denne prosesstasken kjøres for.
-     *
-     * @param saksnummer offisielt saksnummer
-     * @param behandlingId angitt behandlingId definert av fagsystem (kan være Long, UUID, etc)
-     * @param aktørId angitt AktørId gyldig i AktørRegisteret.
-     */
-    @Deprecated(forRemoval = true) // Impending removal next release
-    public void setBehandling(String saksnummer, String behandlingId, String aktørId) {
-        Objects.requireNonNull(saksnummer, CommonTaskProperties.SAKSNUMMER);
-        Objects.requireNonNull(behandlingId, CommonTaskProperties.BEHANDLING_ID);
-        Objects.requireNonNull(aktørId, CommonTaskProperties.AKTØR_ID);
-
-        setSaksnummer(saksnummer);
-        setBehandlingId(behandlingId);
-        setAktørId(aktørId);
-    }
-
-    @Deprecated(forRemoval = true) // Impending removal next release
-    public void setFagsak(Long fagsakId, String aktørId) {
-        Objects.requireNonNull(fagsakId, CommonTaskProperties.FAGSAK_ID);
-        Objects.requireNonNull(aktørId, CommonTaskProperties.AKTØR_ID);
-
-        setFagsakId(fagsakId);
-        setAktørId(aktørId);
-    }
-
-    @Deprecated(forRemoval = true) // Fagsakprosesstask må fikses - PTv2
+    // @Deprecated(forRemoval = true) // Fagsakprosesstask må fikses før fjerning
     public void setFagsak(String saksnummer, Long fagsakId) {
         Objects.requireNonNull(saksnummer, CommonTaskProperties.SAKSNUMMER);
-        Objects.requireNonNull(fagsakId, CommonTaskProperties.FAGSAK_ID);
+        Objects.requireNonNull(fagsakId, FAGSAK_ID);
 
         setSaksnummer(saksnummer);
         setFagsakId(fagsakId);
@@ -433,10 +401,16 @@ public class ProsessTaskData implements ProsessTaskInfo {
         setStatus(ProsessTaskStatus.VENTER_SVAR);
     }
 
+    // Sett til null for å fjerne.
     public void setCallId(String callId) {
         setProperty(CallId.CALL_ID, callId);
     }
 
+    public boolean harCallId() {
+        return Optional.ofNullable(getPropertyValue(CallId.CALL_ID)).filter(c -> !c.isEmpty()).isPresent();
+    }
+
+    @Deprecated(forRemoval = true) // Default oppførsel
     public void setCallIdFraEksisterende() {
         setCallId(MDC.get(CallId.CALL_ID));
     }

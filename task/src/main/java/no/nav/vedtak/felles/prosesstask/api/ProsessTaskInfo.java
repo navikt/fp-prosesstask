@@ -68,8 +68,12 @@ public interface ProsessTaskInfo {
     Long getFagsakId();
 
     String getSaksnummer();
-    
+
     String getBehandlingId();
 
     UUID getBehandlingUuid();
+
+    default Long getBehandlingIdAsLong() {
+        return Optional.ofNullable(getBehandlingId()).map(Long::valueOf).orElse(null);
+    }
 }
