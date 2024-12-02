@@ -75,6 +75,10 @@ public class ProsessTaskGruppe {
         this.getTasks().forEach(e -> e.task().setBehandling(saksnummer, fagsakId, behandlingId));
     }
 
+    public void setBehandling(String saksnummer, Long fagsakId, UUID behandlingUuid, Long behandlingId) {
+        this.getTasks().forEach(e -> e.task().setBehandling(saksnummer, fagsakId, behandlingUuid, behandlingId));
+    }
+
     public void setFagsak(String saksnummer, Long fagsakId) {
         this.getTasks().forEach(e -> e.task().setFagsak(saksnummer, fagsakId));
     }
@@ -92,6 +96,10 @@ public class ProsessTaskGruppe {
         setProperty(CallId.CALL_ID, callId);
     }
 
+    public boolean harCallId() {
+        return tasks.isEmpty() || tasks.stream().map(Entry::task).allMatch(ProsessTaskData::harCallId);
+    }
+
     public void setProperty(String key, String value) {
         props.put(key, value);
         for (Entry pt : tasks) {
@@ -100,6 +108,7 @@ public class ProsessTaskGruppe {
         }
     }
 
+    @Deprecated(forRemoval = true) // Default oppførsel
     public void setCallIdFraEksisterende() {
         setCallId(MDC.get(CallId.CALL_ID));
     }

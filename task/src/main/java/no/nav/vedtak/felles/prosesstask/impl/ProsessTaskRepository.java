@@ -6,10 +6,13 @@ import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 
 import org.hibernate.jpa.HibernateHints;
 import org.hibernate.query.NativeQuery;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 
 import jakarta.enterprise.context.ApplicationScoped;
@@ -18,6 +21,7 @@ import jakarta.enterprise.inject.Instance;
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
 import no.nav.vedtak.exception.TekniskException;
+import no.nav.vedtak.felles.prosesstask.api.CallId;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskGruppe;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskStatus;
@@ -28,6 +32,8 @@ import no.nav.vedtak.felles.prosesstask.impl.util.DatabaseUtil;
  */
 @ApplicationScoped
 public class ProsessTaskRepository {
+
+    static final Logger LOG = LoggerFactory.getLogger(ProsessTaskRepository.class);
 
     private EntityManager entityManager;
     private ProsessTaskEventPubliserer eventPubliserer;
@@ -136,6 +142,10 @@ public class ProsessTaskRepository {
      * Lagre og returner id.
      */
     protected Long doLagreTask(ProsessTaskData task) {
+        var callId = Optional.ofNullable(task.getPropertyValue(CallId.CALL_ID)).filter(c -> !c.isEmpty());
+        if (callId.isEmpty()) {
+            LOG.info("Lagrer prosesstask uten callId - taskType {}", task.taskType().value());
+        }
         ProsessTaskEntitet pte;
         if (task.getId() != null) {
             trackTaskLineage("latest", task);

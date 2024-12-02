@@ -53,6 +53,7 @@ public class ProsessTaskData implements ProsessTaskInfo {
 
     ProsessTaskData(TaskType taskType) {
         this.taskType = taskType;
+        Optional.ofNullable(MDC.get(CallId.CALL_ID)).filter(c -> !c.isEmpty()).ifPresent(this::setCallId);
     }
 
     public static ProsessTaskData forProsessTask(Class<? extends ProsessTaskHandler> clazz) {
@@ -400,10 +401,16 @@ public class ProsessTaskData implements ProsessTaskInfo {
         setStatus(ProsessTaskStatus.VENTER_SVAR);
     }
 
+    // Sett til null for å fjerne.
     public void setCallId(String callId) {
         setProperty(CallId.CALL_ID, callId);
     }
 
+    public boolean harCallId() {
+        return Optional.ofNullable(getPropertyValue(CallId.CALL_ID)).filter(c -> !c.isEmpty()).isPresent();
+    }
+
+    @Deprecated(forRemoval = true) // Default oppførsel
     public void setCallIdFraEksisterende() {
         setCallId(MDC.get(CallId.CALL_ID));
     }

@@ -5,11 +5,10 @@ import java.util.List;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 
-import jakarta.enterprise.inject.spi.CDI;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import jakarta.enterprise.inject.spi.CDI;
 import no.nav.vedtak.felles.prosesstask.api.CallId;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskDispatcher;
 import no.nav.vedtak.felles.prosesstask.api.TaskType;
@@ -17,7 +16,7 @@ import no.nav.vedtak.felles.prosesstask.impl.TaskManager.ReadTaskFunksjon;
 
 /** Poller for tilgjengelige tasks og omsetter disse til Runnable som kan kjøres på andre tråder. */
 public class TaskManagerGenerateRunnableTasks {
-    static final Logger log = LoggerFactory.getLogger(TaskManagerGenerateRunnableTasks.class);
+    static final Logger LOG = LoggerFactory.getLogger(TaskManagerGenerateRunnableTasks.class);
     static final CDI<Object> CURRENT = CDI.current();
 
     private final BiFunction<Integer, ReadTaskFunksjon, List<IdentRunnable>> availableTasksFunc;
