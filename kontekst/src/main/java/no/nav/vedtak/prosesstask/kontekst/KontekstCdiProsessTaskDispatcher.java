@@ -35,10 +35,10 @@ public class KontekstCdiProsessTaskDispatcher extends BasicCdiProsessTaskDispatc
             } else if (task.getFagsakId() != null) { // NOSONAR
                 LOG_CONTEXT.add("fagsak", task.getFagsakId());  // NOSONAR
             }
-            if (task.getBehandlingId() != null) {
-                LOG_CONTEXT.add("behandling", task.getBehandlingId());
-            } else if (task.getBehandlingUuid() != null) {
+            if (task.getBehandlingUuid() != null) {
                 LOG_CONTEXT.add("behandling", task.getBehandlingUuid());
+            } else if (task.getBehandlingId() != null) {
+                LOG_CONTEXT.add("behandling", task.getBehandlingId());
             }
 
             taskHandler.doTask(task);
