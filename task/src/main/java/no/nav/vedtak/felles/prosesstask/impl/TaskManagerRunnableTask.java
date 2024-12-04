@@ -3,10 +3,9 @@ package no.nav.vedtak.felles.prosesstask.impl;
 import java.time.LocalDateTime;
 import java.util.function.Consumer;
 
-import jakarta.persistence.PersistenceException;
-
 import org.slf4j.MDC;
 
+import jakarta.persistence.PersistenceException;
 import no.nav.vedtak.felles.prosesstask.api.CallId;
 import no.nav.vedtak.felles.prosesstask.api.TaskType;
 
@@ -62,7 +61,7 @@ class TaskManagerRunnableTask implements Runnable {
                 errorTask.doRun(taskInfo, fatal);
             } catch (Throwable t) {
                 // logg at vi ikke klarte å registrer feilen i db
-                TaskManagerGenerateRunnableTasks.log.error(
+                TaskManagerGenerateRunnableTasks.LOG.error(
                         "PT-415565 Kunne ikke registrere feil på task pga uventet feil ved oppdatering av status/feil, id={}, taskName={}.", taskInfo.getId(), taskInfo.getTaskType(), t);
             } finally {
                 clearLogContext();
@@ -71,7 +70,7 @@ class TaskManagerRunnableTask implements Runnable {
         };
 
         // logg at vi kommer til å skrive dette i ny transaksjon pga fatal feil.
-        TaskManagerGenerateRunnableTasks.log.warn("PT-876628 Kritisk database feil som gir rollback. Kan ikke prosessere task, vil logge til db i ny transaksjon, id={}, taskName={} pga uventet feil.",
+        TaskManagerGenerateRunnableTasks.LOG.warn("PT-876628 Kritisk database feil som gir rollback. Kan ikke prosessere task, vil logge til db i ny transaksjon, id={}, taskName={} pga uventet feil.",
                 taskInfo.getId(), taskInfo.getTaskType(), fatal);
 
 

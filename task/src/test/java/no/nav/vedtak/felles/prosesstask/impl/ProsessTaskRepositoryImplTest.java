@@ -118,7 +118,7 @@ class ProsessTaskRepositoryImplTest extends EntityManagerAwareTest {
         data.setSisteFeilKode("feilkode-123");
         data.setSisteFeil("siste-feil");
         data.setAntallFeiledeForsøk(2);
-        data.setBehandling(1L, 2L, "3");
+        data.setBehandling("345", 1L, 2L);
         data.setGruppe("gruppe");
         data.setNesteKjøringEtter(nesteKjøringEtter);
         data.setPrioritet(2);
