@@ -7,6 +7,8 @@ import java.time.LocalDateTime;
 import java.util.Objects;
 import java.util.Properties;
 
+import jakarta.persistence.SequenceGenerator;
+
 import org.hibernate.annotations.Parameter;
 import org.hibernate.annotations.Type;
 import org.hibernate.usertype.UserTypeLegacyBridge;
@@ -42,7 +44,8 @@ public class ProsessTaskEntitet {
     private String gruppe;
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "SEQ_PROSESS_TASK")
+    @SequenceGenerator(name = "seq_prosess_task", sequenceName = "SEQ_PROSESS_TASK")
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "seq_prosess_task")
     private Long id;
 
     @Column(name = "blokkert_av")
