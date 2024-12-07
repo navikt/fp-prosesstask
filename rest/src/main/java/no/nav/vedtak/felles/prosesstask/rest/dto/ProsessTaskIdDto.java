@@ -11,6 +11,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.ws.rs.PathParam;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonFormat(shape = JsonFormat.Shape.OBJECT)
@@ -22,6 +23,7 @@ public class ProsessTaskIdDto {
     @NotNull
     @Min(0)
     @Max(Long.MAX_VALUE)
+    @PathParam("prosessTaskId")
     private Long prosessTaskId;
 
     public ProsessTaskIdDto() {

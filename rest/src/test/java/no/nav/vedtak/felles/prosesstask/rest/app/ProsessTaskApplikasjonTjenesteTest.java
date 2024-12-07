@@ -1,12 +1,9 @@
 package no.nav.vedtak.felles.prosesstask.rest.app;
 
-import static org.assertj.core.api.Assertions.anyOf;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentCaptor.forClass;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -18,10 +15,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.UUID;
 
-import no.nav.vedtak.felles.prosesstask.rest.dto.ProsessTaskDataDto;
-import no.nav.vedtak.felles.prosesstask.rest.dto.ProsessTaskOpprettInputDto;
-import no.nav.vedtak.felles.prosesstask.rest.dto.SokeFilterDto;
-import no.nav.vedtak.felles.prosesstask.rest.dto.StatusFilterDto;
+import no.nav.vedtak.felles.prosesstask.rest.dto.FeiletProsessTaskStatusEnum;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -36,7 +30,10 @@ import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskStatus;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskTjeneste;
 import no.nav.vedtak.felles.prosesstask.api.TaskType;
+import no.nav.vedtak.felles.prosesstask.rest.dto.ProsessTaskOpprettInputDto;
 import no.nav.vedtak.felles.prosesstask.rest.dto.ProsessTaskRestartInputDto;
+import no.nav.vedtak.felles.prosesstask.rest.dto.SokeFilterDto;
+import no.nav.vedtak.felles.prosesstask.rest.dto.StatusFilterDto;
 
 @ExtendWith(MockitoExtension.class)
 class ProsessTaskApplikasjonTjenesteTest {
@@ -60,11 +57,11 @@ class ProsessTaskApplikasjonTjenesteTest {
     @Test
     void skal_tvinge_restart_når_prosesstask_har_feilet_maks() {
         var taskId = 10L;
-        var taskStatus = ProsessTaskStatus.SUSPENDERT.getDbKode();
+        var taskStatus = FeiletProsessTaskStatusEnum.FEILET;
 
         var restartResultatDto = prosessTaskApplikasjonTjeneste.flaggProsessTaskForRestart(lagProsessTaskRestartInputDto(taskId, taskStatus));
 
-        verify(tjenesteMock).flaggProsessTaskForRestart(taskId, taskStatus);
+        verify(tjenesteMock).flaggProsessTaskForRestart(taskId, taskStatus.name());
 
         assertThat(restartResultatDto.getProsessTaskId()).isEqualTo(taskId);
         assertThat(restartResultatDto.getProsessTaskStatus()).isEqualTo(ProsessTaskStatus.KLAR.getDbKode());
@@ -170,7 +167,7 @@ class ProsessTaskApplikasjonTjenesteTest {
         return prosessTaskData;
     }
 
-    private ProsessTaskRestartInputDto lagProsessTaskRestartInputDto(Long id, String status) {
+    private ProsessTaskRestartInputDto lagProsessTaskRestartInputDto(Long id, FeiletProsessTaskStatusEnum status) {
         var inputDto = new ProsessTaskRestartInputDto();
         inputDto.setProsessTaskId(id);
         inputDto.setNaaVaaerendeStatus(status);

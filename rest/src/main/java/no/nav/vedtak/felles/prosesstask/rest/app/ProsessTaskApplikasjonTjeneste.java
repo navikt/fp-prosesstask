@@ -69,7 +69,7 @@ public class ProsessTaskApplikasjonTjeneste {
     }
 
     public ProsessTaskRestartResultatDto flaggProsessTaskForRestart(ProsessTaskRestartInputDto prosessTaskRestartInputDto) {
-        prosessTaskTjeneste.flaggProsessTaskForRestart(prosessTaskRestartInputDto.getProsessTaskId(), prosessTaskRestartInputDto.getNaaVaaerendeStatus());
+        prosessTaskTjeneste.flaggProsessTaskForRestart(prosessTaskRestartInputDto.getProsessTaskId(), prosessTaskRestartInputDto.getNaaVaaerendeStatus().name());
 
         var restartResultatDto = new ProsessTaskRestartResultatDto();
         restartResultatDto.setNesteKjoeretidspunkt(LocalDateTime.now());

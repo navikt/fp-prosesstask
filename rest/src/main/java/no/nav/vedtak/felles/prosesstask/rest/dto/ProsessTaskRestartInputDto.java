@@ -1,11 +1,5 @@
 package no.nav.vedtak.felles.prosesstask.rest.dto;
 
-import jakarta.validation.constraints.Max;
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Pattern;
-import jakarta.validation.constraints.Size;
-
 import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
@@ -14,6 +8,11 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotNull;
+import jakarta.ws.rs.PathParam;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonFormat(shape = JsonFormat.Shape.OBJECT)
@@ -25,14 +24,14 @@ public class ProsessTaskRestartInputDto {
     @Min(0)
     @Max(Long.MAX_VALUE)
     @NotNull
+    @PathParam("prosessTaskId")
     private Long prosessTaskId;
 
     @JsonAlias(value = { "naaVaarendeStatus" })
     @JsonProperty(value = "inneværendeStatus", required = true)
-    @Schema(description = "Nåværende status. Angis hviss prosessen som skal restartes har en annen status enn KLAR.", allowableValues = "VENTER_SVAR, SUSPENDERT, FEILET")
-    @Size(max = 15)
-    @Pattern(regexp = "VENTER_SVAR|FEILET|SUSPENDERT")
-    private String naaVaaerendeStatus;
+    @Valid
+    @PathParam("prosessTaskStatus")
+    private FeiletProsessTaskStatusEnum naaVaaerendeStatus;
 
     public ProsessTaskRestartInputDto() {
         // Jackson
@@ -46,11 +45,11 @@ public class ProsessTaskRestartInputDto {
         this.prosessTaskId = prosessTaskId;
     }
 
-    public String getNaaVaaerendeStatus() {
+    public FeiletProsessTaskStatusEnum getNaaVaaerendeStatus() {
         return naaVaaerendeStatus;
     }
 
-    public void setNaaVaaerendeStatus(String naaVaaerendeStatus) {
+    public void setNaaVaaerendeStatus(FeiletProsessTaskStatusEnum naaVaaerendeStatus) {
         this.naaVaaerendeStatus = naaVaaerendeStatus;
     }
 
