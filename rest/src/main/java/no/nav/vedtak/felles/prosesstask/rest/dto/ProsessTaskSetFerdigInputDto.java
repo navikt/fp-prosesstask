@@ -1,10 +1,9 @@
 package no.nav.vedtak.felles.prosesstask.rest.dto;
 
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Pattern;
-import jakarta.validation.constraints.Size;
 
 import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
@@ -14,6 +13,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.ws.rs.PathParam;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonFormat(shape = JsonFormat.Shape.OBJECT)
@@ -25,14 +25,14 @@ public class ProsessTaskSetFerdigInputDto {
     @Min(0)
     @Max(Long.MAX_VALUE)
     @NotNull
+    @PathParam("prosessTaskId")
     private Long prosessTaskId;
 
     @JsonAlias(value = { "naaVaarendeStatus" })
     @JsonProperty(value = "inneværendeStatus", required = true)
-    @Schema(description = "Nåværende status. Angis hviss prosessen som skal restartes har en annen status enn KLAR.", allowableValues = "FEILET, VENTER_SVAR, SUSPENDERT, VETO, KLAR")
-    @Size(max = 15)
-    @Pattern(regexp = "FEILET|VENTER_SVAR|SUSPENDERT|VETO|KLAR")
-    private String naaVaaerendeStatus;
+    @Valid
+    @PathParam("prosessTaskStatus")
+    private IkkeFerdigProsessTaskStatusEnum naaVaaerendeStatus;
 
     public ProsessTaskSetFerdigInputDto() {
         // Jackson
@@ -46,11 +46,11 @@ public class ProsessTaskSetFerdigInputDto {
         this.prosessTaskId = prosessTaskId;
     }
 
-    public String getNaaVaaerendeStatus() {
+    public IkkeFerdigProsessTaskStatusEnum getNaaVaaerendeStatus() {
         return naaVaaerendeStatus;
     }
 
-    public void setNaaVaaerendeStatus(String naaVaaerendeStatus) {
+    public void setNaaVaaerendeStatus(IkkeFerdigProsessTaskStatusEnum naaVaaerendeStatus) {
         this.naaVaaerendeStatus = naaVaaerendeStatus;
     }
 }
