@@ -57,11 +57,11 @@ class ProsessTaskApplikasjonTjenesteTest {
     @Test
     void skal_tvinge_restart_når_prosesstask_har_feilet_maks() {
         var taskId = 10L;
-        var taskStatus = FeiletProsessTaskStatusEnum.FEILET;
+        var taskStatus = ProsessTaskStatus.SUSPENDERT;
 
         var restartResultatDto = prosessTaskApplikasjonTjeneste.flaggProsessTaskForRestart(lagProsessTaskRestartInputDto(taskId, taskStatus));
 
-        verify(tjenesteMock).flaggProsessTaskForRestart(taskId, taskStatus.name());
+        verify(tjenesteMock).flaggProsessTaskForRestart(taskId, taskStatus);
 
         assertThat(restartResultatDto.getProsessTaskId()).isEqualTo(taskId);
         assertThat(restartResultatDto.getProsessTaskStatus()).isEqualTo(ProsessTaskStatus.KLAR.getDbKode());
@@ -167,10 +167,10 @@ class ProsessTaskApplikasjonTjenesteTest {
         return prosessTaskData;
     }
 
-    private ProsessTaskRestartInputDto lagProsessTaskRestartInputDto(Long id, FeiletProsessTaskStatusEnum status) {
+    private ProsessTaskRestartInputDto lagProsessTaskRestartInputDto(Long id, ProsessTaskStatus status) {
         var inputDto = new ProsessTaskRestartInputDto();
         inputDto.setProsessTaskId(id);
-        inputDto.setNaaVaaerendeStatus(status);
+        inputDto.setNaaVaaerendeStatus(FeiletProsessTaskStatusEnum.valueOf(status.name()));
         return inputDto;
     }
 }
