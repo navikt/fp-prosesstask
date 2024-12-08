@@ -83,7 +83,7 @@ public class RunTaskFeilOgStatusEventHåndterer {
         /*
          * assume won't help to try and write to database just now, log only instead
          */
-        LOG.warn("PT-530440 Kunne ikke prosessere task pga transient database feil: id={}, taskName={}. Vil automatisk prøve igjen",
+        LOG.info("PT-530440 Kunne ikke prosessere task pga transient database feil: id={}, taskName={}. Vil automatisk prøve igjen",
                 taskInfo.getId(), taskInfo.getTaskType(), e);
     }
 
