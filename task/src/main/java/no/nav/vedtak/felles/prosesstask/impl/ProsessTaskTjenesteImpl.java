@@ -117,7 +117,7 @@ public class ProsessTaskTjenesteImpl implements ProsessTaskTjeneste {
     }
 
     @Override
-    public void flaggProsessTaskForRestart(Long prosessTaskId, String oppgittStatus) {
+    public void flaggProsessTaskForRestart(Long prosessTaskId, ProsessTaskStatus oppgittStatus) {
         var ptd = prosessTaskRepository.finn(prosessTaskId);
 
         validerBetingelserForRestart(prosessTaskId, oppgittStatus, ptd);
@@ -178,13 +178,13 @@ public class ProsessTaskTjenesteImpl implements ProsessTaskTjeneste {
         }
     }
 
-    private void validerBetingelserForRestart(Long prosessTaskId, String nåværendeStatus, ProsessTaskData ptd) {
+    private void validerBetingelserForRestart(Long prosessTaskId, ProsessTaskStatus nåværendeStatus, ProsessTaskData ptd) {
         if (ptd != null) {
             if (ptd.getStatus().equals(ProsessTaskStatus.FERDIG) || ptd.getStatus().equals(ProsessTaskStatus.KJOERT)) {
                 throw new TekniskException(KAN_IKKE_RESTARTE_FERDIG_TASK_FEIL_ID,
                         String.format("Prosesstasken %s har allerede kjørt ferdig, og kan ikke kjøres på nytt", prosessTaskId));
             }
-            if (!ProsessTaskStatus.KLAR.equals(ptd.getStatus()) && (nåværendeStatus == null || !ptd.getStatus().equals(ProsessTaskStatus.valueOf(nåværendeStatus)))) {
+            if (!ProsessTaskStatus.KLAR.equals(ptd.getStatus()) && !ptd.getStatus().equals(nåværendeStatus)) {
                 throw new TekniskException(MAA_ANGI_NAVARENDE_STATUS_FEIL_ID,
                         String.format("Prosesstasken %s har ikke status KLAR. For restart må nåværende status angis.", prosessTaskId));
             }

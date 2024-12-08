@@ -79,7 +79,8 @@ public class ProsessTaskRestTjeneste {
     @BeskyttetRessurs(actionType = ActionType.CREATE, property = ABAC_DRIFT_ATTRIBUTT)
     public ProsessTaskDataDto createProsessTask(@Parameter(description = "Informasjon for restart en eksisterende prosesstask") @TilpassetAbacAttributt(supplierClass = AbacEmptySupplier.class) @Valid ProsessTaskOpprettInputDto inputDto) {
         // kjøres manuelt for å avhjelpe feilsituasjon, da er det veldig greit at det blir logget!
-        LOG.info("Oppretter prossess task av type {}", inputDto.getTaskType());
+        var sanitizedTaskType = inputDto.getTaskType().replace("\n", "").replace("\r", "").trim();
+        LOG.info("Oppretter prossess task {}", sanitizedTaskType);
         return prosessTaskApplikasjonTjeneste.opprettTask(inputDto);
     }
 

@@ -6,7 +6,6 @@ import java.util.Optional;
 
 import jakarta.enterprise.context.Dependent;
 import jakarta.inject.Inject;
-
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskStatus;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskTjeneste;
@@ -69,12 +68,13 @@ public class ProsessTaskApplikasjonTjeneste {
     }
 
     public ProsessTaskRestartResultatDto flaggProsessTaskForRestart(ProsessTaskRestartInputDto prosessTaskRestartInputDto) {
-        prosessTaskTjeneste.flaggProsessTaskForRestart(prosessTaskRestartInputDto.getProsessTaskId(), prosessTaskRestartInputDto.getNaaVaaerendeStatus().name());
+        var nåStatus = Optional.ofNullable(prosessTaskRestartInputDto.getNaaVaaerendeStatus()).map(ProsessTaskStatus::valueOf).orElse(null);
+        prosessTaskTjeneste.flaggProsessTaskForRestart(prosessTaskRestartInputDto.getProsessTaskId(), nåStatus);
 
         var restartResultatDto = new ProsessTaskRestartResultatDto();
         restartResultatDto.setNesteKjoeretidspunkt(LocalDateTime.now());
         restartResultatDto.setProsessTaskId(prosessTaskRestartInputDto.getProsessTaskId());
-        restartResultatDto.setProsessTaskStatus(ProsessTaskStatus.KLAR.getDbKode());
+        restartResultatDto.setProsessTaskStatus(ProsessTaskStatus.KLAR.name());
         return restartResultatDto;
     }
 
@@ -87,7 +87,8 @@ public class ProsessTaskApplikasjonTjeneste {
     }
 
     public ProsessTaskDataDto opprettTask(ProsessTaskOpprettInputDto inputDto) {
-        var taskData = ProsessTaskData.forTaskType(new TaskType(inputDto.getTaskType()));
+        var sanitizedTaskType = inputDto.getTaskType().replace("\n", "").replace("\r", "").trim();
+        var taskData = ProsessTaskData.forTaskType(new TaskType(sanitizedTaskType));
         taskData.setProperties(inputDto.getTaskParametre());
         prosessTaskTjeneste.lagreValidert(taskData);
 
