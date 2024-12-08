@@ -118,7 +118,7 @@ public class ProsessTaskRepository {
             } catch (SQLException e) {
                 throw new TekniskException("PT-265358",
                         String.format("Kunne ikke lagre task, skriving til database mislykkes: task=%s, kjøresEtter=%s, parametere=%s.",
-                                task.getTaskType(), task.getNesteKjøringEtter(), task.getProperties()), e);
+                                task.taskType(), task.getNesteKjøringEtter(), task.getProperties()), e);
             }
         }
 
@@ -144,7 +144,7 @@ public class ProsessTaskRepository {
     protected Long doLagreTask(ProsessTaskData task) {
         var callId = Optional.ofNullable(task.getPropertyValue(CallId.CALL_ID)).filter(c -> !c.isEmpty());
         if (callId.isEmpty()) {
-            LOG.info("Lagrer prosesstask uten callId - taskType {}", task.taskType().value());
+            LOG.info("Lagrer prosesstask uten callId - taskType {}", task.taskType());
         }
         ProsessTaskEntitet pte;
         if (task.getId() != null) {

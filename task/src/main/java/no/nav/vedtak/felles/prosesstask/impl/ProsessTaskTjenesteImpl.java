@@ -9,7 +9,6 @@ import java.util.Properties;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.InjectionException;
 import jakarta.inject.Inject;
-
 import no.nav.vedtak.exception.TekniskException;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskGruppe;
@@ -71,7 +70,7 @@ public class ProsessTaskTjenesteImpl implements ProsessTaskTjeneste {
         try (var ref = ProsessTaskHandlerRef.lookup(task.taskType())) {
             task.validerProperties(ref.requiredProperties());
         } catch (InjectionException e) {
-            throw new TekniskException(MANGLER_IMPL, "Mangler implementasjon av " + task.getTaskType());
+            throw new TekniskException(MANGLER_IMPL, "Mangler implementasjon av " + task.taskType());
         }
     }
 

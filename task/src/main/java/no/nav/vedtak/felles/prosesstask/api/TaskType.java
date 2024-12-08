@@ -21,4 +21,9 @@ public record TaskType(String value) {
     public static int prioritet(Class<? extends ProsessTaskHandler> clazz) {
         return clazz.getAnnotation(ProsessTask.class).prioritet();
     }
+
+    @Override
+    public String toString() {
+        return "TaskType{" + value + '}';
+    }
 }
