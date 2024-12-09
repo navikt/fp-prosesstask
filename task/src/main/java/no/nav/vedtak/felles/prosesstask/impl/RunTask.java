@@ -20,6 +20,8 @@ import jakarta.persistence.LockTimeoutException;
 import jakarta.persistence.PersistenceException;
 import jakarta.transaction.Transactional;
 
+import no.nav.vedtak.felles.prosesstask.impl.util.OtelUtil;
+
 import org.hibernate.Session;
 import org.hibernate.exception.JDBCConnectionException;
 import org.hibernate.jdbc.Work;
@@ -91,10 +93,12 @@ public class RunTask {
                 return;
             }
 
-            pickAndRun.dispatchWork(pte);
+            OtelUtil.wrapper().span("TASK " + taskType.value(), OtelUtil.taskAttributter(pte.tilProsessTask()), () -> {
+                pickAndRun.dispatchWork(pte);
+                // flush for å fange andre constraint feil etc før vi markerer ferdig
+                getEntityManager().flush();
+            });
 
-            // flush for å fange andre constraint feil etc før vi markerer ferdig
-            getEntityManager().flush();
 
             if (ProsessTaskStatus.KLAR == pte.getStatus()) {
                 var sluttStatus = pickAndRun.markerTaskFerdig(pte);
@@ -203,7 +207,7 @@ public class RunTask {
             feilOgStatushåndterer.handleTaskFeil(retryPolicy, pte, e);
         }
 
-        void handleFatalTaskFeil(ProsessTaskEntitet pte,Feil feil, Exception e) {
+        void handleFatalTaskFeil(ProsessTaskEntitet pte, Feil feil, Exception e) {
             feilOgStatushåndterer.handleFatalTaskFeil(pte, feil, e);
         }
 
@@ -219,7 +223,7 @@ public class RunTask {
             // frigir veto etter at event handlere er fyrt
             vetoHåndterer.frigiVeto(pte);
 
-            ProsessTaskStatus nyStatus = ProsessTaskStatus.KJOERT;
+            var nyStatus = ProsessTaskStatus.KJOERT;
             taskManagerRepository.oppdaterStatus(pte.getId(), nyStatus);
 
             pte = refreshProsessTask(pte.getId());
@@ -230,7 +234,7 @@ public class RunTask {
         // markerer task som påbegynt (merk committer ikke før til slutt).
         void markerTaskUnderArbeid(ProsessTaskEntitet pte) {
             // mark row being processed with timestamp and server process id
-            LocalDateTime now = LocalDateTime.now();
+            var now = LocalDateTime.now();
             pte.setSisteKjøring(now);
             pte.setSisteKjøringServer(getJvmUniqueProcessName());
             getEntityManager().persist(pte);
@@ -240,15 +244,15 @@ public class RunTask {
         // regner ut neste kjøretid for tasks som kan repeteres (har CronExpression)
         void planleggNesteKjøring(ProsessTaskEntitet pte) throws SQLException {
             if (cronExpression != null) {
-                String gruppe = ProsessTaskRepository.getUniktProsessTaskGruppeNavn(taskManagerRepository.getEntityManager());
-                LocalDateTime now = LocalDateTime.now();
-                LocalDateTime nesteKjøring = cronExpression.nextLocalDateTimeAfter(now);
+                var gruppe = ProsessTaskRepository.getUniktProsessTaskGruppeNavn(taskManagerRepository.getEntityManager());
+                var now = LocalDateTime.now();
+                var nesteKjøring = cronExpression.nextLocalDateTimeAfter(now);
                 var data = ProsessTaskDataBuilder.forTaskType(pte.getTaskType())
                         .medNesteKjøringEtter(nesteKjøring)
                         .medProperties(pte.getProperties())
                         .medGruppe(gruppe)
                         .medSekvens(pte.getSekvens());
-                ProsessTaskEntitet nyPte = new ProsessTaskEntitet().kopierFraNy(data.build());
+                var nyPte = new ProsessTaskEntitet().kopierFraNy(data.build());
 
                 getEntityManager().persist(nyPte);
                 getEntityManager().flush();
@@ -266,7 +270,7 @@ public class RunTask {
         }
 
         void dispatchWork(ProsessTaskEntitet pte) throws Exception {
-            ProsessTaskData taskData = pte.tilProsessTask();
+            var taskData = pte.tilProsessTask();
             taskInfo.getTaskDispatcher().dispatch(taskData);
         }
 
@@ -277,7 +281,7 @@ public class RunTask {
         @SuppressWarnings("rawtypes")
         void runTask() {
 
-            final PickAndRunTask pickAndRun = this;
+            final var pickAndRun = this;
             /*
              * Bruker SQL+JDBC for å kunne benytte savepoints og inkrementell oppdatering i
              * transaksjonen.
@@ -286,7 +290,7 @@ public class RunTask {
                 @Override
                 public void execute(Connection conn) throws SQLException {
                     try {
-                        Optional<ProsessTaskEntitet> pte = taskManagerRepository.finnOgLås(taskInfo);
+                        var pte = taskManagerRepository.finnOgLås(taskInfo);
                         if (pte.isPresent()) {
                             runTaskAndUpdateStatus(conn, pte.get(), pickAndRun);
                         }
@@ -304,15 +308,15 @@ public class RunTask {
 
             }
 
-            PullSingleTask pullSingleTask = new PullSingleTask();
-            EntityManager em = getEntityManager();
+            var pullSingleTask = new PullSingleTask();
+            var em = getEntityManager();
             // workaround for hibernate issue HHH-11020
             if (em instanceof TargetInstanceProxy tip) {
                 em = (EntityManager) tip.weld_getTargetInstance();
             }
 
             @SuppressWarnings("resource") // skal ikke lukke session her
-            Session session = em.unwrap(Session.class);
+            var session = em.unwrap(Session.class);
 
             session.doWork(pullSingleTask);
 

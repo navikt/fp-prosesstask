@@ -3,6 +3,9 @@ package no.nav.vedtak.felles.prosesstask.impl;
 import java.lang.annotation.Annotation;
 import java.util.Set;
 
+import no.nav.vedtak.felles.prosesstask.impl.util.OtelUtil;
+import no.nav.vedtak.log.tracing.OtelSpanWrapper;
+
 import org.jboss.weld.interceptor.util.proxy.TargetInstanceProxy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -65,7 +68,7 @@ public class ProsessTaskHandlerRef implements AutoCloseable {
     private ProsessTask getProsessTaskAnnotation() {
         Class<?> clazz = getTargetClassExpectingAnnotation(ProsessTask.class);
         if (!clazz.isAnnotationPresent(ProsessTask.class)) {
-            throw new IllegalStateException(clazz.getSimpleName()  + " mangler annotering @ProsesTask");
+            throw new IllegalStateException(clazz.getSimpleName() + " mangler annotering @ProsesTask");
         }
         return clazz.getAnnotation(ProsessTask.class);
     }
@@ -92,7 +95,9 @@ public class ProsessTaskHandlerRef implements AutoCloseable {
 
     public void doTask(ProsessTaskData data) {
         LOG.info("Starter task {}", data.getTaskType());
-        bean.doTask(data);
+        OtelUtil.wrapper().span("TASK_doTask " + data.taskType(), OtelUtil.taskAttributter(data),
+            () -> bean.doTask(data)
+        );
         LOG.info("Stoppet task {}", data.getTaskType());
     }
 
