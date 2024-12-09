@@ -391,7 +391,7 @@ public class TaskManager implements Controllable {
             } catch (Exception e) {
                 backoffRound.set(backoffInterval.length - 1); // force max delay (skal kun havne her for Exception/RuntimeException)
                 LOG.warn("PT-996896 Kunne ikke polle database, venter til neste runde(runde={})", backoffRound.get(), e);
-            } catch (Throwable t) {
+            } catch (Throwable t) { // NOSONAR
                 backoffRound.set(backoffInterval.length - 1); // force max delay (skal kun havne her for Error)
                 LOG.error("PT-996897 Kunne ikke polle grunnet kritisk feil, venter ({}s)", getBackoffIntervalSeconds(), t);
             }
@@ -613,13 +613,14 @@ public class TaskManager implements Controllable {
 
         @Override
         public void run() {
-            RequestContextHandler.doWithRequestContext(this::doWithContext);
-            // neste kjører mellom 3-9 min fra nå.
-            var min = 3L * 60 * 1000;
-            var delay = System.currentTimeMillis() % (2 * min);
-            pollingService.schedule(this, min + delay, TimeUnit.MILLISECONDS);
+            OtelUtil.wrapper().span("UpdateTaskMonitor", spanBuilder -> spanBuilder.setSpanKind(SpanKind.INTERNAL), () -> {
+                RequestContextHandler.doWithRequestContext(this::doWithContext);
+                // neste kjører mellom 3-9 min fra nå.
+                var min = 3L * 60 * 1000;
+                var delay = System.currentTimeMillis() % (2 * min);
+                pollingService.schedule(this, min + delay, TimeUnit.MILLISECONDS);
+            });
         }
-
     }
 
     /**

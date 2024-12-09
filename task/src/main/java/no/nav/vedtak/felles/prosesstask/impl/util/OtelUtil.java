@@ -1,18 +1,16 @@
 package no.nav.vedtak.felles.prosesstask.impl.util;
 
+import java.util.function.UnaryOperator;
+
+import io.opentelemetry.api.GlobalOpenTelemetry;
 import io.opentelemetry.api.trace.SpanBuilder;
 import io.opentelemetry.api.trace.SpanKind;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
 import no.nav.vedtak.log.tracing.OtelSpanWrapper;
 
-import java.util.Properties;
-import java.util.function.UnaryOperator;
-
 public class OtelUtil {
 
-    private static final String LIB_NAME = "fpprosesstask";
-
-    private static OtelSpanWrapper WRAPPER = OtelSpanWrapper.forBibliotek(LIB_NAME, readVersionProperty());
+    private static OtelSpanWrapper WRAPPER = new OtelSpanWrapper(GlobalOpenTelemetry.getTracer("fp-prosesstask"));
 
     public static OtelSpanWrapper wrapper() {
         return WRAPPER;
@@ -20,18 +18,6 @@ public class OtelUtil {
 
     private OtelUtil() {
         // Sonar
-    }
-
-    private static String readVersionProperty() {
-        String version;
-        try {
-            final var properties = new Properties();
-            properties.load(OtelUtil.class.getClassLoader().getResourceAsStream(LIB_NAME + "-version.properties"));
-            version = properties.getProperty("version");
-        } catch (Exception e) {
-            version = "UNKNOWN";
-        }
-        return version;
     }
 
     public static UnaryOperator<SpanBuilder> taskAttributter(ProsessTaskData data) {
