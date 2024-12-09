@@ -37,8 +37,8 @@ public class KontekstCdiProsessTaskDispatcher extends BasicCdiProsessTaskDispatc
             }
             if (task.getBehandlingUuid() != null) {
                 LOG_CONTEXT.add("behandling", task.getBehandlingUuid());
-            } else if (task.getBehandlingId() != null) {
-                LOG_CONTEXT.add("behandling", task.getBehandlingId());
+            } else if (task.getBehandlingIdAsLong() != null) {
+                LOG_CONTEXT.add("behandling", task.getBehandlingIdAsLong());
             }
 
             taskHandler.doTask(task);

@@ -2,23 +2,17 @@ package no.nav.vedtak.felles.prosesstask.api;
 
 public enum ProsessTaskStatus {
 
-    KLAR("KLAR"), 
-    KJOERT("KJOERT"),
-    FERDIG("FERDIG"), 
-    VENTER_SVAR("VENTER_SVAR"), 
-    VETO("VETO"), 
-    SUSPENDERT("SUSPENDERT"), 
-    FEILET("FEILET") 
+    KLAR,
+    KJOERT,
+    FERDIG,
+    VENTER_SVAR,
+    VETO,
+    SUSPENDERT,
+    FEILET
     ;
 
-    private String dbKode;
-
-    ProsessTaskStatus(String dbKode) {
-        this.dbKode = dbKode;
-    }
-
     public String getDbKode() {
-        return dbKode;
+        return this.name();
     }
 
     @Override

@@ -237,11 +237,6 @@ public class ProsessTaskData implements ProsessTaskInfo {
     }
 
     @Override
-    public String getTaskType() {
-        return taskType != null ? taskType.value() : null;
-    }
-
-    @Override
     public TaskType taskType() {
         return taskType;
     }
@@ -284,8 +279,8 @@ public class ProsessTaskData implements ProsessTaskInfo {
     }
 
     @Override
-    public String getBehandlingId() {
-        return getPropertyValue(CommonTaskProperties.BEHANDLING_ID);
+    public Long getBehandlingIdAsLong() {
+        return Optional.ofNullable(getPropertyValue(CommonTaskProperties.BEHANDLING_ID)).map(Long::valueOf).orElse(null);
     }
 
     protected void setBehandlingId(String id) {
@@ -390,7 +385,7 @@ public class ProsessTaskData implements ProsessTaskInfo {
     public String toString() {
         return getClass().getSimpleName()
             + "<id=" + getId()
-            + ", taskType=" + getTaskType()
+            + ", taskType=" + taskType()
             + ", props=" + getProperties()
             + ", status=" + getStatus()
             + ">";
