@@ -1,6 +1,7 @@
 package no.nav.vedtak.felles.prosesstask.rest.app;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -14,12 +15,9 @@ import no.nav.vedtak.felles.prosesstask.rest.dto.FeiletProsessTaskDataDto;
 import no.nav.vedtak.felles.prosesstask.rest.dto.ProsessTaskDataDto;
 import no.nav.vedtak.felles.prosesstask.rest.dto.ProsessTaskDataKonverter;
 import no.nav.vedtak.felles.prosesstask.rest.dto.ProsessTaskOpprettInputDto;
-import no.nav.vedtak.felles.prosesstask.rest.dto.ProsessTaskRestartInputDto;
 import no.nav.vedtak.felles.prosesstask.rest.dto.ProsessTaskRestartResultatDto;
 import no.nav.vedtak.felles.prosesstask.rest.dto.ProsessTaskRetryAllResultatDto;
-import no.nav.vedtak.felles.prosesstask.rest.dto.ProsessTaskStatusDto;
 import no.nav.vedtak.felles.prosesstask.rest.dto.SokeFilterDto;
-import no.nav.vedtak.felles.prosesstask.rest.dto.StatusFilterDto;
 
 @Dependent
 public class ProsessTaskApplikasjonTjeneste {
@@ -35,16 +33,15 @@ public class ProsessTaskApplikasjonTjeneste {
         this.prosessTaskTjeneste = prosessTaskTjeneste;
     }
 
-    public List<ProsessTaskDataDto> finnAlle(StatusFilterDto statusFilterDto) {
+    public List<ProsessTaskDataDto> finnAlle(List<ProsessTaskStatus> statuser) {
+        var brukStatuser = new ArrayList<>(statuser);
 
         // Hvis ikke spesifisert, søkes det default bare på ProsessTaskStatus.KLAR og ProsessTaskStatus.VENTER_SVAR
-        if (statusFilterDto.getProsessTaskStatuser().isEmpty()) {
-            statusFilterDto.getProsessTaskStatuser().add(new ProsessTaskStatusDto(ProsessTaskStatus.KLAR.getDbKode()));
-            statusFilterDto.getProsessTaskStatuser().add(new ProsessTaskStatusDto(ProsessTaskStatus.VENTER_SVAR.getDbKode()));
+        if (brukStatuser.isEmpty()) {
+            brukStatuser.add(ProsessTaskStatus.KLAR);
+            brukStatuser.add(ProsessTaskStatus.VENTER_SVAR);
         }
-
-        var statuser = statusFilterDto.getProsessTaskStatuser().stream().map(e -> ProsessTaskStatus.valueOf(e.getProsessTaskStatusName())).toList();
-        var prosessTaskData = prosessTaskTjeneste.finnAlleStatuser(statuser);
+        var prosessTaskData = prosessTaskTjeneste.finnAlleStatuser(brukStatuser);
         return prosessTaskData.stream().map(ProsessTaskDataKonverter::tilProsessTaskDataDto).toList();
     }
 
@@ -67,13 +64,12 @@ public class ProsessTaskApplikasjonTjeneste {
         prosessTaskTjeneste.setProsessTaskFerdig(prosessTaskId, status);
     }
 
-    public ProsessTaskRestartResultatDto flaggProsessTaskForRestart(ProsessTaskRestartInputDto prosessTaskRestartInputDto) {
-        var nåStatus = Optional.ofNullable(prosessTaskRestartInputDto.getNaaVaaerendeStatus()).map(ProsessTaskStatus::valueOf).orElse(null);
-        prosessTaskTjeneste.flaggProsessTaskForRestart(prosessTaskRestartInputDto.getProsessTaskId(), nåStatus);
+    public ProsessTaskRestartResultatDto flaggProsessTaskForRestart(Long prosessTaskId, ProsessTaskStatus status) {
+        prosessTaskTjeneste.flaggProsessTaskForRestart(prosessTaskId, status);
 
         var restartResultatDto = new ProsessTaskRestartResultatDto();
         restartResultatDto.setNesteKjoeretidspunkt(LocalDateTime.now());
-        restartResultatDto.setProsessTaskId(prosessTaskRestartInputDto.getProsessTaskId());
+        restartResultatDto.setProsessTaskId(prosessTaskId);
         restartResultatDto.setProsessTaskStatus(ProsessTaskStatus.KLAR.name());
         return restartResultatDto;
     }

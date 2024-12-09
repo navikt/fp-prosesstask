@@ -15,8 +15,6 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.UUID;
 
-import no.nav.vedtak.felles.prosesstask.rest.dto.FeiletProsessTaskStatusEnum;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -31,9 +29,7 @@ import no.nav.vedtak.felles.prosesstask.api.ProsessTaskStatus;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskTjeneste;
 import no.nav.vedtak.felles.prosesstask.api.TaskType;
 import no.nav.vedtak.felles.prosesstask.rest.dto.ProsessTaskOpprettInputDto;
-import no.nav.vedtak.felles.prosesstask.rest.dto.ProsessTaskRestartInputDto;
 import no.nav.vedtak.felles.prosesstask.rest.dto.SokeFilterDto;
-import no.nav.vedtak.felles.prosesstask.rest.dto.StatusFilterDto;
 
 @ExtendWith(MockitoExtension.class)
 class ProsessTaskApplikasjonTjenesteTest {
@@ -59,7 +55,7 @@ class ProsessTaskApplikasjonTjenesteTest {
         var taskId = 10L;
         var taskStatus = ProsessTaskStatus.SUSPENDERT;
 
-        var restartResultatDto = prosessTaskApplikasjonTjeneste.flaggProsessTaskForRestart(lagProsessTaskRestartInputDto(taskId, taskStatus));
+        var restartResultatDto = prosessTaskApplikasjonTjeneste.flaggProsessTaskForRestart(taskId, taskStatus);
 
         verify(tjenesteMock).flaggProsessTaskForRestart(taskId, taskStatus);
 
@@ -110,7 +106,7 @@ class ProsessTaskApplikasjonTjenesteTest {
     void finn_alle_uten_status_oppgitt() {
         when(tjenesteMock.finnAlleStatuser(anyList())).thenReturn(List.of(ProsessTaskData.forTaskType(TASK_TYPE)));
 
-        var resultat = prosessTaskApplikasjonTjeneste.finnAlle(new StatusFilterDto());
+        var resultat = prosessTaskApplikasjonTjeneste.finnAlle(List.of(ProsessTaskStatus.KLAR));
 
         verify(tjenesteMock).finnAlleStatuser(statusCaptor.capture());
         assertThat(statusCaptor.getValue()).hasSize(2);
@@ -165,12 +161,5 @@ class ProsessTaskApplikasjonTjenesteTest {
         prosessTaskData.setAntallFeiledeForsøk(0);
         parameters.forEach(prosessTaskData::setProperty);
         return prosessTaskData;
-    }
-
-    private ProsessTaskRestartInputDto lagProsessTaskRestartInputDto(Long id, ProsessTaskStatus status) {
-        var inputDto = new ProsessTaskRestartInputDto();
-        inputDto.setProsessTaskId(id);
-        inputDto.setNaaVaaerendeStatus(FeiletProsessTaskStatusEnum.valueOf(status.name()));
-        return inputDto;
     }
 }
