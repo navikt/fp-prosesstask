@@ -106,7 +106,7 @@ class ProsessTaskApplikasjonTjenesteTest {
     void finn_alle_uten_status_oppgitt() {
         when(tjenesteMock.finnAlleStatuser(anyList())).thenReturn(List.of(ProsessTaskData.forTaskType(TASK_TYPE)));
 
-        var resultat = prosessTaskApplikasjonTjeneste.finnAlle(List.of(ProsessTaskStatus.KLAR));
+        var resultat = prosessTaskApplikasjonTjeneste.finnAlle(List.of());
 
         verify(tjenesteMock).finnAlleStatuser(statusCaptor.capture());
         assertThat(statusCaptor.getValue()).hasSize(2);
