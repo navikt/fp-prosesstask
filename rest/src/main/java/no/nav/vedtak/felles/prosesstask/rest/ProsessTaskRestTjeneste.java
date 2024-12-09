@@ -163,8 +163,17 @@ public class ProsessTaskRestTjeneste {
     })
     @BeskyttetRessurs(actionType = ActionType.CREATE, property = ABAC_DRIFT_ATTRIBUTT)
     public Response setFeiletProsessTaskFerdig(@NotNull @Parameter(description = "Prosesstask-id for feilet prosesstask") @TilpassetAbacAttributt(supplierClass = AbacEmptySupplier.class) @Valid @BeanParam ProsessTaskSetFerdigInputDto prosessTaskIdDto) {
-        prosessTaskApplikasjonTjeneste.setProsessTaskFerdig(prosessTaskIdDto.getProsessTaskId(),
-            ProsessTaskStatus.valueOf(prosessTaskIdDto.getNaaVaaerendeStatus().name()));
+        prosessTaskApplikasjonTjeneste.setProsessTaskFerdig(prosessTaskIdDto.getProsessTaskId(), mapToProsessTaskStatus(prosessTaskIdDto.getNaaVaaerendeStatus()));
         return Response.ok().build();
+    }
+
+    private ProsessTaskStatus mapToProsessTaskStatus(IkkeFerdigProsessTaskStatusEnum ikkeFerdigStatus) {
+        return switch (ikkeFerdigStatus) {
+            case FEILET -> ProsessTaskStatus.FEILET;
+            case VENTER_SVAR -> ProsessTaskStatus.VENTER_SVAR;
+            case KLAR -> ProsessTaskStatus.KLAR;
+            case SUSPENDERT -> ProsessTaskStatus.SUSPENDERT;
+            case VETO -> ProsessTaskStatus.VETO;
+        };
     }
 }
