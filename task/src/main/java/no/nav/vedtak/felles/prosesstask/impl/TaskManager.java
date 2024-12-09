@@ -23,23 +23,24 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import org.hibernate.exception.JDBCConnectionException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import io.opentelemetry.api.trace.SpanKind;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.Any;
 import jakarta.enterprise.inject.Instance;
 import jakarta.enterprise.inject.spi.CDI;
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
-
-import org.hibernate.exception.JDBCConnectionException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import no.nav.vedtak.exception.TekniskException;
 import no.nav.vedtak.felles.jpa.TransactionHandler;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskDispatcher;
 import no.nav.vedtak.felles.prosesstask.api.TaskMonitor;
 import no.nav.vedtak.felles.prosesstask.api.TaskType;
+import no.nav.vedtak.felles.prosesstask.impl.util.OtelUtil;
 import no.nav.vedtak.log.metrics.Controllable;
 
 /**
@@ -363,7 +364,8 @@ public class TaskManager implements Controllable {
          */
         @Override
         public Integer call() {
-            return RequestContextHandler.doWithRequestContext(this::doPollingWithEntityManager);
+            return OtelUtil.wrapper().span("POLL_TASKS", spanBuilder -> spanBuilder.setSpanKind(SpanKind.INTERNAL).setNoParent(),
+                    () -> RequestContextHandler.doWithRequestContext(this::doPollingWithEntityManager));
         }
 
         public Integer doPollingWithEntityManager() {
@@ -389,7 +391,7 @@ public class TaskManager implements Controllable {
             } catch (Exception e) {
                 backoffRound.set(backoffInterval.length - 1); // force max delay (skal kun havne her for Exception/RuntimeException)
                 LOG.warn("PT-996896 Kunne ikke polle database, venter til neste runde(runde={})", backoffRound.get(), e);
-            } catch (Throwable t) {
+            } catch (Throwable t) { // NOSONAR
                 backoffRound.set(backoffInterval.length - 1); // force max delay (skal kun havne her for Error)
                 LOG.error("PT-996897 Kunne ikke polle grunnet kritisk feil, venter ({}s)", getBackoffIntervalSeconds(), t);
             }
@@ -510,13 +512,14 @@ public class TaskManager implements Controllable {
 
         @Override
         public void run() {
-            RequestContextHandler.doWithRequestContext(this::doWithContext);
-            // neste kjører mellom 1-10 min fra nå.
-            var min = 60L * 1000;
-            var delay = System.currentTimeMillis() % (9 * min);
-            pollingService.schedule(this, min + delay, TimeUnit.MILLISECONDS);
+            OtelUtil.wrapper().span("MoveToDonePartition", spanBuilder -> spanBuilder.setSpanKind(SpanKind.INTERNAL).setNoParent(), () -> {
+                RequestContextHandler.doWithRequestContext(this::doWithContext);
+                // neste kjører mellom 1-10 min fra nå.
+                var min = 60L * 1000;
+                var delay = System.currentTimeMillis() % (9 * min);
+                pollingService.schedule(this, min + delay, TimeUnit.MILLISECONDS);
+            });
         }
-
     }
 
     /**
@@ -561,7 +564,8 @@ public class TaskManager implements Controllable {
 
         @Override
         public void run() {
-            RequestContextHandler.doWithRequestContext(this::doWithContext);
+            OtelUtil.wrapper().span("FreeBlockedTasks", spanBuilder -> spanBuilder.setSpanKind(SpanKind.INTERNAL).setNoParent(),
+                () -> RequestContextHandler.doWithRequestContext(this::doWithContext));
         }
 
     }
@@ -609,13 +613,14 @@ public class TaskManager implements Controllable {
 
         @Override
         public void run() {
-            RequestContextHandler.doWithRequestContext(this::doWithContext);
-            // neste kjører mellom 3-9 min fra nå.
-            var min = 3L * 60 * 1000;
-            var delay = System.currentTimeMillis() % (2 * min);
-            pollingService.schedule(this, min + delay, TimeUnit.MILLISECONDS);
+            OtelUtil.wrapper().span("UpdateTaskMonitor", spanBuilder -> spanBuilder.setSpanKind(SpanKind.INTERNAL), () -> {
+                RequestContextHandler.doWithRequestContext(this::doWithContext);
+                // neste kjører mellom 3-9 min fra nå.
+                var min = 3L * 60 * 1000;
+                var delay = System.currentTimeMillis() % (2 * min);
+                pollingService.schedule(this, min + delay, TimeUnit.MILLISECONDS);
+            });
         }
-
     }
 
     /**

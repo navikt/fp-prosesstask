@@ -2,12 +2,22 @@ package no.nav.vedtak.felles.prosesstask.impl;
 
 import java.time.LocalDateTime;
 import java.util.function.Consumer;
+import java.util.function.UnaryOperator;
+
+import io.opentelemetry.api.trace.Span;
+import io.opentelemetry.api.trace.SpanBuilder;
+import io.opentelemetry.api.trace.SpanContext;
+import io.opentelemetry.api.trace.SpanKind;
+import io.opentelemetry.context.Context;
+import no.nav.vedtak.felles.prosesstask.impl.util.OtelUtil;
 
 import org.slf4j.MDC;
 
 import jakarta.persistence.PersistenceException;
 import no.nav.vedtak.felles.prosesstask.api.CallId;
 import no.nav.vedtak.felles.prosesstask.api.TaskType;
+
+import static no.nav.vedtak.felles.prosesstask.impl.util.OtelUtil.taskAttributter;
 
 class TaskManagerRunnableTask implements Runnable {
     private final TaskType taskType;
@@ -24,6 +34,11 @@ class TaskManagerRunnableTask implements Runnable {
 
     @Override
     public void run() {
+        OtelUtil.wrapper().span("RUN TASK " + taskInfo.getTaskType().value(), taskAttributter(taskInfo),
+            this::runInSpan);
+    }
+
+    private void runInSpan() {
         MDC.clear();
 
         var runSingleTask = newRunTaskInstance();
@@ -39,7 +54,7 @@ class TaskManagerRunnableTask implements Runnable {
             errorCallback = lagErrorCallback(taskInfo, callId, fatal);
         } catch (Exception e) {
             errorCallback = lagErrorCallback(taskInfo, callId, e);
-        } catch (Throwable t) {
+        } catch (Throwable t) { // NOSONAR
             errorCallback = lagErrorCallback(taskInfo, callId, t);
         } finally {
             clearLogContext();
@@ -100,6 +115,14 @@ class TaskManagerRunnableTask implements Runnable {
 
     RunTask newRunTaskInstance() {
         return TaskManagerGenerateRunnableTasks.CURRENT.select(RunTask.class).get();
+    }
+
+    public static UnaryOperator<SpanBuilder> taskAttributter(RunTaskInfo taskInfo) {
+        return spanBuilder -> spanBuilder
+            .setAttribute("prosesstaskId", taskInfo.getId())
+            .setAttribute("prosesstaskType", taskInfo.getTaskType().value())
+            .setSpanKind(SpanKind.INTERNAL)
+            .setNoParent();
     }
 
 }
