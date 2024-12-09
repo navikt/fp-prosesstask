@@ -3,9 +3,6 @@ package no.nav.vedtak.felles.prosesstask.impl;
 import java.lang.annotation.Annotation;
 import java.util.Set;
 
-import no.nav.vedtak.felles.prosesstask.impl.util.OtelUtil;
-import no.nav.vedtak.log.tracing.OtelSpanWrapper;
-
 import org.jboss.weld.interceptor.util.proxy.TargetInstanceProxy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -95,9 +92,7 @@ public class ProsessTaskHandlerRef implements AutoCloseable {
 
     public void doTask(ProsessTaskData data) {
         LOG.info("Starter task {}", data.getTaskType());
-        OtelUtil.wrapper().span("TASK_doTask " + data.taskType(), OtelUtil.taskAttributter(data),
-            () -> bean.doTask(data)
-        );
+        bean.doTask(data);
         LOG.info("Stoppet task {}", data.getTaskType());
     }
 

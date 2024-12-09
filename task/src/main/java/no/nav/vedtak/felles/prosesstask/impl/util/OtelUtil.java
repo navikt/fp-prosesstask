@@ -38,7 +38,7 @@ public class OtelUtil {
         return spanBuilder -> {
             var builder = spanBuilder
                 .setAttribute("prosesstaskId", data.getId())
-                .setAttribute("prosesstaskType", data.getTaskType());
+                .setAttribute("prosesstaskType", data.taskType().value());
             if (data.getSaksnummer() != null) {
                 builder = builder.setAttribute("saksnummer", data.getSaksnummer());
             }
