@@ -3,15 +3,6 @@ package no.nav.vedtak.felles.prosesstask.rest;
 import java.net.HttpURLConnection;
 import java.util.List;
 
-import jakarta.ws.rs.BeanParam;
-
-import jakarta.ws.rs.PathParam;
-
-import no.nav.vedtak.felles.prosesstask.rest.dto.IkkeFerdigProsessTaskStatusEnum;
-
-import no.nav.vedtak.felles.prosesstask.rest.dto.ProsessTaskStatusDto;
-import no.nav.vedtak.felles.prosesstask.rest.dto.StatusFilterDto;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,15 +18,19 @@ import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
+import jakarta.ws.rs.BeanParam;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskStatus;
 import no.nav.vedtak.felles.prosesstask.rest.app.ProsessTaskApplikasjonTjeneste;
 import no.nav.vedtak.felles.prosesstask.rest.dto.FeiletProsessTaskDataDto;
+import no.nav.vedtak.felles.prosesstask.rest.dto.FeiletProsessTaskStatusEnum;
+import no.nav.vedtak.felles.prosesstask.rest.dto.IkkeFerdigProsessTaskStatusEnum;
 import no.nav.vedtak.felles.prosesstask.rest.dto.ProsessTaskDataDto;
 import no.nav.vedtak.felles.prosesstask.rest.dto.ProsessTaskIdDto;
 import no.nav.vedtak.felles.prosesstask.rest.dto.ProsessTaskOpprettInputDto;
@@ -96,7 +91,7 @@ public class ProsessTaskRestTjeneste {
     public ProsessTaskRestartResultatDto restartProsessTask(@Parameter(description = "Informasjon for restart en eksisterende prosesstask") @TilpassetAbacAttributt(supplierClass = AbacEmptySupplier.class) @Valid @BeanParam ProsessTaskRestartInputDto restartInputDto) {
         // kjøres manuelt for å avhjelpe feilsituasjon, da er det veldig greit at det blir logget!
         LOG.info("Restarter prossess task {}", restartInputDto.getProsessTaskId());
-        return prosessTaskApplikasjonTjeneste.flaggProsessTaskForRestart(restartInputDto);
+        return prosessTaskApplikasjonTjeneste.flaggProsessTaskForRestart(restartInputDto.getProsessTaskId(), mapToProsessTaskStatus(restartInputDto.getNaaVaaerendeStatus()));
     }
 
     @POST
@@ -122,9 +117,8 @@ public class ProsessTaskRestTjeneste {
     @BeskyttetRessurs(actionType = ActionType.READ, property = ABAC_DRIFT_ATTRIBUTT)
     public List<ProsessTaskDataDto> finnProsessTasks(@Parameter(description = "Liste av statuser som skal hentes.") @TilpassetAbacAttributt(supplierClass = AbacEmptySupplier.class) @Valid @PathParam("prosessTaskStatus")
                                                      IkkeFerdigProsessTaskStatusEnum finnTaskStatus) {
-        var statusFilterDto = new StatusFilterDto();
-        statusFilterDto.setProsessTaskStatuser(List.of(new ProsessTaskStatusDto(finnTaskStatus.name())));
-        return prosessTaskApplikasjonTjeneste.finnAlle(statusFilterDto);
+        var status = mapToProsessTaskStatus(finnTaskStatus);
+        return prosessTaskApplikasjonTjeneste.finnAlle(List.of(status));
     }
 
     @POST
@@ -175,6 +169,16 @@ public class ProsessTaskRestTjeneste {
             case KLAR -> ProsessTaskStatus.KLAR;
             case SUSPENDERT -> ProsessTaskStatus.SUSPENDERT;
             case VETO -> ProsessTaskStatus.VETO;
+            case null -> null;
+        };
+    }
+
+    private ProsessTaskStatus mapToProsessTaskStatus(FeiletProsessTaskStatusEnum feiletStatus) {
+        return switch (feiletStatus) {
+            case FEILET -> ProsessTaskStatus.FEILET;
+            case VENTER_SVAR -> ProsessTaskStatus.VENTER_SVAR;
+            case SUSPENDERT -> ProsessTaskStatus.SUSPENDERT;
+            case null -> null;
         };
     }
 }
