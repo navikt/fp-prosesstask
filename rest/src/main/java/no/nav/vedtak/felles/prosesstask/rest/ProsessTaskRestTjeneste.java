@@ -3,6 +3,8 @@ package no.nav.vedtak.felles.prosesstask.rest;
 import java.net.HttpURLConnection;
 import java.util.List;
 
+import no.nav.vedtak.log.util.LoggerUtils;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -74,8 +76,7 @@ public class ProsessTaskRestTjeneste {
     @BeskyttetRessurs(actionType = ActionType.CREATE, property = ABAC_DRIFT_ATTRIBUTT)
     public ProsessTaskDataDto createProsessTask(@Parameter(description = "Informasjon for restart en eksisterende prosesstask") @TilpassetAbacAttributt(supplierClass = AbacEmptySupplier.class) @Valid ProsessTaskOpprettInputDto inputDto) {
         // kjøres manuelt for å avhjelpe feilsituasjon, da er det veldig greit at det blir logget!
-        var sanitizedTaskType = inputDto.getTaskType().replace("\n", "").replace("\r", "").trim();
-        LOG.info("Oppretter prossess task {}", sanitizedTaskType);
+        LOG.info("Oppretter prossess task {}", LoggerUtils.toStringWithoutLineBreaks(inputDto.getTaskType()));
         return prosessTaskApplikasjonTjeneste.opprettTask(inputDto);
     }
 
