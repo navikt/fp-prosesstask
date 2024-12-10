@@ -19,7 +19,7 @@ import no.nav.vedtak.log.metrics.Controllable;
 @ApplicationScoped
 @ActivateRequestContext
 @Transactional
-public class BatchTaskScheduler implements Controllable {
+public class BatchTaskScheduler implements no.nav.vedtak.server.Controllable, Controllable {
 
     private static final Logger LOG = LoggerFactory.getLogger(BatchTaskScheduler.class);
     private TaskManagerRepositoryImpl taskRepository;
