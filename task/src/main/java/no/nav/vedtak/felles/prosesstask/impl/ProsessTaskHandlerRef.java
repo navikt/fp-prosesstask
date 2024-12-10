@@ -65,7 +65,7 @@ public class ProsessTaskHandlerRef implements AutoCloseable {
     private ProsessTask getProsessTaskAnnotation() {
         Class<?> clazz = getTargetClassExpectingAnnotation(ProsessTask.class);
         if (!clazz.isAnnotationPresent(ProsessTask.class)) {
-            throw new IllegalStateException(clazz.getSimpleName()  + " mangler annotering @ProsesTask");
+            throw new IllegalStateException(clazz.getSimpleName() + " mangler annotering @ProsesTask");
         }
         return clazz.getAnnotation(ProsessTask.class);
     }
