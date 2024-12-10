@@ -47,7 +47,7 @@ import no.nav.vedtak.log.metrics.Controllable;
  * Main class handling polling tasks and dispatching these.
  */
 @ApplicationScoped
-public class TaskManager implements Controllable {
+public class TaskManager implements no.nav.vedtak.server.Controllable, Controllable {
 
     public static final String TASK_MANAGER_POLLING_WAIT = "task.manager.polling.wait";
     public static final String TASK_MANAGER_POLLING_DELAY = "task.manager.polling.delay";

@@ -33,6 +33,11 @@
 			<artifactId>felles-db</artifactId>
 			<scope>provided</scope>
 		</dependency>
+        <dependency>
+            <groupId>no.nav.foreldrepenger.felles</groupId>
+            <artifactId>felles-server</artifactId>
+            <scope>provided</scope>
+        </dependency>
 
 		<dependency>
 			<groupId>org.slf4j</groupId>
