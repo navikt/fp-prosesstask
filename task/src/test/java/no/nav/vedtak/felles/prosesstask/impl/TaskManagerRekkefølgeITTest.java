@@ -146,7 +146,7 @@ class TaskManagerRekkefølgeITTest extends EntityManagerAwareTest {
     private void pollEnRundeVerifiserOgFerdigstill(ProsessTaskData... tasks) {
         List<ProsessTaskData> neste = taskManagerRepo.pollNeste(now);
         assertThat(neste).hasSize(tasks.length);
-        assertThat(neste.stream().map(ProsessTaskData::getTaskType).toArray()).containsExactly(Arrays.stream(tasks).map(ProsessTaskData::getTaskType).toArray());
+        assertThat(neste.stream().map(ProsessTaskData::taskType).toArray()).containsExactly(Arrays.stream(tasks).map(ProsessTaskData::taskType).toArray());
 
         neste.forEach(pt -> {
             pt.setStatus(ProsessTaskStatus.KJOERT);

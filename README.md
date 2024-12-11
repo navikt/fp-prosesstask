@@ -175,8 +175,8 @@ public class MinTaskDispatcher implements ProsessTaskDispatcher {
 
 	public void dispatch(ProsessTaskData task) throws Exception {
 		
-		TaskType taskType = task.getTaskType();
-		switch(taskType){
+		TaskType taskType = task.taskType();
+		switch(taskType.value()){
 			case "innhent.inntektsopplysninger.task":
 			    new InnhentInntektsOpplysningerTask().doRun(task.getAktørId());
 				return;
