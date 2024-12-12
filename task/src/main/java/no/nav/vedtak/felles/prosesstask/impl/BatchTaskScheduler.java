@@ -2,16 +2,15 @@ package no.nav.vedtak.felles.prosesstask.impl;
 
 import java.time.LocalDateTime;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.context.control.ActivateRequestContext;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskStatus;
-import no.nav.vedtak.log.metrics.Controllable;
+import no.nav.vedtak.server.Controllable;
 
 /**
  * Starter tasks med cron-expression hvis disse ikke har noen status fra før av.
@@ -19,7 +18,7 @@ import no.nav.vedtak.log.metrics.Controllable;
 @ApplicationScoped
 @ActivateRequestContext
 @Transactional
-public class BatchTaskScheduler implements no.nav.vedtak.server.Controllable, Controllable {
+public class BatchTaskScheduler implements Controllable {
 
     private static final Logger LOG = LoggerFactory.getLogger(BatchTaskScheduler.class);
     private TaskManagerRepositoryImpl taskRepository;
