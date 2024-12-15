@@ -91,9 +91,9 @@ public class ProsessTaskHandlerRef implements AutoCloseable {
     }
 
     public void doTask(ProsessTaskData data) {
-        LOG.info("Starter task {}", data.getTaskType());
+        LOG.info("Starter task {}", data.taskType());
         bean.doTask(data);
-        LOG.info("Stoppet task {}", data.getTaskType());
+        LOG.info("Stoppet task {}", data.taskType());
     }
 
     /** Lookup Literal Referanse til en {@link ProsessTaskHandler} for CDI. */

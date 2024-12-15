@@ -16,7 +16,7 @@ public class ProsessTaskDataKonverter {
         var dto = new ProsessTaskDataDto();
 
         dto.setId(data.getId());
-        dto.setTaskType(data.getTaskType());
+        dto.setTaskType(data.taskType().value());
         dto.setNesteKjøringEtter(data.getNesteKjøringEtter());
         dto.setGruppe(data.getGruppe());
         dto.setSekvens(data.getSekvens());
