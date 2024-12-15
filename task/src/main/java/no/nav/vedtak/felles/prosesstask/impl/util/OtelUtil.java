@@ -30,8 +30,8 @@ public class OtelUtil {
             }
             if (data.getBehandlingUuid() != null) {
                 builder = builder.setAttribute("behandlingUuid", data.getBehandlingUuid().toString());
-            } else if (data.getBehandlingId() != null) {
-                builder = builder.setAttribute("behandlingId", data.getBehandlingId());
+            } else if (data.getBehandlingIdAsLong() != null) {
+                builder = builder.setAttribute("behandlingId", data.getBehandlingIdAsLong());
             }
             return builder.setSpanKind(SpanKind.INTERNAL);
         };

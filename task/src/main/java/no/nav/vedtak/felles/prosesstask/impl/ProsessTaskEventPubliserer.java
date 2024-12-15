@@ -1,12 +1,11 @@
 package no.nav.vedtak.felles.prosesstask.impl;
 
-import jakarta.enterprise.context.Dependent;
-import jakarta.enterprise.event.Event;
-import jakarta.inject.Inject;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import jakarta.enterprise.context.Dependent;
+import jakarta.enterprise.event.Event;
+import jakarta.inject.Inject;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskEvent;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskStatus;
@@ -40,7 +39,7 @@ public class ProsessTaskEventPubliserer {
             // logger og svelger exception her. Feil oppstått i event observer
             String orgExceptionMessage = orgException == null ? null : String.valueOf(orgException);
             LOG.warn("PT-314162 Kunne ikke publisere ProsessTaskEvent: id={}, type={}, statusFør={}, statusEtter={} originalException={}",
-                data.getId(), data.getTaskType(), gammelStatus, nyStatus, orgExceptionMessage, e);
+                data.getId(), data.taskType(), gammelStatus, nyStatus, orgExceptionMessage, e);
         }
 
     }

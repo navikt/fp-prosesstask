@@ -34,7 +34,7 @@ public class ProsessTaskEvent implements ProsessTaskInfo {
         this.gammelStatus = gammelStatus;
         this.nyStatus = nyStatus;
         this.feil = feil;
-        Objects.requireNonNull(data, "data"); 
+        Objects.requireNonNull(data, "data");
         this.data = data;
         this.exception = e;
     }
@@ -68,8 +68,8 @@ public class ProsessTaskEvent implements ProsessTaskInfo {
     }
 
     @Override
-    public String getBehandlingId() {
-        return data.getBehandlingId();
+    public Long getBehandlingIdAsLong() {
+        return data.getBehandlingIdAsLong();
     }
 
     @Override
@@ -162,11 +162,6 @@ public class ProsessTaskEvent implements ProsessTaskInfo {
     @Override
     public LocalDateTime getOpprettetTid() {
         return data.getOpprettetTid();
-    }
-
-    @Override
-    public String getTaskType() {
-        return data.getTaskType();
     }
 
     @Override

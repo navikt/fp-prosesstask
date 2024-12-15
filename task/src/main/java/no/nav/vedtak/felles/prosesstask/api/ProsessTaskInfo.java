@@ -15,8 +15,6 @@ public interface ProsessTaskInfo {
      */
     TaskType taskType();
 
-    String getTaskType();
-
     ProsessTaskStatus getStatus();
 
     String getPayloadAsString();
@@ -69,11 +67,7 @@ public interface ProsessTaskInfo {
 
     String getSaksnummer();
 
-    String getBehandlingId();
+    Long getBehandlingIdAsLong();
 
     UUID getBehandlingUuid();
-
-    default Long getBehandlingIdAsLong() {
-        return Optional.ofNullable(getBehandlingId()).map(Long::valueOf).orElse(null);
-    }
 }
