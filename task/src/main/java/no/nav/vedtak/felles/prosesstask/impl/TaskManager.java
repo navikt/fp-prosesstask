@@ -41,13 +41,13 @@ import no.nav.vedtak.felles.prosesstask.api.ProsessTaskDispatcher;
 import no.nav.vedtak.felles.prosesstask.api.TaskMonitor;
 import no.nav.vedtak.felles.prosesstask.api.TaskType;
 import no.nav.vedtak.felles.prosesstask.impl.util.OtelUtil;
-import no.nav.vedtak.log.metrics.Controllable;
+import no.nav.vedtak.server.Controllable;
 
 /**
  * Main class handling polling tasks and dispatching these.
  */
 @ApplicationScoped
-public class TaskManager implements no.nav.vedtak.server.Controllable, Controllable {
+public class TaskManager implements Controllable {
 
     public static final String TASK_MANAGER_POLLING_WAIT = "task.manager.polling.wait";
     public static final String TASK_MANAGER_POLLING_DELAY = "task.manager.polling.delay";
