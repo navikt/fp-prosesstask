@@ -2,8 +2,7 @@ package no.nav.vedtak.felles.prosesstask.rest;
 
 import java.net.HttpURLConnection;
 import java.util.List;
-
-import no.nav.vedtak.log.util.LoggerUtils;
+import java.util.Optional;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,6 +40,7 @@ import no.nav.vedtak.felles.prosesstask.rest.dto.ProsessTaskRestartResultatDto;
 import no.nav.vedtak.felles.prosesstask.rest.dto.ProsessTaskRetryAllResultatDto;
 import no.nav.vedtak.felles.prosesstask.rest.dto.ProsessTaskSetFerdigInputDto;
 import no.nav.vedtak.felles.prosesstask.rest.dto.SokeFilterDto;
+import no.nav.vedtak.log.util.LoggerUtils;
 import no.nav.vedtak.sikkerhet.abac.BeskyttetRessurs;
 import no.nav.vedtak.sikkerhet.abac.TilpassetAbacAttributt;
 import no.nav.vedtak.sikkerhet.abac.beskyttet.ActionType;
@@ -118,8 +118,8 @@ public class ProsessTaskRestTjeneste {
     @BeskyttetRessurs(actionType = ActionType.READ, property = ABAC_DRIFT_ATTRIBUTT)
     public List<ProsessTaskDataDto> finnProsessTasks(@Parameter(description = "Liste av statuser som skal hentes.") @TilpassetAbacAttributt(supplierClass = AbacEmptySupplier.class) @Valid @PathParam("prosessTaskStatus")
                                                      IkkeFerdigProsessTaskStatusEnum finnTaskStatus) {
-        var status = mapToProsessTaskStatus(finnTaskStatus);
-        return prosessTaskApplikasjonTjeneste.finnAlle(List.of(status));
+        var status = Optional.ofNullable(mapToProsessTaskStatus(finnTaskStatus)).map(List::of).orElseGet(List::of);
+        return prosessTaskApplikasjonTjeneste.finnAlle(status);
     }
 
     @POST
