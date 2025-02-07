@@ -19,11 +19,11 @@ import no.nav.vedtak.felles.testutilities.db.EntityManagerAwareTest;
 @ExtendWith(JpaOracleTestcontainerExtension.class)
 class TaskManagerGenerateRunnableTasksITTest extends EntityManagerAwareTest {
 
-    private static MemoryAppender logSniffer = MemoryAppender.sniff(TaskManagerGenerateRunnableTasks.class);
+    private static final MemoryAppender LOG_SNIFFER = MemoryAppender.sniff(TaskManagerGenerateRunnableTasks.class);
 
     @AfterEach
     public void afterEach() {
-        logSniffer.reset();
+        LOG_SNIFFER.reset();
     }
 
     @Test
@@ -61,6 +61,7 @@ class TaskManagerGenerateRunnableTasksITTest extends EntityManagerAwareTest {
 
                     @Override
                     void handleErrorCallback(IdentRunnable errorCallback) {
+                        // Do nothing
                     }
 
                 };
@@ -74,7 +75,7 @@ class TaskManagerGenerateRunnableTasksITTest extends EntityManagerAwareTest {
         // Act
         sut.run();
 
-        assertThat(logSniffer.search("PT-876628", Level.WARN)).isNotEmpty();
+        assertThat(LOG_SNIFFER.search("PT-876628", Level.WARN)).isNotEmpty();
 
         assertThat(errorFuncException.get()).isInstanceOf(PersistenceException.class);
 
