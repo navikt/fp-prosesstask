@@ -62,7 +62,7 @@ class DefaultForsinkelseStrategiTest {
 
         @Override
         public void doTask(ProsessTaskData data) {
-
+            // Do nothing
         }
     }
 

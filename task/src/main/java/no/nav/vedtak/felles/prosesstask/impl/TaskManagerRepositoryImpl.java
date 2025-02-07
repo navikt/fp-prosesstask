@@ -163,7 +163,7 @@ public class TaskManagerRepositoryImpl {
 
         var now = LocalDateTime.now();
         var status = taskStatus.getDbKode();
-        var tasks = getEntityManagerAsSession().createNativeQuery(updateSql)
+        var tasks = getEntityManagerAsSession().createNativeMutationQuery(updateSql)
                 .setParameter("id", prosessTaskId)
                 .setParameter(STATUS, status)
                 .setParameter("status_ts", now)
@@ -193,7 +193,7 @@ public class TaskManagerRepositoryImpl {
         var status = taskStatus.getDbKode();
         var now = LocalDateTime.now();
         @SuppressWarnings({ "unused", "resource" })
-        var tasks = getEntityManagerAsSession().createNativeQuery(updateSql)
+        var tasks = getEntityManagerAsSession().createNativeMutationQuery(updateSql)
                 .setParameter("id", prosessTaskId)
                 .setParameter(STATUS, status)
                 .setParameter("status_ts", now)
@@ -210,7 +210,7 @@ public class TaskManagerRepositoryImpl {
                 " WHERE id = :id";
 
         @SuppressWarnings("unused")
-        var tasks = getEntityManagerAsSession().createNativeQuery(updateSql)
+        var tasks = getEntityManagerAsSession().createNativeMutationQuery(updateSql)
                 .setParameter("id", prosessTaskId)
                 .setParameter("naa", now)
                 .executeUpdate();

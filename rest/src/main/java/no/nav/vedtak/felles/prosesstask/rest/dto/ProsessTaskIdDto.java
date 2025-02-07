@@ -34,7 +34,7 @@ public class ProsessTaskIdDto {
         this.prosessTaskId = prosessTaskId;
     }
 
-    @Schema(required = true, description = "Prosesstask-id for en eksisterende prosesstask")
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "Prosesstask-id for en eksisterende prosesstask")
     public Long getProsessTaskId() {
         return prosessTaskId;
     }
