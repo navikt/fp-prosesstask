@@ -21,7 +21,7 @@ import org.mockito.quality.Strictness;
 import org.slf4j.LoggerFactory;
 
 import ch.qos.logback.classic.Logger;
-import no.nav.vedtak.felles.prosesstask.JpaPostgresTestcontainerExtension;
+import no.nav.vedtak.felles.prosesstask.JpaOracleTestcontainerExtension;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskStatus;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskTjeneste;
@@ -29,7 +29,7 @@ import no.nav.vedtak.felles.testutilities.db.EntityManagerAwareTest;
 import no.nav.vedtak.log.util.MemoryAppender;
 
 @ExtendWith(MockitoExtension.class)
-@ExtendWith(JpaPostgresTestcontainerExtension.class)
+@ExtendWith(JpaOracleTestcontainerExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
 class ProsessTaskHendelseMottakImplTest extends EntityManagerAwareTest {
 
