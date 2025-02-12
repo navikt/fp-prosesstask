@@ -13,14 +13,14 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
 
-import no.nav.vedtak.felles.prosesstask.JpaOracleTestcontainerExtension;
+import no.nav.vedtak.felles.prosesstask.JpaPostgresTestcontainerExtension;
 import no.nav.vedtak.felles.prosesstask.api.CommonTaskProperties;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskStatus;
 import no.nav.vedtak.felles.prosesstask.api.TaskType;
 import no.nav.vedtak.felles.testutilities.db.EntityManagerAwareTest;
 
-@ExtendWith(JpaOracleTestcontainerExtension.class)
+@ExtendWith(JpaPostgresTestcontainerExtension.class)
 class ProsessTaskRepositoryImplTest extends EntityManagerAwareTest {
 
     private static final TaskType TASK_TYPE = new TaskType("hello.world");

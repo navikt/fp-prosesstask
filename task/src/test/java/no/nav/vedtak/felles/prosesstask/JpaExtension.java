@@ -1,12 +1,9 @@
 package no.nav.vedtak.felles.prosesstask;
 
 import jakarta.persistence.EntityManager;
-import no.nav.foreldrepenger.konfig.Environment;
 import no.nav.vedtak.felles.jpa.TransactionHandler;
 import no.nav.vedtak.felles.jpa.TransactionHandler.Work;
 import no.nav.vedtak.felles.testutilities.db.EntityManagerAwareExtension;
-import org.testcontainers.oracle.OracleContainer;
-import org.testcontainers.utility.DockerImageName;
 
 class JpaExtension extends EntityManagerAwareExtension {
 
