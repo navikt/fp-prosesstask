@@ -56,7 +56,7 @@
 		<felles.version>7.4.9</felles.version>
 
         <jakarta.jakartaee-bom.version>10.0.0</jakarta.jakartaee-bom.version>
-        <hibernate-core.version>6.6.7.Final</hibernate-core.version>
+        <hibernate-core.version>6.6.8.Final</hibernate-core.version>
         <jetty.version>12.0.16</jetty.version>
         <flyway.version>11.3.2</flyway.version>
     </properties>
