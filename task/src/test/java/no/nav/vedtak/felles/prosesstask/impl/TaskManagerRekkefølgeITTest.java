@@ -11,7 +11,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
-import no.nav.vedtak.felles.prosesstask.JpaOracleTestcontainerExtension;
+import no.nav.vedtak.felles.prosesstask.JpaPostgresTestcontainerExtension;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskGruppe;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskStatus;
@@ -19,7 +19,7 @@ import no.nav.vedtak.felles.prosesstask.api.TaskMonitor;
 import no.nav.vedtak.felles.prosesstask.api.TaskType;
 import no.nav.vedtak.felles.testutilities.db.EntityManagerAwareTest;
 
-@ExtendWith(JpaOracleTestcontainerExtension.class)
+@ExtendWith(JpaPostgresTestcontainerExtension.class)
 class TaskManagerRekkefølgeITTest extends EntityManagerAwareTest {
 
     private ProsessTaskRepository repo;

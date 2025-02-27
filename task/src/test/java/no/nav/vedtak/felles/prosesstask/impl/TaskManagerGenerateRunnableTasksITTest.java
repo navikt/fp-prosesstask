@@ -11,12 +11,12 @@ import org.mockito.Mockito;
 
 import ch.qos.logback.classic.Level;
 import jakarta.persistence.PersistenceException;
-import no.nav.vedtak.felles.prosesstask.JpaOracleTestcontainerExtension;
+import no.nav.vedtak.felles.prosesstask.JpaPostgresTestcontainerExtension;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
 import no.nav.vedtak.felles.prosesstask.api.TaskType;
 import no.nav.vedtak.felles.testutilities.db.EntityManagerAwareTest;
 
-@ExtendWith(JpaOracleTestcontainerExtension.class)
+@ExtendWith(JpaPostgresTestcontainerExtension.class)
 class TaskManagerGenerateRunnableTasksITTest extends EntityManagerAwareTest {
 
     private static final MemoryAppender LOG_SNIFFER = MemoryAppender.sniff(TaskManagerGenerateRunnableTasks.class);
