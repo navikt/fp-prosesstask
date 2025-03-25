@@ -212,7 +212,7 @@
             <dependency>
                 <groupId>net.bytebuddy</groupId>
                 <artifactId>byte-buddy</artifactId>
-                <version>1.17.2</version>
+                <version>1.17.4</version>
             </dependency>
 
             <dependency>
@@ -231,7 +231,7 @@
             <dependency>
                 <groupId>com.zaxxer</groupId>
                 <artifactId>HikariCP</artifactId>
-                <version>6.2.1</version>
+                <version>6.3.0</version>
             </dependency>
 
             <dependency>
