@@ -56,7 +56,7 @@
 		<felles.version>7.4.13</felles.version>
 
         <jakarta.jakartaee-bom.version>10.0.0</jakarta.jakartaee-bom.version>
-        <hibernate-core.version>6.6.11.Final</hibernate-core.version>
+        <hibernate-core.version>6.6.12.Final</hibernate-core.version>
         <jetty.version>12.0.18</jetty.version>
         <flyway.version>11.4.1</flyway.version>
     </properties>
@@ -212,7 +212,7 @@
             <dependency>
                 <groupId>net.bytebuddy</groupId>
                 <artifactId>byte-buddy</artifactId>
-                <version>1.17.4</version>
+                <version>1.17.5</version>
             </dependency>
 
             <dependency>
@@ -349,7 +349,7 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-surefire-plugin</artifactId>
-                    <version>3.5.2</version>
+                    <version>3.5.3</version>
                     <configuration>
                         <!-- Må ha @{argLine} ellers blir properties satt av jacoco-maven-plugin overkrevet -->
                         <argLine>@{argLine} ${argLine}</argLine>
@@ -394,7 +394,7 @@
                 <plugin>
                     <groupId>org.jacoco</groupId>
                     <artifactId>jacoco-maven-plugin</artifactId>
-                    <version>0.8.12</version>
+                    <version>0.8.13</version>
                     <executions>
                         <execution>
                             <id>prepare-agent</id>
