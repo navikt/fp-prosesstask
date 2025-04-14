@@ -59,6 +59,8 @@
         <hibernate-core.version>6.6.13.Final</hibernate-core.version>
         <jetty.version>12.0.19</jetty.version>
         <flyway.version>11.7.0</flyway.version>
+
+        <mockito.version>5.17.0</mockito.version>
     </properties>
 
 	<repositories>
@@ -204,7 +206,7 @@
             <dependency>
                 <groupId>org.mockito</groupId>
                 <artifactId>mockito-bom</artifactId>
-                <version>5.17.0</version>
+                <version>${mockito.version}</version>
                 <scope>import</scope>
                 <type>pom</type>
             </dependency>
@@ -212,6 +214,11 @@
             <dependency>
                 <groupId>net.bytebuddy</groupId>
                 <artifactId>byte-buddy</artifactId>
+                <version>1.17.5</version>
+            </dependency>
+            <dependency>
+                <groupId>net.bytebuddy</groupId>
+                <artifactId>byte-buddy-agent</artifactId>
                 <version>1.17.5</version>
             </dependency>
 
@@ -339,6 +346,7 @@
                         <encoding>UTF-8</encoding>
                         <release>${java.version}</release>
                         <parameters>true</parameters>
+                        <proc>none</proc>
                     </configuration>
                 </plugin>
                 <plugin>
@@ -352,7 +360,9 @@
                     <version>3.5.3</version>
                     <configuration>
                         <!-- Må ha @{argLine} ellers blir properties satt av jacoco-maven-plugin overkrevet -->
-                        <argLine>@{argLine} ${argLine}</argLine>
+                        <argLine>@{argLine} ${argLine}
+                            -javaagent:${settings.localRepository}/org/mockito/mockito-core/${mockito.version}/mockito-core-${mockito.version}.jar
+                        </argLine>
                     </configuration>
                 </plugin>
                 <plugin>
