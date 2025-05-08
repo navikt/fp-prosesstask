@@ -6,6 +6,7 @@ import java.sql.SQLTransientException;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
+import jakarta.persistence.OptimisticLockException;
 import jakarta.persistence.QueryTimeoutException;
 
 import org.hibernate.exception.JDBCConnectionException;
@@ -25,6 +26,7 @@ public class BasicCdiProsessTaskDispatcher implements ProsessTaskDispatcher {
      */
     private static final Set<Class<?>> DEFAULT_FEILHÅNDTERING_EXCEPTIONS = Set.of(
             JDBCConnectionException.class,
+            OptimisticLockException.class,
             QueryTimeoutException.class,
             SQLTransientException.class,
             SQLNonTransientConnectionException.class,
