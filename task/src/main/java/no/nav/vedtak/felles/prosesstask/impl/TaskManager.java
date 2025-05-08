@@ -1,5 +1,7 @@
 package no.nav.vedtak.felles.prosesstask.impl;
 
+import static java.lang.System.getenv;
+
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -460,13 +462,15 @@ public class TaskManager implements Controllable {
     }
 
     private static int getSystemPropertyWithLowerBoundry(String key, int defaultValue, int lowerBoundry) {
-        final var property = System.getProperty(key, String.valueOf(defaultValue));
+        final var property = Optional.ofNullable(getenv(key.toUpperCase().replace(".", "_")))
+            .orElse(System.getProperty(key, String.valueOf(defaultValue)));
         final var systemPropertyValue = Integer.parseInt(property);
         return Math.max(systemPropertyValue, lowerBoundry);
     }
 
     private static long getSystemPropertyWithLowerBoundry(String key, long defaultValue, long lowerBoundry) {
-        final var property = System.getProperty(key, String.valueOf(defaultValue));
+        final var property = Optional.ofNullable(getenv(key.toUpperCase().replace(".", "_")))
+            .orElse(System.getProperty(key, String.valueOf(defaultValue)));
         final var systemPropertyValue = Long.parseLong(property);
         return Math.max(systemPropertyValue, lowerBoundry);
     }
