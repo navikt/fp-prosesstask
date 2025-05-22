@@ -8,7 +8,15 @@ import java.sql.SQLRecoverableException;
 import java.sql.SQLTransientException;
 import java.time.LocalDateTime;
 import java.util.Objects;
-import java.util.Optional;
+
+import jakarta.persistence.OptimisticLockException;
+
+import org.hibernate.Session;
+import org.hibernate.exception.JDBCConnectionException;
+import org.hibernate.jdbc.Work;
+import org.jboss.weld.interceptor.util.proxy.TargetInstanceProxy;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import jakarta.enterprise.context.Dependent;
 import jakarta.enterprise.context.control.ActivateRequestContext;
@@ -19,22 +27,12 @@ import jakarta.persistence.EntityNotFoundException;
 import jakarta.persistence.LockTimeoutException;
 import jakarta.persistence.PersistenceException;
 import jakarta.transaction.Transactional;
-
-import no.nav.vedtak.felles.prosesstask.impl.util.OtelUtil;
-
-import org.hibernate.Session;
-import org.hibernate.exception.JDBCConnectionException;
-import org.hibernate.jdbc.Work;
-import org.jboss.weld.interceptor.util.proxy.TargetInstanceProxy;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import no.nav.vedtak.felles.jpa.savepoint.SavepointRolledbackException;
-import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskDataBuilder;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskMidlertidigException;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskStatus;
 import no.nav.vedtak.felles.prosesstask.impl.cron.CronExpression;
+import no.nav.vedtak.felles.prosesstask.impl.util.OtelUtil;
 import no.nav.vedtak.felles.prosesstask.spi.ProsessTaskRetryPolicy;
 
 /**
@@ -110,11 +108,12 @@ public class RunTask {
             }
 
         } catch (JDBCConnectionException
-                | SQLTransientException
-                | SQLNonTransientConnectionException
-                | LockTimeoutException
-                | ProsessTaskMidlertidigException
-                | SQLRecoverableException e) {
+                 | SQLTransientException
+                 | SQLNonTransientConnectionException
+                 | LockTimeoutException
+                 | ProsessTaskMidlertidigException
+                 | OptimisticLockException
+                 | SQLRecoverableException e) {
 
             // vil kun logges
             pickAndRun.handleTransientAndRecoverableException(e);
@@ -298,6 +297,7 @@ public class RunTask {
                             | SQLTransientException
                             | SQLNonTransientConnectionException
                             | LockTimeoutException
+                            | OptimisticLockException
                             | ProsessTaskMidlertidigException
                             | SQLRecoverableException e) {
 
