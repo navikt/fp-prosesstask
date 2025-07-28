@@ -58,7 +58,7 @@
         <jakarta.jakartaee-bom.version>10.0.0</jakarta.jakartaee-bom.version>
         <hibernate-core.version>6.6.20.Final</hibernate-core.version>
         <jetty.version>12.0.23</jetty.version>
-        <flyway.version>11.10.1</flyway.version>
+        <flyway.version>11.10.4</flyway.version>
 
         <mockito.version>5.18.0</mockito.version>
     </properties>
@@ -188,7 +188,7 @@
             <dependency>
                 <groupId>com.fasterxml.jackson</groupId>
                 <artifactId>jackson-bom</artifactId>
-                <version>2.19.1</version>
+                <version>2.19.2</version>
                 <scope>import</scope>
                 <type>pom</type>
             </dependency>
@@ -197,7 +197,7 @@
             <dependency>
                 <groupId>org.junit</groupId>
                 <artifactId>junit-bom</artifactId>
-                <version>5.13.3</version>
+                <version>5.13.4</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
@@ -238,7 +238,7 @@
             <dependency>
                 <groupId>com.zaxxer</groupId>
                 <artifactId>HikariCP</artifactId>
-                <version>6.3.0</version>
+                <version>6.3.2</version>
             </dependency>
 
             <dependency>
