@@ -53,11 +53,11 @@
 		<sonar.projectName>fp-prosesstask</sonar.projectName>
 		<sonar.projectKey>navikt_fp-prosesstask</sonar.projectKey>
 
-		<felles.version>7.5.10</felles.version>
+		<felles.version>7.6.0</felles.version>
 
-        <jakarta.jakartaee-bom.version>10.0.0</jakarta.jakartaee-bom.version>
-        <hibernate-core.version>6.6.20.Final</hibernate-core.version>
-        <jetty.version>12.0.25</jetty.version>
+        <jakarta.jakartaee-bom.version>11.0.0</jakarta.jakartaee-bom.version>
+        <hibernate-core.version>7.1.0.Final</hibernate-core.version>
+        <jetty.version>12.1.0</jetty.version>
         <flyway.version>11.12.0</flyway.version>
 
         <mockito.version>5.19.0</mockito.version>
@@ -73,11 +73,6 @@
 
 	<dependencyManagement>
 		<dependencies>
-            <dependency>
-                <groupId>jakarta.enterprise</groupId>
-                <artifactId>jakarta.enterprise.cdi-api</artifactId>
-                <version>4.0.1</version>
-            </dependency>
             <!-- Jakarta EE API BOM -->
             <dependency>
                 <groupId>jakarta.platform</groupId>
@@ -143,7 +138,7 @@
             <dependency>
                 <groupId>org.jboss.weld</groupId>
                 <artifactId>weld-core-bom</artifactId>
-                <version>5.1.6.Final</version>
+                <version>6.0.3.Final</version>
                 <scope>import</scope>
                 <type>pom</type>
             </dependency>
@@ -177,8 +172,8 @@
                 <type>pom</type>
             </dependency>
             <dependency>
-                <groupId>org.eclipse.jetty.ee10</groupId>
-                <artifactId>jetty-ee10-bom</artifactId>
+                <groupId>org.eclipse.jetty.ee11</groupId>
+                <artifactId>jetty-ee11-bom</artifactId>
                 <version>${jetty.version}</version>
                 <scope>import</scope>
                 <type>pom</type>
@@ -291,8 +286,8 @@
 
 		<!-- test avhengigheter -->
 		<dependency>
-			<groupId>org.eclipse.jetty.ee10</groupId>
-			<artifactId>jetty-ee10-plus</artifactId>
+			<groupId>org.eclipse.jetty.ee11</groupId>
+			<artifactId>jetty-ee11-plus</artifactId>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
