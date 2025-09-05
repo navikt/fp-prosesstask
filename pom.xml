@@ -58,7 +58,7 @@
         <jakarta.jakartaee-bom.version>10.0.0</jakarta.jakartaee-bom.version>
         <hibernate-core.version>6.6.20.Final</hibernate-core.version>
         <jetty.version>12.0.25</jetty.version>
-        <flyway.version>11.11.2</flyway.version>
+        <flyway.version>11.12.0</flyway.version>
 
         <mockito.version>5.19.0</mockito.version>
     </properties>
@@ -480,7 +480,7 @@
                 <plugin>
                     <groupId>org.sonarsource.scanner.maven</groupId>
                     <artifactId>sonar-maven-plugin</artifactId>
-                    <version>5.1.0.4751</version>
+                    <version>5.2.0.4988</version>
                 </plugin>
             </plugins>
         </pluginManagement>
