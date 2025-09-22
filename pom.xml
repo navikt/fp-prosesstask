@@ -60,7 +60,7 @@
         <jetty.version>12.1.0</jetty.version>
         <flyway.version>11.13.1</flyway.version>
 
-        <mockito.version>5.19.0</mockito.version>
+        <mockito.version>5.20.0</mockito.version>
     </properties>
 
 	<repositories>
