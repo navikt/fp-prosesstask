@@ -60,7 +60,7 @@
         <jetty.version>12.1.0</jetty.version>
         <flyway.version>11.13.1</flyway.version>
 
-        <mockito.version>5.19.0</mockito.version>
+        <mockito.version>5.20.0</mockito.version>
     </properties>
 
 	<repositories>
@@ -334,7 +334,7 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-compiler-plugin</artifactId>
-                    <version>3.14.0</version>
+                    <version>3.14.1</version>
                     <configuration>
                         <source>${java.version}</source>
                         <target>${java.version}</target>
@@ -373,7 +373,7 @@
                 <plugin>
                     <groupId>org.codehaus.mojo</groupId>
                     <artifactId>flatten-maven-plugin</artifactId>
-                    <version>1.7.2</version>
+                    <version>1.7.3</version>
                     <configuration>
                         <flattenedPomFilename>.flattened</flattenedPomFilename>
                         <flattenMode>bom</flattenMode>
