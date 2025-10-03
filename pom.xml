@@ -57,7 +57,7 @@
 
         <jakarta.jakartaee-bom.version>11.0.0</jakarta.jakartaee-bom.version>
         <hibernate-core.version>7.1.2.Final</hibernate-core.version>
-        <jetty.version>12.1.0</jetty.version>
+        <jetty.version>12.1.1</jetty.version>
         <flyway.version>11.13.2</flyway.version>
 
         <mockito.version>5.20.0</mockito.version>
