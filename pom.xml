@@ -38,7 +38,7 @@
     </modules>
 
 	<properties>
-        <java.version>21</java.version>
+        <java.version>25</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <argLine>-Xms256m -Dlog.level.no.nav=WARN -Dfile.encoding=${project.build.sourceEncoding}</argLine>
@@ -53,10 +53,10 @@
 		<sonar.projectName>fp-prosesstask</sonar.projectName>
 		<sonar.projectKey>navikt_fp-prosesstask</sonar.projectKey>
 
-		<felles.version>7.6.5</felles.version>
+		<felles.version>7.6.6</felles.version>
 
         <jakarta.jakartaee-bom.version>11.0.0</jakarta.jakartaee-bom.version>
-        <hibernate-core.version>7.1.2.Final</hibernate-core.version>
+        <hibernate-core.version>7.1.3.Final</hibernate-core.version>
         <jetty.version>12.1.1</jetty.version>
         <flyway.version>11.13.2</flyway.version>
 
