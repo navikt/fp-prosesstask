@@ -53,7 +53,7 @@
 		<sonar.projectName>fp-prosesstask</sonar.projectName>
 		<sonar.projectKey>navikt_fp-prosesstask</sonar.projectKey>
 
-		<felles.version>7.6.6</felles.version>
+		<felles.version>7.6.8</felles.version>
 
         <jakarta.jakartaee-bom.version>11.0.0</jakarta.jakartaee-bom.version>
         <hibernate-core.version>7.1.4.Final</hibernate-core.version>
