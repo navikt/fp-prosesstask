@@ -37,3 +37,4 @@ truststore.jts
 truststore.jks
 .DS_Store
 .env
+.java-version

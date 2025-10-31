@@ -7,7 +7,7 @@ import org.testcontainers.utility.DockerImageName;
 import no.nav.foreldrepenger.konfig.Environment;
 
 public class JpaPostgresTestcontainerExtension extends JpaExtension {
-    private static final String TEST_DB_CONTAINER = Environment.current().getProperty("testcontainer.postgres.test.db", String.class, "postgres:17-alpine");
+    private static final String TEST_DB_CONTAINER = Environment.current().getProperty("testcontainer.postgres.test.db", String.class, "postgres:18-alpine");
     private static final JdbcDatabaseContainer TEST_DATABASE;
 
     static {
