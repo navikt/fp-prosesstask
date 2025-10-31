@@ -66,14 +66,6 @@
 
 	<dependencyManagement>
 		<dependencies>
-            <dependency>
-                <groupId>no.nav.foreldrepenger.felles</groupId>
-                <artifactId>fp-bom</artifactId>
-                <version>5.0.0</version>
-                <scope>import</scope>
-                <type>pom</type>
-            </dependency>
-
 			<dependency>
 				<groupId>no.nav.vedtak.prosesstask</groupId>
 				<artifactId>prosesstask</artifactId>
