@@ -25,8 +25,7 @@ public class ProsessTaskRetryAllResultatDto {
     @JsonInclude(value = Include.ALWAYS)
     @JsonProperty(value="prosessTaskIds")
     @Schema(description = "Prosesstasks som restartes")
-    @Valid
-    private List<@NotNull Long> prosessTaskIds = new ArrayList<>();
+    private List<@Valid @NotNull Long> prosessTaskIds = new ArrayList<>();
 
     public ProsessTaskRetryAllResultatDto() {
         // Jackson
