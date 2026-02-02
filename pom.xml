@@ -53,7 +53,7 @@
 		<sonar.projectName>fp-prosesstask</sonar.projectName>
 		<sonar.projectKey>navikt_fp-prosesstask</sonar.projectKey>
 
-		<felles.version>7.6.12</felles.version>
+		<felles.version>7.6.15</felles.version>
     </properties>
 
 	<repositories>
