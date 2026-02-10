@@ -1,6 +1,7 @@
 package no.nav.vedtak.felles.prosesstask.api;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Properties;
 
@@ -50,6 +51,7 @@ public interface ProsessTaskTjeneste {
      * Slett ett år gamle tasks for hhv Oracle (slettÅrsgamleFerdige) og Postgres (tømNestePartisjon - antatt partisjoner)
      */
     int slettÅrsgamleFerdige();
+    int slettFerdigeEldreEnn(LocalDateTime opprettetFør);
     int tømNestePartisjon();
 
 }
