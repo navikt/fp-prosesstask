@@ -258,10 +258,10 @@ public class ProsessTaskRepository {
     }
 
 
-    public int slettGamleFerdige() {
-        var query = entityManager.createNativeQuery("DELETE FROM PROSESS_TASK WHERE STATUS = :ferdig AND OPPRETTET_TID < :aar")
+    public int slettGamleFerdige(LocalDateTime opprettetFør) {
+        var query = entityManager.createNativeQuery("DELETE FROM PROSESS_TASK WHERE STATUS = :ferdig AND OPPRETTET_TID < :tid")
                 .setParameter("ferdig", ProsessTaskStatus.FERDIG.getDbKode())
-                .setParameter("aar", LocalDateTime.now().minusYears(1));
+                .setParameter("tid", opprettetFør);
         var deletedRows = query.executeUpdate();
         entityManager.flush();
 
