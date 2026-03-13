@@ -105,7 +105,7 @@ public class ProsessTaskEntitet {
     @Column(name = "opprettet_tid", insertable = false, updatable = false)
     private LocalDateTime opprettetTid;
 
-    ProsessTaskEntitet() {
+    protected ProsessTaskEntitet() {
         // for hibernate
     }
 
