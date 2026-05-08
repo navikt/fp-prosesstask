@@ -3,7 +3,6 @@ package no.nav.vedtak.felles.prosesstask.impl;
 import static no.nav.vedtak.felles.prosesstask.impl.TaskManagerFeil.kunneIkkeProsessereTaskVilIkkePrøveIgjenEnkelFeilmelding;
 import static no.nav.vedtak.felles.prosesstask.impl.TaskManagerFeil.kunneIkkeProsessereTaskVilPrøveIgjenEnkelFeilmelding;
 
-import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.Objects;
 
@@ -108,13 +107,13 @@ public class RunTaskFeilOgStatusEventHåndterer {
 
     protected static String getFeiltekstOgLoggEventueltHvisEndret(ProsessTaskEntitet pte, Feil feil, Throwable t, boolean erEndeligFeil) {
 
-        var taskFeil = new ProsessTaskFeil(pte.tilProsessTask(), feil);
+        var taskFeil = ProsessTaskFeil.lagProsessTaskFeil(pte.tilProsessTask(), feil);
 
         var feilkode = taskFeil.getFeilkode();
         String feiltekst;
         try {
             feiltekst = taskFeil.writeValueAsString();
-        } catch (IOException e1) {
+        } catch (Exception e1) {
             // kunne ikke skrive ut json, log stack trace
             feiltekst = "Kunne ikke skrive ut json struktur for feil: " + feilkode + ", json exception: " + e1;
             LOG.warn(feiltekst, t);

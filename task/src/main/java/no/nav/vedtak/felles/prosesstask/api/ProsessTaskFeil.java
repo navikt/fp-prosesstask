@@ -1,41 +1,37 @@
 package no.nav.vedtak.felles.prosesstask.api;
 
-import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-
-import jakarta.persistence.Embeddable;
+import java.util.Objects;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectReader;
-import com.fasterxml.jackson.databind.ObjectWriter;
 
+import jakarta.persistence.Embeddable;
 import no.nav.vedtak.exception.VLException;
 import no.nav.vedtak.felles.jpa.savepoint.SavepointRolledbackException;
 import no.nav.vedtak.felles.prosesstask.impl.Feil;
+import tools.jackson.databind.ObjectReader;
+import tools.jackson.databind.ObjectWriter;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * Json struktur for feil som kan oppstå. Dupliserer noen properties for enkelthets skyld til senere prosessering.
- * <p>
- * Kan kun gjenskapes som json dersom sisteFeil ble lagret som Json i PROSESS_TASK tabell
- * (dvs. i nyere versjoner &gt;=2.4, gamle versjoner lagrer som flat string).
  */
 @JsonAutoDetect(getterVisibility = Visibility.NONE, setterVisibility = Visibility.NONE, fieldVisibility = Visibility.ANY)
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Embeddable
 public class ProsessTaskFeil {
 
-    private static ObjectWriter objectWriter;
-    private static ObjectReader objectReader;
+    private static final ObjectWriter OBJECT_WRITER;
+    private static final ObjectReader OBJECT_READER;
 
     static {
-        ObjectMapper om = new ObjectMapper();
-        objectWriter = om.writerWithDefaultPrettyPrinter();
-        objectReader = om.reader();
+        JsonMapper om = JsonMapper.builder().build();
+        OBJECT_WRITER = om.writerWithDefaultPrettyPrinter();
+        OBJECT_READER = om.readerFor(ProsessTaskFeil.class);
     }
 
     @JsonProperty("exceptionCauseClass")
@@ -69,31 +65,33 @@ public class ProsessTaskFeil {
         // default ctor for proxy
     }
 
-    public ProsessTaskFeil(ProsessTaskInfo taskInfo, Feil feil) {
+    public static ProsessTaskFeil lagProsessTaskFeil(ProsessTaskInfo taskInfo, Feil feil) {
+        var taskFeil = new ProsessTaskFeil();
         if (feil != null) {
-            Throwable cause = getCause(feil);
+            var cause = getCause(feil);
 
             if (cause != null) {
                 // bruker her unwrapped cause hvis finnes
-                this.exceptionCauseClass = cause.getClass().getName();
-                this.exceptionCauseMessage = cause.getMessage();
-                this.feilkode = finnFeilkode(cause);
+                taskFeil.exceptionCauseClass = cause.getClass().getName();
+                taskFeil.exceptionCauseMessage = cause.getMessage();
+                taskFeil.feilkode = finnFeilkode(cause);
             }
-            if (this.feilkode == null) {
-                this.feilkode = feil.kode();
+            if (taskFeil.feilkode == null) {
+                taskFeil.feilkode = feil.kode();
             }
 
             if (feil.cause() != null) {
                 // her brukes original exception (ikke unwrapped) slik at vi får med hele historikken hvor eksakt dette inntraff
-                this.stackTrace = getStacktraceAsString(feil.cause());// bruker original exception uansett (inkludert wrapping exceptions)
+                taskFeil.stackTrace = getStacktraceAsString(feil.cause());// bruker original exception uansett (inkludert wrapping exceptions)
             }
 
-            this.feilmelding = feil.feilmelding();
+            taskFeil.feilmelding = feil.feilmelding();
         }
 
-        this.taskName = taskInfo.taskType().value();
-        this.taskId = taskInfo.getId() == null ? null : taskInfo.getId().toString();
-        this.callId = taskInfo.getPropertyValue(CallId.CALL_ID);
+        taskFeil.taskName = taskInfo.taskType().value();
+        taskFeil.taskId = taskInfo.getId() == null ? null : taskInfo.getId().toString();
+        taskFeil.callId = taskInfo.getPropertyValue(CallId.CALL_ID);
+        return taskFeil;
     }
 
     public String getExceptionCauseClass() {
@@ -128,7 +126,7 @@ public class ProsessTaskFeil {
         return stackTrace;
     }
 
-    private String getStacktraceAsString(Throwable cause) {
+    private static String getStacktraceAsString(Throwable cause) {
         if (cause == null) {
             return null;
         }
@@ -139,7 +137,7 @@ public class ProsessTaskFeil {
         return sw.toString();
     }
 
-    private Throwable getCause(Feil feil) {
+    private static Throwable getCause(Feil feil) {
         if (feil == null) {
             return null;
         }
@@ -150,16 +148,16 @@ public class ProsessTaskFeil {
         return cause;
     }
 
-    private String finnFeilkode(Throwable e) {
+    private static String finnFeilkode(Throwable e) {
         return e instanceof VLException vle ? vle.getKode() : null;
     }
 
-    public String writeValueAsString() throws IOException {
-        return objectWriter.writeValueAsString(this);
+    public String writeValueAsString() {
+        return OBJECT_WRITER.writeValueAsString(this);
     }
 
-    public static String readFrom(String str) throws IOException {
-        return objectReader.readValue(str);
+    public static ProsessTaskFeil readFrom(String str) {
+        return OBJECT_READER.readValue(str);
     }
 
     public void setFeilkode(String feilkode) {
@@ -168,6 +166,20 @@ public class ProsessTaskFeil {
 
     public void setBlokkerendeProsessTaskId(Long blokkerendeProsessTaskId) {
         this.blokkerendeProsessTaskId = blokkerendeProsessTaskId;
+    }
+
+    @Override
+    public final boolean equals(Object o) {
+        if (!(o instanceof ProsessTaskFeil that))
+            return false;
+
+        return Objects.equals(getTaskName(), that.getTaskName()) && Objects.equals(getTaskId(), that.getTaskId())
+            && Objects.equals(getCallId(), that.getCallId()) && Objects.equals(getFeilmelding(), that.getFeilmelding());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(taskName, taskId, callId, feilmelding);
     }
 
 }

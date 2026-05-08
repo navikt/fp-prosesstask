@@ -4,11 +4,10 @@ import java.io.IOException;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.Optional;
 
-import jakarta.persistence.EntityManager;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import jakarta.persistence.EntityManager;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskFeil;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskLifecycleObserver;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskStatus;
@@ -71,7 +70,7 @@ public class RunTaskVetoHåndterer {
                 Long blokkerId = veto.blokkertAvProsessTaskId();
 
                 Feil feil = TaskManagerFeil.kanIkkeKjøreFikkVeto(pte.getId(), pte.getTaskType(), blokkerId, veto.begrunnelse());
-                var taskFeil = new ProsessTaskFeil(pte.tilProsessTask(), feil);
+                var taskFeil = ProsessTaskFeil.lagProsessTaskFeil(pte.tilProsessTask(), feil);
                 taskFeil.setBlokkerendeProsessTaskId(blokkerId);
                 pte.setSisteFeil(taskFeil.getFeilkode(), taskFeil.writeValueAsString());
 
