@@ -52,4 +52,4 @@ SemVer; release artifact published to consumer repos via fp-bom + Dependabot.
 
 ## Tech
 
-Java 25, Jakarta EE 10, JPA/Hibernate, Maven. Versions pinned via `fp-bom`.
+Java 25, Jakarta EE 11, JPA/Hibernate, Maven. Versions pinned via `fp-bom`.
