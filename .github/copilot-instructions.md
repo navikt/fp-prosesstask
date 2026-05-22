@@ -24,11 +24,11 @@ of pods. Used by all Team Foreldrepenger backend apps for background work.
 
 ## Module layout
 
-| Module | Purpose |
-|--------|---------|
-| `task` | Core task framework, polling, dispatch |
+| Module | Purpose                                       |
+|--------|-----------------------------------------------|
+| `task` | Core task framework, polling, dispatch        |
 | `rest` | REST endpoints for monitoring/admin |
-| `kontekst` | Context propagation across task boundaries |
+| `kontekst` | Tie-in with fp-felles / log + kontekst        |
 
 ## Usage patterns (in consumer apps)
 
