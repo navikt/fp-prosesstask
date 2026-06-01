@@ -140,7 +140,7 @@ class ProsessTaskApplikasjonTjenesteTest {
     void opprett_prosess_task() {
         var input = new ProsessTaskOpprettInputDto();
         input.setTaskType(TASK_TYPE_NAME);
-        input.setTaskParametre(new Properties());
+        input.setTaskParametre(Map.of());
 
         var prosessTaskDataDto = prosessTaskApplikasjonTjeneste.opprettTask(input);
 
