@@ -29,10 +29,9 @@ public class ProsessTaskOpprettInputDto {
     @JsonProperty(value = "taskParametre", required = true)
     @NotNull
     @Size(max = 100)
-    @Valid
     private Map<
-        @NotBlank @Size(max = 100) @Pattern(regexp = PARAMETRE_PATTERN) String,
-        @NotNull @Size(max = 1000) @Pattern(regexp = PARAMETRE_PATTERN) String
+        @NotBlank @Valid @Size(max = 100) @Pattern(regexp = PARAMETRE_PATTERN) String,
+        @NotNull @Valid @Size(max = 1000) @Pattern(regexp = PARAMETRE_PATTERN) String
         > taskParametre = new HashMap<>();
 
     public String getTaskType() {
