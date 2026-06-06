@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Properties;
 
 import jakarta.enterprise.context.Dependent;
 import jakarta.inject.Inject;
@@ -85,7 +86,9 @@ public class ProsessTaskApplikasjonTjeneste {
     public ProsessTaskDataDto opprettTask(ProsessTaskOpprettInputDto inputDto) {
         var sanitizedTaskType = inputDto.getTaskType().replace("\n", "").replace("\r", "").trim();
         var taskData = ProsessTaskData.forTaskType(new TaskType(sanitizedTaskType));
-        taskData.setProperties(inputDto.getTaskParametre());
+        var properties = new Properties();
+        properties.putAll(inputDto.getTaskParametre());
+        taskData.setProperties(properties);
         prosessTaskTjeneste.lagreValidert(taskData);
 
         return ProsessTaskDataKonverter.tilProsessTaskDataDto(taskData);
