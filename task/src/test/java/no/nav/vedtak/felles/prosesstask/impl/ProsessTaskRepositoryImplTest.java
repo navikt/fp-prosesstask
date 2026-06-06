@@ -5,7 +5,6 @@ import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicLong;
 
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -29,12 +28,10 @@ class ProsessTaskRepositoryImplTest extends EntityManagerAwareTest {
     private static final LocalDateTime NÅ = LocalDateTime.now().truncatedTo(ChronoUnit.MILLIS);
     private final LocalDateTime nesteKjøringEtter = NÅ.plusHours(1);
 
-    private final AtomicLong ids= new AtomicLong(1);
-
     private ProsessTaskRepository prosessTaskRepository;
 
     @BeforeEach
-    public void setUp() {
+    void setUp() {
         ProsessTaskEventPubliserer prosessTaskEventPubliserer = Mockito.mock(ProsessTaskEventPubliserer.class);
         Mockito.doNothing().when(prosessTaskEventPubliserer).fireEvent(Mockito.any(ProsessTaskData.class), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any());
         prosessTaskRepository = new ProsessTaskRepository(getEntityManager(), null, prosessTaskEventPubliserer);

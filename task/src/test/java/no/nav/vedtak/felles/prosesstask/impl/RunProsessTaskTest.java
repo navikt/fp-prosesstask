@@ -47,12 +47,12 @@ class RunProsessTaskTest {
     private TaskManager taskManager;
 
     @BeforeEach
-    public void setupTestData() throws Exception {
+    void setupTestData() throws Exception {
         repoRule.doInTransaction(this::testData);
     }
 
     @AfterEach
-    public void tearDown() throws Exception {
+    void tearDown() throws Exception {
         taskManager.stop();
         repoRule.doInTransaction(this::slettTestData);
     }

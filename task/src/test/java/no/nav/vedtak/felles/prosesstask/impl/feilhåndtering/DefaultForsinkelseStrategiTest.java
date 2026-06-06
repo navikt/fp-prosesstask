@@ -19,7 +19,7 @@ class DefaultForsinkelseStrategiTest {
     private ProsessTaskHandlerRef handler;
 
     @BeforeEach
-    public void setup() {
+    void setup() {
         handler = ProsessTaskHandlerRef.lookup(TaskType.forProsessTask(ForsinkelseDummyProsessTask.class));
     }
 

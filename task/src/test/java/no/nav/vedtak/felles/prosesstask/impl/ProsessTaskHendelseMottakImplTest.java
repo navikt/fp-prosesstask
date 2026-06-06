@@ -51,13 +51,13 @@ class ProsessTaskHendelseMottakImplTest extends EntityManagerAwareTest {
     private TaskManagerRepositoryImpl taskManagerRepo;
 
     @AfterEach
-    public void afterEach() {
+    void afterEach() {
         var logger = (Logger) LoggerFactory.getLogger(TaskManager.class);
         logger.detachAppender(logSniffer.getName());
     }
 
     @BeforeEach
-    public void setUp() {
+    void setUp() {
         taskManagerRepo = new TaskManagerRepositoryImpl(getEntityManager());
         prosessTaskTjeneste = new ProsessTaskTjenesteImpl(repo);
         when(taskSomVenterØkonomiKvittering.getVentetHendelse()).thenReturn(Optional.of(HENDELSE_KEY));

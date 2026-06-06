@@ -50,7 +50,7 @@ class ProsessTaskTjenesteImplTest {
     }
 
     @BeforeEach
-    public void setUp()  {
+    void setUp()  {
         prosessTaskRepositoryMock = mock(ProsessTaskRepository.class);
         prosessTaskTjeneste = new ProsessTaskTjenesteImpl(prosessTaskRepositoryMock);
     }
