@@ -12,7 +12,6 @@ import static org.mockito.Mockito.when;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 import java.util.UUID;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -140,7 +139,7 @@ class ProsessTaskApplikasjonTjenesteTest {
     void opprett_prosess_task() {
         var input = new ProsessTaskOpprettInputDto();
         input.setTaskType(TASK_TYPE_NAME);
-        input.setTaskParametre(new Properties());
+        input.setTaskParametre(Map.of());
 
         var prosessTaskDataDto = prosessTaskApplikasjonTjeneste.opprettTask(input);
 
