@@ -6,7 +6,6 @@ import java.sql.SQLTransientException;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -38,14 +37,14 @@ class RunProsessTaskITTest extends EntityManagerAwareTest {
     }
 
     @Test
-    void skal_kjøre_en_task() throws Exception {
+    void skal_kjøre_en_task() {
         // Arrange
         var pt1 = nyTask(new TaskType("mytask1"));
         repo.lagre(pt1);
         repo.flushAndClear();
 
         var allDone = new AtomicBoolean();
-        ProsessTaskDispatcher dispatcher = new DummyProsessTaskDispatcher((task) -> {
+        ProsessTaskDispatcher dispatcher = new DummyProsessTaskDispatcher(task -> {
             allDone.set(task != null);
         });
 
@@ -64,7 +63,7 @@ class RunProsessTaskITTest extends EntityManagerAwareTest {
     }
 
     @Test
-    void skal_kjøre_en_task_og_planlegge_ny() throws Exception {
+    void skal_kjøre_en_task_og_planlegge_ny() {
         // Arrange
         var taskType = TaskType.forProsessTask(LocalDummyProsessTask.class);
         var pt1 = ProsessTaskData.forTaskType(taskType);
@@ -73,7 +72,7 @@ class RunProsessTaskITTest extends EntityManagerAwareTest {
         repo.flushAndClear();
 
         var allDone = new AtomicBoolean();
-        ProsessTaskDispatcher dispatcher = new DummyProsessTaskDispatcher((task) -> {
+        ProsessTaskDispatcher dispatcher = new DummyProsessTaskDispatcher(task -> {
             allDone.set(task != null);
         });
 
@@ -93,9 +92,9 @@ class RunProsessTaskITTest extends EntityManagerAwareTest {
         var prosessTaskData = repo.finnAlle(List.of(ProsessTaskStatus.KLAR))
                 .stream()
                 .filter(it -> it.taskType().equals(taskType))
-                .collect(Collectors.toList());
+                .toList();
         assertThat(prosessTaskData).hasSize(1);
-        var first = prosessTaskData.get(0);
+        var first = prosessTaskData.getFirst();
         assertThat(first.getNesteKjøringEtter()).isAfter(now);
     }
 
@@ -109,14 +108,14 @@ class RunProsessTaskITTest extends EntityManagerAwareTest {
     }
 
     @Test
-    void skal_kjøre_en_task_som_feiler_og_inkrementere_feilede_forsøk_teller() throws Exception {
+    void skal_kjøre_en_task_som_feiler_og_inkrementere_feilede_forsøk_teller() {
         // Arrange
         var pt1 = nyTask(new TaskType("mytask1"));
         repo.lagre(pt1);
         repo.flushAndClear();
 
         var allDone = new AtomicBoolean();
-        ProsessTaskDispatcher dispatcher = new DummyProsessTaskDispatcher((task) -> {
+        ProsessTaskDispatcher dispatcher = new DummyProsessTaskDispatcher(task -> {
             allDone.set(task != null);
             throw new RuntimeException("I am a walrus!");
         });
@@ -139,14 +138,14 @@ class RunProsessTaskITTest extends EntityManagerAwareTest {
     }
 
     @Test
-    void skal_kjøre_en_task_som_feiler_med_savepoint_og_inkrementere_feilede_forsøk_teller() throws Exception {
+    void skal_kjøre_en_task_som_feiler_med_savepoint_og_inkrementere_feilede_forsøk_teller() {
         // Arrange
         var pt1 = nyTask(new TaskType("mytask1"));
         repo.lagre(pt1);
         repo.flushAndClear();
 
         var allDone = new AtomicBoolean();
-        ProsessTaskDispatcher dispatcher = new DummyProsessTaskDispatcher((task) -> {
+        ProsessTaskDispatcher dispatcher = new DummyProsessTaskDispatcher(task -> {
             allDone.set(task != null);
             throw new SavepointRolledbackException("Save me!", new UnsupportedOperationException("ignored"));
         });
@@ -173,14 +172,14 @@ class RunProsessTaskITTest extends EntityManagerAwareTest {
     }
 
     @Test
-    void skal_kjøre_en_task_som_feiler_pga_transient_databasefeil_og_ikke_endre_noe() throws Exception {
+    void skal_kjøre_en_task_som_feiler_pga_transient_databasefeil_og_ikke_endre_noe() {
         // Arrange
         var pt1 = nyTask(new TaskType("mytask1"));
         repo.lagre(pt1);
         repo.flushAndClear();
 
         var allDone = new AtomicBoolean();
-        ProsessTaskDispatcher dispatcher = new DummyProsessTaskDispatcher((task) -> {
+        ProsessTaskDispatcher dispatcher = new DummyProsessTaskDispatcher(task -> {
             allDone.set(task != null);
             throw new SQLTransientException("I am NOT a walrus!");
         });

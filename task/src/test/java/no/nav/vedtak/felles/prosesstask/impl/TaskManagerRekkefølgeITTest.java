@@ -35,12 +35,12 @@ class TaskManagerRekkefølgeITTest extends EntityManagerAwareTest {
     }
 
     @Test
-    void skal_finne_sql_for_polling() throws Exception {
+    void skal_finne_sql_for_polling() {
         assertThat(taskManagerRepo.getSqlForPolling()).isNotNull();
     }
 
     @Test
-    void skal_polle_tasker_i_enkel_sekvens() throws Exception {
+    void skal_polle_tasker_i_enkel_sekvens() {
         ProsessTaskData pt1 = nyTask("mytask1", -10);
         ProsessTaskData pt2 = nyTask("mytask2", -10);
         ProsessTaskData pt3 = nyTask("mytask3", -10);
@@ -70,7 +70,7 @@ class TaskManagerRekkefølgeITTest extends EntityManagerAwareTest {
     }
 
     @Test
-    void skal_polle_tasker_i_sekvens_sjekk_rekkefølge() throws Exception {
+    void skal_polle_tasker_i_sekvens_sjekk_rekkefølge() {
         ProsessTaskGruppe sammensatt = new ProsessTaskGruppe();
         List<ProsessTaskData> tasks = new ArrayList<>();
         for (int i = 0; i < 22; i++) {
@@ -91,7 +91,7 @@ class TaskManagerRekkefølgeITTest extends EntityManagerAwareTest {
     }
 
     @Test
-    void skal_ikke_polle_ny_når_får_feil_på_første() throws Exception {
+    void skal_ikke_polle_ny_når_får_feil_på_første() {
         ProsessTaskData pt1 = nyTask("mytask1", -10);
         ProsessTaskData pt2 = nyTask("mytask2", -10);
         ProsessTaskGruppe sammensatt = new ProsessTaskGruppe();
@@ -109,7 +109,7 @@ class TaskManagerRekkefølgeITTest extends EntityManagerAwareTest {
     }
 
     @Test
-    void skal_polle_tasker_i_sekvens_med_feil_i_midten() throws Exception {
+    void skal_polle_tasker_i_sekvens_med_feil_i_midten() {
         ProsessTaskData pt1 = nyTask("mytask1", -10);
         ProsessTaskData pt2 = nyTask("mytask2", -10);
         ProsessTaskData pt3 = nyTask("mytask3", -10);
@@ -157,7 +157,7 @@ class TaskManagerRekkefølgeITTest extends EntityManagerAwareTest {
     }
 
     @Test
-    void skal_polle_3_tasker_i_parallell_deretter_1_sekvensielt_for_avslutning() throws Exception {
+    void skal_polle_3_tasker_i_parallell_deretter_1_sekvensielt_for_avslutning() {
 
         // Arrange
         ProsessTaskData pt1 = nyTask("mytask1", -10);
@@ -181,7 +181,7 @@ class TaskManagerRekkefølgeITTest extends EntityManagerAwareTest {
     }
 
     @Test
-    void skal_polle_tasker_i_sekvens_så_parallell() throws Exception {
+    void skal_polle_tasker_i_sekvens_så_parallell() {
 
         ProsessTaskData pt1 = nyTask("mytask1", -10);
         ProsessTaskData pt2 = nyTask("mytask2", -10);

@@ -22,7 +22,7 @@ class TaskManagerGenerateRunnableTasksITTest extends EntityManagerAwareTest {
     private static final MemoryAppender LOG_SNIFFER = MemoryAppender.sniff(TaskManagerGenerateRunnableTasks.class);
 
     @AfterEach
-    public void afterEach() {
+    void afterEach() {
         LOG_SNIFFER.reset();
     }
 

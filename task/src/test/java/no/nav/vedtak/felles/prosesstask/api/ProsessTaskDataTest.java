@@ -20,7 +20,7 @@ class ProsessTaskDataTest {
     private ProsessTaskData original;
 
     @BeforeEach
-    public void oppsett() {
+    void oppsett() {
         original = new ProsessTaskData(ORIGINALTYPE);
     }
 
