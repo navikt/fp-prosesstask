@@ -7,7 +7,7 @@
     <parent>
         <groupId>no.nav.foreldrepenger.felles</groupId>
         <artifactId>fp-parent-lib</artifactId>
-        <version>5.3.4</version>
+        <version>5.3.5</version>
     </parent>
 
 	<groupId>no.nav.vedtak.prosesstask</groupId>
@@ -53,7 +53,7 @@
 		<sonar.projectName>fp-prosesstask</sonar.projectName>
 		<sonar.projectKey>navikt_fp-prosesstask</sonar.projectKey>
 
-		<felles.version>7.8.3</felles.version>
+		<felles.version>7.8.4</felles.version>
     </properties>
 
 	<repositories>
@@ -136,11 +136,6 @@
 		</dependency>
 
 		<!-- test avhengigheter -->
-		<dependency>
-			<groupId>org.eclipse.jetty.ee11</groupId>
-			<artifactId>jetty-ee11-plus</artifactId>
-			<scope>test</scope>
-		</dependency>
         <dependency>
             <groupId>org.testcontainers</groupId>
             <artifactId>testcontainers-postgresql</artifactId>
