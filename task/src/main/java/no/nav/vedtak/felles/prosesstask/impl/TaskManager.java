@@ -110,11 +110,6 @@ public class TaskManager implements Controllable {
     private final AtomicReference<LocalDateTime> pollerRoundNoneFoundSince = new AtomicReference<>(LocalDateTime.now());
     private final AtomicReference<LocalDateTime> pollerRoundNoneLastReported = new AtomicReference<>(LocalDateTime.now());
 
-    /**
-     * trenger ikke ha denne som static siden TaskManager er ApplicationScoped.
-     */
-    private final ThreadLocal<ProsessTaskData> currentTask = new ThreadLocal<>();
-
     static final String TASK_PROP = "prosess_task";
     static final String TASK_ID_PROP = "prosess_task_id";
 
@@ -142,12 +137,7 @@ public class TaskManager implements Controllable {
 
                 @Override
                 public void dispatch(ProsessTaskData task) throws Exception {
-                    try {
-                        currentTask.set(task);
-                        delegate.dispatch(task);
-                    } finally {
-                        currentTask.remove();
-                    }
+                    delegate.dispatch(task);
                 }
 
                 @Override
@@ -231,10 +221,6 @@ public class TaskManager implements Controllable {
             runTaskService.stop();
             runTaskService = null;
         }
-    }
-
-    public ProsessTaskData getCurrentTask() {
-        return currentTask.get();
     }
 
     synchronized void startPollerThread() {
