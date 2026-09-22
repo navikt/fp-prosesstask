@@ -11,6 +11,7 @@ import no.nav.vedtak.felles.prosesstask.api.ProsessTaskHandler;
 import no.nav.vedtak.felles.prosesstask.api.TaskType;
 import no.nav.vedtak.felles.prosesstask.impl.BasicCdiProsessTaskDispatcher;
 import no.nav.vedtak.felles.prosesstask.impl.ProsessTaskHandlerRef;
+import no.nav.vedtak.log.mdc.LoggFelter;
 import no.nav.vedtak.log.mdc.MDCOperations;
 import no.nav.vedtak.log.mdc.MdcExtendedLogContext;
 import no.nav.vedtak.sikkerhet.kontekst.BasisKontekst;
@@ -31,14 +32,15 @@ public class KontekstCdiProsessTaskDispatcher extends BasicCdiProsessTaskDispatc
     public void dispatch(ProsessTaskData task) {
         try (ProsessTaskHandlerRef taskHandler = taskHandler(task.taskType())) {
             if (task.getSaksnummer() != null) {
-                LOG_CONTEXT.add("fagsak", task.getSaksnummer());
+                LOG_CONTEXT.add(LoggFelter.SAK, task.getSaksnummer());
             } else if (task.getFagsakId() != null) { // NOSONAR
-                LOG_CONTEXT.add("fagsak", task.getFagsakId());  // NOSONAR
+                LOG_CONTEXT.add(LoggFelter.SAK, task.getFagsakId());  // NOSONAR
             }
             if (task.getBehandlingUuid() != null) {
-                LOG_CONTEXT.add("behandling", task.getBehandlingUuid());
-            } else if (task.getBehandlingIdAsLong() != null) {
-                LOG_CONTEXT.add("behandling", task.getBehandlingIdAsLong());
+                LOG_CONTEXT.add(LoggFelter.BEHANDLING, task.getBehandlingUuid());
+            }
+            if (task.getBehandlingIdAsLong() != null) {
+                LOG_CONTEXT.add(LoggFelter.BEHANDLING_ID, task.getBehandlingIdAsLong());
             }
 
             taskHandler.doTask(task);
