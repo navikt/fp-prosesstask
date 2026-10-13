@@ -3,6 +3,7 @@ package no.nav.vedtak.prosesstask.kontekst;
 import java.util.Set;
 
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.inject.Instance;
 
 import no.nav.vedtak.exception.IntegrasjonException;
 import no.nav.vedtak.exception.TekniskException;
@@ -57,8 +58,8 @@ public class KontekstCdiProsessTaskDispatcher extends BasicCdiProsessTaskDispatc
 
     private static class KontekstProsessTaskHandlerRef extends ProsessTaskHandlerRef {
 
-        private KontekstProsessTaskHandlerRef(ProsessTaskHandler bean) {
-            super(bean);
+        private KontekstProsessTaskHandlerRef(Instance.Handle<ProsessTaskHandler> handle) {
+            super(handle);
         }
 
         @Override
@@ -82,8 +83,7 @@ public class KontekstCdiProsessTaskDispatcher extends BasicCdiProsessTaskDispatc
         }
 
         public static KontekstProsessTaskHandlerRef lookup(TaskType taskType) {
-            var bean = ProsessTaskHandlerRef.lookupHandler(taskType);
-            return new KontekstProsessTaskHandlerRef(bean);
+            return new KontekstProsessTaskHandlerRef(lookupHandle(taskType));
         }
 
     }

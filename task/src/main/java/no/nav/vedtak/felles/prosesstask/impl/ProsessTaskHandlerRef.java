@@ -1,13 +1,14 @@
 package no.nav.vedtak.felles.prosesstask.impl;
 
-import java.lang.annotation.Annotation;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 
-import org.jboss.weld.interceptor.util.proxy.TargetInstanceProxy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jakarta.enterprise.context.Dependent;
+import jakarta.enterprise.inject.Instance;
 import jakarta.enterprise.inject.spi.CDI;
 import jakarta.enterprise.util.AnnotationLiteral;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTask;
@@ -25,10 +26,18 @@ public class ProsessTaskHandlerRef implements AutoCloseable {
 
     private static final Logger LOG = LoggerFactory.getLogger(ProsessTaskHandlerRef.class);
 
-    private final ProsessTaskHandler bean;
+    private final Instance.Handle<ProsessTaskHandler> handle;
 
-    protected ProsessTaskHandlerRef(ProsessTaskHandler bean) {
-        this.bean = bean;
+    protected ProsessTaskHandlerRef(Instance.Handle<ProsessTaskHandler> handle) {
+        this.handle = Objects.requireNonNull(handle, "handle");
+    }
+
+    public static ProsessTaskHandlerRef lookup(TaskType taskType) {
+        return new ProsessTaskHandlerRef(lookupHandle(taskType));
+    }
+
+    protected static Instance.Handle<ProsessTaskHandler> lookupHandle(TaskType taskType) {
+        return CDI.current().select(ProsessTaskHandler.class, new ProsessTaskLiteral(taskType.value())).getHandle();
     }
 
     public CronExpression cronExpression() {
@@ -37,62 +46,44 @@ public class ProsessTaskHandlerRef implements AutoCloseable {
     }
 
     public Set<String> requiredProperties() {
-        return bean.requiredProperties();
+        return getBean().requiredProperties();
     }
 
     public ProsessTaskRetryPolicy retryPolicy() {
-        return bean.retryPolicy()
+        return getBean().retryPolicy()
                 .orElseGet(() -> {
                     var task = getProsessTaskAnnotation();
                     return new ProsessTaskDefaultRetryPolicy(task.maxFailedRuns(), task.firstDelay(), task.thenDelay());
                 });
     }
 
-
-    public static ProsessTaskHandlerRef lookup(TaskType taskType) {
-        return new ProsessTaskHandlerRef(lookupHandler(taskType));
-    }
-
-    // Brukes i subklasse -
-    protected static ProsessTaskHandler lookupHandler(TaskType taskType) {
-        return CDI.current().select(ProsessTaskHandler.class, new ProsessTaskLiteral(taskType.value())).get();
-    }
-
+    /** Instansieres ved første kall. Normal-scoped handlere gir klient-proxy. */
     protected ProsessTaskHandler getBean() {
-        return bean;
+        return handle.get();
+    }
+
+    /** Annotert implementasjonsklasse, hentet fra CDI-metadata uten å instansiere handleren. */
+    protected Class<?> getHandlerClass() {
+        return handle.getBean().getBeanClass();
     }
 
     private ProsessTask getProsessTaskAnnotation() {
-        Class<?> clazz = getTargetClassExpectingAnnotation(ProsessTask.class);
-        if (!clazz.isAnnotationPresent(ProsessTask.class)) {
-            throw new IllegalStateException(clazz.getSimpleName() + " mangler annotering @ProsesTask");
-        }
-        return clazz.getAnnotation(ProsessTask.class);
+        var clazz = getHandlerClass();
+        return Optional.ofNullable(clazz.getAnnotation(ProsessTask.class))
+            .orElseThrow(() -> new IllegalStateException(clazz.getSimpleName() + " mangler annotering @ProsesTask"));
     }
 
-    protected Class<?> getTargetClassExpectingAnnotation(Class<? extends Annotation> annotationClass) {
-        if (!bean.getClass().isAnnotationPresent(annotationClass) && bean instanceof TargetInstanceProxy<?> tip) {
-            return tip.weld_getTargetInstance().getClass();
-        } else {
-            return bean.getClass();
-        }
-    }
-
+    /** Destruerer kun @Dependent-instanser; normal-scoped handlere eies av sin kontekst. */
     @Override
     public void close() {
-        if (bean == null) {
-            return;
-        }
-
-        if (bean.getClass().isAnnotationPresent(Dependent.class)) {
-            // må closes hvis @Dependent scoped siden vi slår opp. ApplicationScoped alltid ok. RequestScope også ok siden vi kjører med det.
-            CDI.current().destroy(bean);
+        if (Dependent.class.equals(handle.getBean().getScope())) {
+            handle.destroy();
         }
     }
 
     public void doTask(ProsessTaskData data) {
         LOG.info("Starter task {}", data.taskType());
-        bean.doTask(data);
+        getBean().doTask(data);
         LOG.info("Stoppet task {}", data.taskType());
     }
 

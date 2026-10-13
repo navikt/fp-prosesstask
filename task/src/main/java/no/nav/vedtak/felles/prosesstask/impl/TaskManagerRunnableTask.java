@@ -4,32 +4,32 @@ import java.time.LocalDateTime;
 import java.util.function.Consumer;
 import java.util.function.UnaryOperator;
 
-import io.opentelemetry.api.trace.Span;
-import io.opentelemetry.api.trace.SpanBuilder;
-import io.opentelemetry.api.trace.SpanContext;
-import io.opentelemetry.api.trace.SpanKind;
-import io.opentelemetry.context.Context;
-import no.nav.vedtak.felles.prosesstask.impl.util.OtelUtil;
-
 import org.slf4j.MDC;
 
+import io.opentelemetry.api.trace.SpanBuilder;
+import io.opentelemetry.api.trace.SpanKind;
+import jakarta.enterprise.inject.Instance;
 import jakarta.persistence.PersistenceException;
 import no.nav.vedtak.felles.prosesstask.api.CallId;
 import no.nav.vedtak.felles.prosesstask.api.TaskType;
-
-import static no.nav.vedtak.felles.prosesstask.impl.util.OtelUtil.taskAttributter;
+import no.nav.vedtak.felles.prosesstask.impl.util.OtelUtil;
 
 class TaskManagerRunnableTask implements Runnable {
     private final TaskType taskType;
     private final RunTaskInfo taskInfo;
     private final String callId;
     private final Consumer<IdentRunnable> fatalErrorSubmitFunc;
+    private final Instance<RunTask> runTasks;
+    private final Instance<FatalErrorTask> fatalErrorTasks;
 
-    TaskManagerRunnableTask(TaskType taskType, RunTaskInfo taskInfo, String callId, Consumer<IdentRunnable> fatalErrorSubmitFunc) {
+    TaskManagerRunnableTask(TaskType taskType, RunTaskInfo taskInfo, String callId, Consumer<IdentRunnable> fatalErrorSubmitFunc,
+                            Instance<RunTask> runTasks, Instance<FatalErrorTask> fatalErrorTasks) {
         this.taskType = taskType;
         this.taskInfo = taskInfo;
         this.callId = callId;
         this.fatalErrorSubmitFunc = fatalErrorSubmitFunc;
+        this.runTasks = runTasks;
+        this.fatalErrorTasks = fatalErrorTasks;
     }
 
     @Override
@@ -59,7 +59,7 @@ class TaskManagerRunnableTask implements Runnable {
         } finally {
             clearLogContext();
             // dispose CDI etter bruk
-            TaskManagerGenerateRunnableTasks.CURRENT.destroy(runSingleTask);
+            destroyRunTaskInstance(runSingleTask);
             // kjør etter at runTask er destroyed og logcontext renset
             handleErrorCallback(errorCallback);
         }
@@ -70,7 +70,7 @@ class TaskManagerRunnableTask implements Runnable {
         var mdcCopy = MDC.getCopyOfContextMap();
         errorCallback = () -> {
             MDC.setContextMap(mdcCopy); // later som vi fortsetter med samme MDC nøkler, men nå i ny tråd
-            final FatalErrorTask errorTask = TaskManagerGenerateRunnableTasks.CURRENT.select(FatalErrorTask.class).get();
+            final var errorTask = fatalErrorTasks.get();
             try {
                 initLogContext(callId, taskInfo.getTaskType(), taskInfo.getId());
                 errorTask.doRun(taskInfo, fatal);
@@ -80,7 +80,7 @@ class TaskManagerRunnableTask implements Runnable {
                         "PT-415565 Kunne ikke registrere feil på task pga uventet feil ved oppdatering av status/feil, id={}, taskName={}.", taskInfo.getId(), taskInfo.getTaskType(), t);
             } finally {
                 clearLogContext();
-                TaskManagerGenerateRunnableTasks.CURRENT.destroy(errorTask);
+                fatalErrorTasks.destroy(errorTask);
             }
         };
 
@@ -114,7 +114,11 @@ class TaskManagerRunnableTask implements Runnable {
     }
 
     RunTask newRunTaskInstance() {
-        return TaskManagerGenerateRunnableTasks.CURRENT.select(RunTask.class).get();
+        return runTasks.get();
+    }
+
+    void destroyRunTaskInstance(RunTask runTask) {
+        runTasks.destroy(runTask);
     }
 
     public static UnaryOperator<SpanBuilder> taskAttributter(RunTaskInfo taskInfo) {

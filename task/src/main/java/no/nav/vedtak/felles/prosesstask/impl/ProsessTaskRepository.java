@@ -52,7 +52,7 @@ public class ProsessTaskRepository {
         this.entityManager = entityManager;
         this.eventPubliserer = eventPubliserer;
         this.subjectProvider = subjectProvider;
-        this.handleLifecycleObserver = eventPubliserer == null ? null : new HandleProsessTaskLifecycleObserver() /* init kun dersom eventer lyttes på. */;
+        this.handleLifecycleObserver = eventPubliserer == null ? null : eventPubliserer.getHandleProsessTaskLifecycleObserver();
     }
 
     /**

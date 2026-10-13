@@ -21,7 +21,6 @@ import org.hibernate.ScrollMode;
 import org.hibernate.Session;
 import org.hibernate.jpa.HibernateHints;
 import org.hibernate.query.NativeQuery;
-import org.jboss.weld.interceptor.util.proxy.TargetInstanceProxy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -62,15 +61,24 @@ public class TaskManagerRepositoryImpl {
     private String sqlFraFil;
 
     private final EntityManager entityManager;
+    private final Instance<EntityManager> entityManagers;
 
     public TaskManagerRepositoryImpl(EntityManager entityManager) {
-        Objects.requireNonNull(entityManager, "entityManager");
-        this.entityManager = entityManager;
+        this.entityManager = Objects.requireNonNull(entityManager, "entityManager");
+        this.entityManagers = null;
     }
 
     @Inject
     public TaskManagerRepositoryImpl(@Any Instance<EntityManager> entityManager) {
-        this(entityManager.get());
+        this.entityManager = entityManager.get();
+        this.entityManagers = entityManager;
+    }
+
+    /** Fjerner request-scoped EntityManager fra konteksten slik at neste transaksjon får en ny. No-op uten CDI. */
+    void destroyEntityManager() {
+        if (entityManagers != null) {
+            entityManagers.destroy(entityManager);
+        }
     }
 
     EntityManager getEntityManager() {
@@ -135,14 +143,8 @@ public class TaskManagerRepositoryImpl {
         return tilProsessTask(resultList);
     }
 
-    @SuppressWarnings("rawtypes")
     private Session getEntityManagerAsSession() {
-        var em = entityManager;
-        // workaround for hibernate issue HHH-11020
-        if (em instanceof TargetInstanceProxy tip) {
-            em = (EntityManager) tip.weld_getTargetInstance();
-        }
-        return em.unwrap(Session.class);
+        return entityManager.unwrap(Session.class);
     }
 
     void oppdaterStatusOgNesteKjøring(Long prosessTaskId, ProsessTaskStatus taskStatus, LocalDateTime nesteKjøringEtter, String feilkode,
