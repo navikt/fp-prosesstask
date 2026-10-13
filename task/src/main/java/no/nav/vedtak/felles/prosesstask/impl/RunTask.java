@@ -9,12 +9,9 @@ import java.sql.SQLTransientException;
 import java.time.LocalDateTime;
 import java.util.Objects;
 
-import jakarta.persistence.OptimisticLockException;
-
 import org.hibernate.Session;
 import org.hibernate.exception.JDBCConnectionException;
 import org.hibernate.jdbc.Work;
-import org.jboss.weld.interceptor.util.proxy.TargetInstanceProxy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,6 +22,7 @@ import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.persistence.LockTimeoutException;
+import jakarta.persistence.OptimisticLockException;
 import jakarta.persistence.PersistenceException;
 import jakarta.transaction.Transactional;
 import no.nav.vedtak.felles.jpa.savepoint.SavepointRolledbackException;
@@ -50,9 +48,9 @@ import no.nav.vedtak.felles.prosesstask.spi.ProsessTaskRetryPolicy;
 public class RunTask {
     private static final Logger LOG = LoggerFactory.getLogger(RunTask.class);
 
-    private ProsessTaskEventPubliserer eventPubliserer;
-    private TaskManagerRepositoryImpl taskManagerRepository;
-    private RunTaskVetoHåndterer vetoHåndterer;
+    private final ProsessTaskEventPubliserer eventPubliserer;
+    private final TaskManagerRepositoryImpl taskManagerRepository;
+    private final RunTaskVetoHåndterer vetoHåndterer;
 
     @Inject
     public RunTask(TaskManagerRepositoryImpl taskManagerRepo,
@@ -277,7 +275,6 @@ public class RunTask {
             return taskManagerRepository.getEntityManager();
         }
 
-        @SuppressWarnings("rawtypes")
         void runTask() {
 
             final var pickAndRun = this;
@@ -310,10 +307,6 @@ public class RunTask {
 
             var pullSingleTask = new PullSingleTask();
             var em = getEntityManager();
-            // workaround for hibernate issue HHH-11020
-            if (em instanceof TargetInstanceProxy tip) {
-                em = (EntityManager) tip.weld_getTargetInstance();
-            }
 
             @SuppressWarnings("resource") // skal ikke lukke session her
             var session = em.unwrap(Session.class);

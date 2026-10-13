@@ -8,7 +8,7 @@ import java.util.function.Consumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import jakarta.enterprise.inject.spi.CDI;
+import jakarta.enterprise.inject.Instance;
 import no.nav.vedtak.felles.prosesstask.api.CallId;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskDispatcher;
 import no.nav.vedtak.felles.prosesstask.api.TaskType;
@@ -17,24 +17,31 @@ import no.nav.vedtak.felles.prosesstask.impl.TaskManager.ReadTaskFunksjon;
 /** Poller for tilgjengelige tasks og omsetter disse til Runnable som kan kjøres på andre tråder. */
 public class TaskManagerGenerateRunnableTasks {
     static final Logger LOG = LoggerFactory.getLogger(TaskManagerGenerateRunnableTasks.class);
-    static final CDI<Object> CURRENT = CDI.current();
 
     private final BiFunction<Integer, ReadTaskFunksjon, List<IdentRunnable>> availableTasksFunc;
     private final ProsessTaskDispatcher taskDispatcher;
-    private Consumer<IdentRunnable> fatalErrorSubmitFunc;
+    private final Consumer<IdentRunnable> fatalErrorSubmitFunc;
+    private final Instance<RunTask> runTasks;
+    private final Instance<FatalErrorTask> fatalErrorTasks;
 
     /**
      * Constructor
      *
      * @param taskDispatcher - dispatcher som skal velge implementasjon og kjøre en spesifikk task
      * @param availableTasksFunc - funksjon for å polle tilgenglige tasks
+     * @param runTasks - CDI-oppslag av RunTask (Dependent, destrueres etter hver kjøring)
+     * @param fatalErrorTasks - CDI-oppslag av FatalErrorTask (Dependent, destrueres etter hver kjøring)
      */
     TaskManagerGenerateRunnableTasks(ProsessTaskDispatcher taskDispatcher,
                                      BiFunction<Integer, ReadTaskFunksjon, List<IdentRunnable>> availableTasksFunc,
-                                     Consumer<IdentRunnable> errorSubmitFunc) {
+                                     Consumer<IdentRunnable> errorSubmitFunc,
+                                     Instance<RunTask> runTasks,
+                                     Instance<FatalErrorTask> fatalErrorTasks) {
         this.taskDispatcher = taskDispatcher;
         this.availableTasksFunc = availableTasksFunc;
         this.fatalErrorSubmitFunc = errorSubmitFunc;
+        this.runTasks = runTasks;
+        this.fatalErrorTasks = fatalErrorTasks;
     }
 
     public List<IdentRunnable> execute(int numberOfTasksToPoll) {
@@ -55,7 +62,7 @@ public class TaskManagerGenerateRunnableTasks {
     }
 
     TaskManagerRunnableTask createTaskManagerRunnableTask(final RunTaskInfo taskInfo, final String callId, TaskType taskType) {
-        return new TaskManagerRunnableTask(taskType, taskInfo, callId, fatalErrorSubmitFunc);
+        return new TaskManagerRunnableTask(taskType, taskInfo, callId, fatalErrorSubmitFunc, runTasks, fatalErrorTasks);
     }
 
 }

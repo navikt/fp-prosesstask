@@ -30,6 +30,10 @@ De benyttes som en grunnleggende byggekloss for å implementere følgende, med t
 
 ## Ta i bruk
 
+Bakgrunnstråder aktiverer request scope med standard `RequestContextController` og lukker bare scopes de selv eier.
+`ProsessTaskHandlerRef` bruker `Instance.Handle`: annoteringer leses fra `Bean#getBeanClass()` uten å instansiere handleren, 
+handleren opprettes først ved bruk, og kun `@Dependent`-handlere destrueres ved `close()`.
+
 ### Definer i Maven DependencyManagement
 ```
         -- legg til i root pom
@@ -267,4 +271,3 @@ Når en tasks polles (gjøres klart til å kjøres) vil det flagges et vindu på
 
 ### For Nav-ansatte
 Interne henvendelser kan sendes via Slack i kanalen **#teamforeldrepenger**.
-

@@ -1,12 +1,12 @@
 package no.nav.vedtak.felles.prosesstask.impl;
 
 import java.util.AbstractMap.SimpleEntry;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.enterprise.inject.spi.CDI;
+import jakarta.enterprise.inject.Instance;
+import jakarta.inject.Inject;
 
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskGruppe;
@@ -16,13 +16,16 @@ import no.nav.vedtak.felles.prosesstask.api.ProsessTaskVeto;
 @ApplicationScoped
 public class HandleProsessTaskLifecycleObserver {
 
-    private final List<ProsessTaskLifecycleObserver> lifecycleObservers = new ArrayList<>();
+    private List<ProsessTaskLifecycleObserver> lifecycleObservers = List.of();
 
-    public HandleProsessTaskLifecycleObserver() {
-        // for CDI proxies
-        for (ProsessTaskLifecycleObserver obs : CDI.current().select(ProsessTaskLifecycleObserver.class)) {
-            lifecycleObservers.add(obs);
-        }
+    HandleProsessTaskLifecycleObserver() {
+        // for CDI proxy
+    }
+
+    /** Observere slås opp én gang - avhengige (Dependent) instanser lever like lenge som denne. */
+    @Inject
+    public HandleProsessTaskLifecycleObserver(Instance<ProsessTaskLifecycleObserver> lifecycleObservers) {
+        this.lifecycleObservers = lifecycleObservers.stream().toList();
     }
 
     public Optional<SimpleEntry<ProsessTaskLifecycleObserver, ProsessTaskVeto>> vetoRunTask(ProsessTaskData prosessTaskData) {
@@ -36,7 +39,7 @@ public class HandleProsessTaskLifecycleObserver {
     }
 
     public void opprettetProsessTaskGruppe(ProsessTaskGruppe sammensattTask) {
-        lifecycleObservers.stream().forEach(pt -> pt.opprettetProsessTaskGruppe(sammensattTask));
+        lifecycleObservers.forEach(pt -> pt.opprettetProsessTaskGruppe(sammensattTask));
     }
 
 }

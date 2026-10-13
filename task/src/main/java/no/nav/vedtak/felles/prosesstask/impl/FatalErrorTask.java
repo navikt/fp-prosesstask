@@ -5,18 +5,16 @@ import java.sql.SQLException;
 import java.util.Objects;
 import java.util.Optional;
 
+import org.hibernate.Session;
+import org.hibernate.jdbc.Work;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import jakarta.enterprise.context.Dependent;
 import jakarta.enterprise.context.control.ActivateRequestContext;
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
-
-import org.hibernate.Session;
-import org.hibernate.jdbc.Work;
-import org.jboss.weld.interceptor.util.proxy.TargetInstanceProxy;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskStatus;
 
 /**
@@ -65,7 +63,6 @@ public class FatalErrorTask {
             return taskInfo;
         }
 
-        @SuppressWarnings("rawtypes")
         void runTask(Throwable t) {
 
             /* Bruker SQL+JDBC, unngår hibernate cache. */
@@ -99,10 +96,6 @@ public class FatalErrorTask {
 
             PullSingleTask pullSingleTask = new PullSingleTask();
             EntityManager em = getEntityManager();
-            // workaround for hibernate issue HHH-11020
-            if (em instanceof TargetInstanceProxy tip) {
-                em = (EntityManager) tip.weld_getTargetInstance();
-            }
 
             @SuppressWarnings("resource") // skal ikke lukke session her
             Session session = em.unwrap(Session.class);

@@ -2,10 +2,8 @@ package no.nav.vedtak.felles.prosesstask.impl;
 
 import java.util.function.Supplier;
 
+import jakarta.enterprise.context.control.RequestContextController;
 import jakarta.enterprise.inject.spi.CDI;
-
-import org.jboss.weld.context.RequestContext;
-import org.jboss.weld.context.unbound.UnboundLiteral;
 
 /**
  * Kjør angitt funksjon med RequestScope aktivt.
@@ -17,16 +15,15 @@ final class RequestContextHandler {
 
     public static <V> V doWithRequestContext(Supplier<V> supplier) {
 
-        RequestContext requestContext = CDI.current().select(RequestContext.class, UnboundLiteral.INSTANCE).get();
-        if (requestContext.isActive()) {
-            return supplier.get();
-        } else {
+        try (var handle = CDI.current().select(RequestContextController.class).getHandle()) {
+            var controller = handle.get();
+            var activated = controller.activate();
             try {
-                requestContext.activate();
                 return supplier.get();
             } finally {
-                requestContext.invalidate();
-                requestContext.deactivate();
+                if (activated) {
+                    controller.deactivate();
+                }
             }
         }
     }

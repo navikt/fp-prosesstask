@@ -97,7 +97,7 @@ class ProsessTaskHendelseMottakImplTest extends EntityManagerAwareTest {
 
     @Test
     void skal_logge_transient_feil_under_polling() {
-        var taskManager = new TaskManager(taskManagerRepo, null) {
+        var taskManager = new TaskManager(taskManagerRepo, null, null, null) {
             @Override
             protected List<IdentRunnable> pollForAvailableTasks() {
                 throw new JDBCConnectionException("NOT AVAILABLE!", null);
@@ -112,7 +112,7 @@ class ProsessTaskHendelseMottakImplTest extends EntityManagerAwareTest {
 
     @Test
     void skal_logge_annen_feil_under_polling() {
-        var taskManager = new TaskManager(taskManagerRepo, null) {
+        var taskManager = new TaskManager(taskManagerRepo, null, null, null) {
             @Override
             protected List<IdentRunnable> pollForAvailableTasks() {
                 throw new RuntimeException("HERE BE DRAGONS!");

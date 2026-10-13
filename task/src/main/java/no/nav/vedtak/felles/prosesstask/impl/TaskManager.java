@@ -33,7 +33,6 @@ import io.opentelemetry.api.trace.SpanKind;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.Any;
 import jakarta.enterprise.inject.Instance;
-import jakarta.enterprise.inject.spi.CDI;
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
 import no.nav.vedtak.exception.TekniskException;
@@ -105,6 +104,19 @@ public class TaskManager implements Controllable {
      */
     private ProsessTaskDispatcher taskDispatcher;
 
+    /*
+     * Factory for RunTask/FatalErrorTask (begge @Dependent) - én ny instans per kjøring av en task.
+     * - Instance er en trådsikker referanse, ikke en bønne-instans.
+     * - get() lager en ny instans. Den blir en avhengig (dependent) av TaskManager og lever like lenge som den
+     *   (dvs til applikasjonen stopper) - med mindre den eksplisitt destrueres.
+     * - destroy() MÅ derfor kalles etter hver kjøring (i finally). Da kalles @PreDestroy og avhengige bønner
+     *   (bl.a. interceptorer for @Transactional/@ActivateRequestContext og ProsessTaskEventPubliserer) frigjøres.
+     * - CDI-kontekster er trådbundne: RequestScoped (EntityManager) aktiveres av @ActivateRequestContext på
+     *   RunTask/FatalErrorTask på worker-tråden, ikke av tråden som pollet tasken.
+     */
+    private Instance<RunTask> runTasks;
+    private Instance<FatalErrorTask> fatalErrorTasks;
+
     private final AtomicLong pollerRoundNoCapacityRounds = new AtomicLong();
     private final AtomicReference<LocalDateTime> pollerRoundNoCapacitySince = new AtomicReference<>(LocalDateTime.now());
     private final AtomicReference<LocalDateTime> pollerRoundNoneFoundSince = new AtomicReference<>(LocalDateTime.now());
@@ -117,9 +129,14 @@ public class TaskManager implements Controllable {
     }
 
     @Inject
-    public TaskManager(TaskManagerRepositoryImpl taskManagerRepository, @Any Instance<ProsessTaskDispatcher> dispatcher) {
+    public TaskManager(TaskManagerRepositoryImpl taskManagerRepository,
+                       @Any Instance<ProsessTaskDispatcher> dispatcher,
+                       Instance<RunTask> runTasks,
+                       Instance<FatalErrorTask> fatalErrorTasks) {
         Objects.requireNonNull(taskManagerRepository, "taskManagerRepository");
         this.taskManagerRepository = taskManagerRepository;
+        this.runTasks = runTasks;
+        this.fatalErrorTasks = fatalErrorTasks;
 
         if (dispatcher != null) {
 
@@ -266,7 +283,7 @@ public class TaskManager implements Controllable {
 
         var numberOfTasksToPoll = Math.min(capacity, maxNumberOfTasksToPoll);
         var pollDatabaseToRunnable = new TaskManagerGenerateRunnableTasks(getTaskDispatcher(), this::pollTasksFunksjon,
-            this::submitTask);
+            this::submitTask, runTasks, fatalErrorTasks);
         var tasksFound = pollDatabaseToRunnable.execute(numberOfTasksToPoll);
 
         reportRegularlyIfNoTasksFound(now, tasksFound);
@@ -330,7 +347,7 @@ public class TaskManager implements Controllable {
                 try {
                     return super.apply(entityManager);
                 } finally {
-                    CDI.current().destroy(entityManager);
+                    getTransactionManagerRepository().destroyEntityManager();
                 }
             }
 
@@ -476,7 +493,7 @@ public class TaskManager implements Controllable {
                 try {
                     return super.apply(entityManager);
                 } finally {
-                    CDI.current().destroy(entityManager);
+                    getTransactionManagerRepository().destroyEntityManager();
                 }
             }
 
@@ -528,7 +545,7 @@ public class TaskManager implements Controllable {
                 try {
                     return super.apply(entityManager);
                 } finally {
-                    CDI.current().destroy(entityManager);
+                    getTransactionManagerRepository().destroyEntityManager();
                 }
             }
 
@@ -575,7 +592,7 @@ public class TaskManager implements Controllable {
                 try {
                     return super.apply(entityManager);
                 } finally {
-                    CDI.current().destroy(entityManager);
+                    getTransactionManagerRepository().destroyEntityManager();
                 }
             }
 
