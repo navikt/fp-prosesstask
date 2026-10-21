@@ -10,7 +10,7 @@ import no.nav.vedtak.log.tracing.OtelSpanWrapper;
 
 public class OtelUtil {
 
-    private static OtelSpanWrapper WRAPPER = new OtelSpanWrapper(GlobalOpenTelemetry.getTracer("fp-prosesstask"));
+    private static final OtelSpanWrapper WRAPPER = new OtelSpanWrapper(GlobalOpenTelemetry.getTracer("fp-prosesstask"));
 
     public static OtelSpanWrapper wrapper() {
         return WRAPPER;
@@ -29,8 +29,9 @@ public class OtelUtil {
                 builder = builder.setAttribute("saksnummer", data.getSaksnummer());
             }
             if (data.getBehandlingUuid() != null) {
-                builder = builder.setAttribute("behandlingUuid", data.getBehandlingUuid().toString());
-            } else if (data.getBehandlingIdAsLong() != null) {
+                builder = builder.setAttribute("behandling", data.getBehandlingUuid().toString());
+            }
+            if (data.getBehandlingIdAsLong() != null) {
                 builder = builder.setAttribute("behandlingId", data.getBehandlingIdAsLong());
             }
             return builder.setSpanKind(SpanKind.INTERNAL);
