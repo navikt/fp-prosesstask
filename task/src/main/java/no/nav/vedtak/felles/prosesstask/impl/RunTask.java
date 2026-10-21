@@ -9,6 +9,8 @@ import java.sql.SQLTransientException;
 import java.time.LocalDateTime;
 import java.util.Objects;
 
+import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
+
 import org.hibernate.Session;
 import org.hibernate.exception.JDBCConnectionException;
 import org.hibernate.jdbc.Work;
@@ -89,8 +91,9 @@ public class RunTask {
                 return;
             }
 
-            OtelUtil.wrapper().span("TASK " + taskType.value(), OtelUtil.taskAttributter(pte.tilProsessTask()), () -> {
-                pickAndRun.dispatchWork(pte);
+            ProsessTaskData prosessTaskData = pte.tilProsessTask();
+            OtelUtil.wrapper().span("TASK " + taskType.value(), OtelUtil.taskAttributter(prosessTaskData), () -> {
+                pickAndRun.dispatchWork(prosessTaskData);
                 // flush for å fange andre constraint feil etc før vi markerer ferdig
                 getEntityManager().flush();
             });
@@ -266,9 +269,8 @@ public class RunTask {
             }
         }
 
-        void dispatchWork(ProsessTaskEntitet pte) throws Exception {
-            var taskData = pte.tilProsessTask();
-            taskInfo.getTaskDispatcher().dispatch(taskData);
+        void dispatchWork(ProsessTaskData prosessTaskData) throws Exception {
+            taskInfo.getTaskDispatcher().dispatch(prosessTaskData);
         }
 
         private EntityManager getEntityManager() {
