@@ -71,16 +71,16 @@ public class ProsessTaskGruppe {
     public static record Entry(String sekvens, ProsessTaskData task) {}
 
     // FagsakId med inntil videre pga FagsakProsessTask i enkelte apps
-    public void setBehandling(String saksnummer, Long fagsakId, Long behandlingId) {
-        this.getTasks().forEach(e -> e.task().setBehandling(saksnummer, fagsakId, behandlingId));
+    public void setBehandling(String saksnummer, Long behandlingId) {
+        this.getTasks().forEach(e -> e.task().setBehandling(saksnummer, behandlingId));
     }
 
-    public void setBehandling(String saksnummer, Long fagsakId, UUID behandlingUuid, Long behandlingId) {
-        this.getTasks().forEach(e -> e.task().setBehandling(saksnummer, fagsakId, behandlingUuid, behandlingId));
+    public void setBehandling(String saksnummer, UUID behandlingUuid, Long behandlingId) {
+        this.getTasks().forEach(e -> e.task().setBehandling(saksnummer, behandlingUuid, behandlingId));
     }
 
-    public void setFagsak(String saksnummer, Long fagsakId) {
-        this.getTasks().forEach(e -> e.task().setFagsak(saksnummer, fagsakId));
+    public void setFagsak(String saksnummer) {
+        this.getTasks().forEach(e -> e.task().setFagsak(saksnummer));
     }
 
     // For bruk der FagsakProsessTask ikke er aktuell

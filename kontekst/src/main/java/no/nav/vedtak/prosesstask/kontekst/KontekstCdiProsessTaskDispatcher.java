@@ -4,7 +4,6 @@ import java.util.Set;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.Instance;
-
 import no.nav.vedtak.exception.IntegrasjonException;
 import no.nav.vedtak.exception.TekniskException;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
@@ -34,8 +33,6 @@ public class KontekstCdiProsessTaskDispatcher extends BasicCdiProsessTaskDispatc
         try (ProsessTaskHandlerRef taskHandler = taskHandler(task.taskType())) {
             if (task.getSaksnummer() != null) {
                 LOG_CONTEXT.add(LoggFelter.SAK, task.getSaksnummer());
-            } else if (task.getFagsakId() != null) { // NOSONAR
-                LOG_CONTEXT.add(LoggFelter.SAK, task.getFagsakId());  // NOSONAR
             }
             if (task.getBehandlingUuid() != null) {
                 LOG_CONTEXT.add(LoggFelter.BEHANDLING, task.getBehandlingUuid());

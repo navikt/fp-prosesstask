@@ -62,9 +62,6 @@ public interface ProsessTaskInfo {
      */
     String getAktørId();
 
-    @Deprecated
-    Long getFagsakId();
-
     String getSaksnummer();
 
     Long getBehandlingIdAsLong();
