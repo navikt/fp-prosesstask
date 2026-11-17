@@ -1,6 +1,5 @@
 package no.nav.vedtak.felles.prosesstask.impl;
 
-import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Arrays;
@@ -8,6 +7,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 
 import org.hibernate.jpa.HibernateHints;
 import org.hibernate.query.NativeQuery;
@@ -20,12 +20,10 @@ import jakarta.enterprise.inject.Any;
 import jakarta.enterprise.inject.Instance;
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
-import no.nav.vedtak.exception.TekniskException;
 import no.nav.vedtak.felles.prosesstask.api.CallId;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskGruppe;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskStatus;
-import no.nav.vedtak.felles.prosesstask.impl.util.DatabaseUtil;
 
 /**
  * Implementasjon av repository som er tilgjengelig for å lagre og opprette nye tasks.
@@ -83,16 +81,6 @@ public class ProsessTaskRepository {
 
     }
 
-    /**
-     * Lager enkelt unik gruppenavn basert på en sekvens.
-     * Aller helst skulle vært UUID type 3?
-     */
-    public static String getUniktProsessTaskGruppeNavn(EntityManager entityManager) throws SQLException {
-        var sqlForGruppe = DatabaseUtil.getSqlForUniktGruppeNavn(entityManager);
-        var query = entityManager.createNativeQuery(sqlForGruppe);
-        return String.valueOf(query.getSingleResult());
-    }
-
     public String lagre(ProsessTaskGruppe sammensattTask) {
         String unikGruppeId = null;
         var lifecycleOpprettet = true;
@@ -102,24 +90,18 @@ public class ProsessTaskRepository {
                 lifecycleOpprettet = false;
             }
 
-            try {
-                if (unikGruppeId == null && task.getGruppe() == null) {
-                    // mangler et gruppenavn så la oss finne på et
-                    unikGruppeId = getUniktProsessTaskGruppeNavn(entityManager);
-                }
-                if (task.getGruppe() == null) {
-                    // bevar eksisterende gruppenavn hvis satt, ellers bruk nytt
-                    task.setGruppe(unikGruppeId);
-                }
-                // ta sekvens fra rekkefølge definert i gruppen
-                task.setSekvens(entry.sekvens());
-                var id = doLagreTask(task);
-                task.setId(id);
-            } catch (SQLException e) {
-                throw new TekniskException("PT-265358",
-                        String.format("Kunne ikke lagre task, skriving til database mislykkes: task=%s, kjøresEtter=%s, parametere=%s.",
-                                task.taskType(), task.getNesteKjøringEtter(), task.getProperties()), e);
+            if (unikGruppeId == null && task.getGruppe() == null) {
+                // mangler et gruppenavn så la oss finne på et
+                unikGruppeId = UUID.randomUUID().toString();
             }
+            if (task.getGruppe() == null) {
+                // bevar eksisterende gruppenavn hvis satt, ellers bruk nytt
+                task.setGruppe(unikGruppeId);
+            }
+            // ta sekvens fra rekkefølge definert i gruppen
+            task.setSekvens(entry.sekvens());
+            var id = doLagreTask(task);
+            task.setId(id);
         }
 
         if (lifecycleOpprettet) {

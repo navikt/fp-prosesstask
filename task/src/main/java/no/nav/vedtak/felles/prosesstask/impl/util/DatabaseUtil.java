@@ -27,17 +27,6 @@ public class DatabaseUtil {
         return getDatabaseDialect(entityManager).orElse("unknown");
     }
 
-    public static String getSqlForUniktGruppeNavn(EntityManager entityManager) {
-        var dialect = getDatabaseDialect(entityManager);
-        if (dialect.filter(DatabaseUtil::isPostgres).isPresent()) {
-            return "SELECT nextval('seq_prosess_task_gruppe')";
-        }
-        if (dialect.filter(DatabaseUtil::isOracle).isPresent()) {
-            return "SELECT seq_prosess_task_gruppe.nextval FROM dual";
-        }
-        throw new UnsupportedOperationException("Unsupported Database: " + getDatabaseDialect(entityManager).orElse("unknown"));
-    }
-
     private static Optional<String> getDatabaseDialect(EntityManager entityManager) {
         if (entityManager.getEntityManagerFactory() instanceof SessionFactoryImplementor sfi) {
             var key = sfi.getUuid();

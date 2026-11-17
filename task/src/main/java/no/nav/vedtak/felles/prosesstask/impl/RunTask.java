@@ -8,6 +8,7 @@ import java.sql.SQLRecoverableException;
 import java.sql.SQLTransientException;
 import java.time.LocalDateTime;
 import java.util.Objects;
+import java.util.UUID;
 
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
 
@@ -242,9 +243,9 @@ public class RunTask {
         }
 
         // regner ut neste kjøretid for tasks som kan repeteres (har CronExpression)
-        void planleggNesteKjøring(ProsessTaskEntitet pte) throws SQLException {
+        void planleggNesteKjøring(ProsessTaskEntitet pte) {
             if (cronExpression != null) {
-                var gruppe = ProsessTaskRepository.getUniktProsessTaskGruppeNavn(taskManagerRepository.getEntityManager());
+                var gruppe = UUID.randomUUID().toString();
                 var now = LocalDateTime.now();
                 var nesteKjøring = cronExpression.nextLocalDateTimeAfter(now);
                 var data = ProsessTaskDataBuilder.forTaskType(pte.getTaskType())
