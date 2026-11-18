@@ -77,8 +77,14 @@ public class ProsessTaskRepository {
     public String lagre(ProsessTaskGruppe sammensattTask) {
         String unikGruppeId = null;
         for (var entry : sammensattTask.getTasks()) {
+        var lifecycleOpprettet = true;
+        for (var entry : sammensattTask.getTasksForLagring()) {
             var task = entry.task();
 
+            if (task.getId() != null) {
+                lifecycleOpprettet = false;
+            }
+            // TODO: Legg om til å forutsette gruppe i neste runde. Gå mot task_gruppe som not null
             if (unikGruppeId == null && task.getGruppe() == null) {
                 // mangler et gruppenavn så la oss finne på et
                 unikGruppeId = UUID.randomUUID().toString();
@@ -87,8 +93,6 @@ public class ProsessTaskRepository {
                 // bevar eksisterende gruppenavn hvis satt, ellers bruk nytt
                 task.setGruppe(unikGruppeId);
             }
-            // ta sekvens fra rekkefølge definert i gruppen
-            task.setSekvens(entry.sekvens());
             var id = doLagreTask(task);
             task.setId(id);
         }
@@ -99,7 +103,7 @@ public class ProsessTaskRepository {
 
     public String lagre(ProsessTaskData task) {
         // prosesserer enkelt task som en gruppe av 1
-        var gruppe = new ProsessTaskGruppe(task);
+        var gruppe = ProsessTaskGruppe.fraProsessTask(task);
         return lagre(gruppe);
     }
 

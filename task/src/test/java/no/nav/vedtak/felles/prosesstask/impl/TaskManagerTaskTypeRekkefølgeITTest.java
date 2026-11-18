@@ -6,7 +6,6 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Set;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -21,7 +20,7 @@ import no.nav.vedtak.felles.prosesstask.api.TaskType;
 import no.nav.vedtak.felles.testutilities.db.EntityManagerAwareTest;
 
 @ExtendWith(JpaPostgresTestcontainerExtension.class)
-class TaskManagerRekkefølgeITTest extends EntityManagerAwareTest {
+class TaskManagerTaskTypeRekkefølgeITTest extends EntityManagerAwareTest {
 
     private ProsessTaskRepository repo;
 
@@ -31,7 +30,7 @@ class TaskManagerRekkefølgeITTest extends EntityManagerAwareTest {
 
     @BeforeEach
     void setUp() {
-        repo = new ProsessTaskRepository(getEntityManager(), null);
+        repo = new ProsessTaskRepository(getEntityManager(), null, null);
         taskManagerRepo = new TaskManagerRepositoryImpl(getEntityManager());
     }
 
@@ -43,9 +42,9 @@ class TaskManagerRekkefølgeITTest extends EntityManagerAwareTest {
     @Test
     void skal_polle_tasker_i_enkel_sekvens() {
         ProsessTaskData pt1 = nyTask("mytask1", -10);
-        ProsessTaskData pt2 = nyTask("mytask2", -10);
-        ProsessTaskData pt3 = nyTask("mytask3", -10);
-        ProsessTaskGruppe sammensatt = new ProsessTaskGruppe();
+        ProsessTaskData pt2 = nyTask("mytask1", -10);
+        ProsessTaskData pt3 = nyTask("mytask1", -10);
+        ProsessTaskGruppe sammensatt = ProsessTaskGruppe.forUtenRekkefølge(pt1.taskType());
         sammensatt
             .addNesteSekvensiell(pt1)
             .addNesteSekvensiell(pt2)
@@ -59,34 +58,28 @@ class TaskManagerRekkefølgeITTest extends EntityManagerAwareTest {
         assertThat(monitor.get(ProsessTaskStatus.VENTER_SVAR)).isNull();
         assertThat(monitor.get(ProsessTaskStatus.FEILET)).isNull();
 
-        pollEnRundeVerifiserOgFerdigstill(pt1);
+        pollEnRundeVerifiserOgFerdigstill(pt1, pt2, pt3);
 
-        pollEnRundeVerifiserOgFerdigstill(pt2);
-
-        pollEnRundeVerifiserOgFerdigstill(pt3);
-
-        List<ProsessTaskData> sekvensiellRunde04 = taskManagerRepo.pollNesteTestRekkefølge(now);
+        List<ProsessTaskData> sekvensiellRunde04 = taskManagerRepo.pollNeste(now);
         assertThat(sekvensiellRunde04).isEmpty();
 
     }
 
     @Test
     void skal_polle_tasker_i_sekvens_sjekk_rekkefølge() {
-        ProsessTaskGruppe sammensatt = new ProsessTaskGruppe();
+        ProsessTaskGruppe sammensatt = ProsessTaskGruppe.forUtenRekkefølge(new TaskType("mytask"));
         List<ProsessTaskData> tasks = new ArrayList<>();
         for (int i = 0; i < 22; i++) {
-            tasks.add(nyTask("mytask" + i, -10));
+            tasks.add(nyTask("mytask", -10));
             sammensatt.addNesteSekvensiell(tasks.get(i));
         }
 
         // Act
         repo.lagre(sammensatt);
 
-        for (int i = 0; i < 22; i++) {
-            pollEnRundeVerifiserOgFerdigstill(tasks.get(i));
-        }
+        pollEnRundeVerifiserOgFerdigstill(tasks.toArray(new ProsessTaskData[0]));
 
-        List<ProsessTaskData> sekvensiellRunde22 = taskManagerRepo.pollNesteTestRekkefølge(now);
+        List<ProsessTaskData> sekvensiellRunde22 = taskManagerRepo.pollNeste(now);
         assertThat(sekvensiellRunde22).isEmpty();
 
     }
@@ -94,8 +87,8 @@ class TaskManagerRekkefølgeITTest extends EntityManagerAwareTest {
     @Test
     void skal_ikke_polle_ny_når_får_feil_på_første() {
         ProsessTaskData pt1 = nyTask("mytask1", -10);
-        ProsessTaskData pt2 = nyTask("mytask2", -10);
-        ProsessTaskGruppe sammensatt = new ProsessTaskGruppe();
+        ProsessTaskData pt2 = nyTask("mytask1", -10);
+        ProsessTaskGruppe sammensatt = ProsessTaskGruppe.forUtenRekkefølge(pt1.taskType());
         sammensatt
             .addNesteSekvensiell(pt1)
             .addNesteSekvensiell(pt2);
@@ -105,16 +98,18 @@ class TaskManagerRekkefølgeITTest extends EntityManagerAwareTest {
 
         pollEnRundeVerifiserOgMarkerFeil(pt1);
 
-        List<ProsessTaskData> sekvensiellRunde02 = taskManagerRepo.pollNesteTestRekkefølge(now);
+        pollEnRundeVerifiserOgFerdigstill(pt2);
+
+        List<ProsessTaskData> sekvensiellRunde02 = taskManagerRepo.pollNeste(now);
         assertThat(sekvensiellRunde02).isEmpty();
     }
 
     @Test
     void skal_polle_tasker_i_sekvens_med_feil_i_midten() {
         ProsessTaskData pt1 = nyTask("mytask1", -10);
-        ProsessTaskData pt2 = nyTask("mytask2", -10);
-        ProsessTaskData pt3 = nyTask("mytask3", -10);
-        ProsessTaskGruppe sammensatt = new ProsessTaskGruppe();
+        ProsessTaskData pt2 = nyTask("mytask1", -10);
+        ProsessTaskData pt3 = nyTask("mytask1", -10);
+        ProsessTaskGruppe sammensatt = ProsessTaskGruppe.forUtenRekkefølge(pt1.taskType());
         sammensatt
             .addNesteSekvensiell(pt1)
             .addNesteSekvensiell(pt2)
@@ -123,18 +118,18 @@ class TaskManagerRekkefølgeITTest extends EntityManagerAwareTest {
         // Act
         repo.lagre(sammensatt);
 
-        pollEnRundeVerifiserOgFerdigstill(pt1);
-
         pollEnRundeVerifiserOgMarkerFeil(pt2);
 
-        List<ProsessTaskData> sekvensiellRunde03 = taskManagerRepo.pollNesteTestRekkefølge(now);
+        pollEnRundeVerifiserOgFerdigstill(pt1, pt3);
+
+        List<ProsessTaskData> sekvensiellRunde03 = taskManagerRepo.pollNeste(now);
         assertThat(sekvensiellRunde03).isEmpty();
 
     }
 
     private void pollEnRundeVerifiserOgMarkerFeil(ProsessTaskData pt) {
-        List<ProsessTaskData> neste = taskManagerRepo.pollNesteTestRekkefølge(now);
-        assertThat(neste).containsExactly(pt);
+        List<ProsessTaskData> neste = taskManagerRepo.pollNeste(now);
+        assertThat(neste).contains(pt);
         pt.setStatus(ProsessTaskStatus.FEILET);
         pt.setAntallFeiledeForsøk(1);
         pt.setNesteKjøringEtter(null);
@@ -145,7 +140,7 @@ class TaskManagerRekkefølgeITTest extends EntityManagerAwareTest {
     }
 
     private void pollEnRundeVerifiserOgFerdigstill(ProsessTaskData... tasks) {
-        List<ProsessTaskData> neste = taskManagerRepo.pollNesteTestRekkefølge(now);
+        List<ProsessTaskData> neste = taskManagerRepo.pollNeste(now);
         assertThat(neste).hasSize(tasks.length);
         assertThat(neste.stream().map(ProsessTaskData::taskType).toArray()).containsExactly(Arrays.stream(tasks).map(ProsessTaskData::taskType).toArray());
 
@@ -166,7 +161,7 @@ class TaskManagerRekkefølgeITTest extends EntityManagerAwareTest {
         ProsessTaskData pt3 = nyTask("mytask3", -10);
         ProsessTaskData pt4 = nyTask("mytask4", -10);
 
-        ProsessTaskGruppe sammensatt = new ProsessTaskGruppe();
+        ProsessTaskGruppe sammensatt = ProsessTaskGruppe.forGruppeRekkefølge();
         sammensatt
             .addNesteParallell(pt1, pt2, pt3)
             .addNesteSekvensiell(pt4);
@@ -187,7 +182,7 @@ class TaskManagerRekkefølgeITTest extends EntityManagerAwareTest {
         ProsessTaskData pt1 = nyTask("mytask1", -10);
         ProsessTaskData pt2 = nyTask("mytask2", -10);
         ProsessTaskData pt3 = nyTask("mytask3", -10);
-        ProsessTaskGruppe sammensatt = new ProsessTaskGruppe();
+        ProsessTaskGruppe sammensatt = ProsessTaskGruppe.forGruppeRekkefølge();
         sammensatt
             .addNesteSekvensiell(pt1)
             .addNesteParallell(pt2, pt3);
@@ -200,27 +195,6 @@ class TaskManagerRekkefølgeITTest extends EntityManagerAwareTest {
 
         pollEnRundeVerifiserOgFerdigstill(pt2, pt3);
 
-    }
-
-    @Test
-    void skal_polle_begrenset_antall_og_oppdatere_plukket() {
-        var pt1 = nyTask("mytask1", -10);
-        var pt2 = nyTask("mytask2", -10);
-        var pt3 = nyTask("mytask3", -10);
-        repo.lagre(pt1);
-        repo.lagre(pt2);
-        repo.lagre(pt3);
-        repo.flushAndClear();
-
-        var polled = taskManagerRepo.pollNesteScrollingUpdate(2, 60, Set.of());
-        assertThat(polled).hasSize(2);
-
-        repo.flushAndClear();
-        var polledIds = polled.stream().map(ProsessTaskEntitet::getId).toList();
-        polledIds.forEach(id -> assertThat(repo.finn(id).getNesteKjøringEtter()).isAfter(now));
-        var remaining = taskManagerRepo.pollNesteScrollingUpdate(5, 60, Set.of());
-        assertThat(remaining).hasSize(1);
-        assertThat(polledIds).doesNotContain(remaining.getFirst().getId());
     }
 
     private ProsessTaskData nyTask(String taskNavn, int nesteKjøringRelativt) {

@@ -62,14 +62,13 @@ public class ProsessTaskTjenesteImpl implements ProsessTaskTjeneste {
     public String lagreValidert(ProsessTaskData task) {
         // prosesserer enkelt task som en gruppe av 1
         validerProsessTask(task);
-        var gruppe = new ProsessTaskGruppe(task);
-        return prosessTaskRepository.lagre(gruppe);
+        return lagre(task);
     }
 
     @Override
     public String lagre(ProsessTaskData task) {
         // prosesserer enkelt task som en gruppe av 1
-        var gruppe = new ProsessTaskGruppe(task);
+        var gruppe = ProsessTaskGruppe.fraProsessTask(task);
         return prosessTaskRepository.lagre(gruppe);
     }
 
