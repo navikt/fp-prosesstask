@@ -78,7 +78,6 @@ ALTER TABLE PROSESS_TASK
 --  Sequences
 --------------------------------------------------------
 CREATE SEQUENCE SEQ_PROSESS_TASK MINVALUE 1000000 START WITH 1000000 INCREMENT BY 50 NO CYCLE;
-CREATE SEQUENCE SEQ_PROSESS_TASK_GRUPPE MINVALUE 10000000 START WITH 10000000 INCREMENT BY 1000000 NO CYCLE;
 
 --------------------------------------------------------
 -- Etablerer et sett med bøtter som ferdig tasks kan legge seg i avhengig av hvilken måned de er opprettet i.
