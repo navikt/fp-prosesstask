@@ -15,6 +15,7 @@ import org.mockito.Mockito;
 import no.nav.vedtak.felles.prosesstask.JpaPostgresTestcontainerExtension;
 import no.nav.vedtak.felles.prosesstask.api.CommonTaskProperties;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
+import no.nav.vedtak.felles.prosesstask.api.ProsessTaskGruppe;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskStatus;
 import no.nav.vedtak.felles.prosesstask.api.TaskType;
 import no.nav.vedtak.felles.testutilities.db.EntityManagerAwareTest;
@@ -119,15 +120,16 @@ class ProsessTaskRepositoryImplTest extends EntityManagerAwareTest {
         data.setGruppe("gruppe");
         data.setNesteKjøringEtter(nesteKjøringEtter);
         data.setPrioritet(2);
-        data.setSekvens("123");
 
         if (sistKjørt != null) {
             data.setSistKjørt(sistKjørt);
         }
 
+        ProsessTaskGruppe gruppe = ProsessTaskGruppe.fraProsessTask(data);
+
         ProsessTaskEntitet pte = new ProsessTaskEntitet();
         pte.setOpprettetTid(LocalDateTime.now());
-        return pte.kopierFraNy(data);
+        return pte.kopierFraNy(gruppe.getTasksForLagring().stream().findFirst().orElseThrow().task());
     }
 
 }

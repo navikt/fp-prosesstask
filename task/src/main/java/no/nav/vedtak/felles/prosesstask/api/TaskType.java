@@ -22,6 +22,10 @@ public record TaskType(String value) {
         return clazz.getAnnotation(ProsessTask.class).prioritet();
     }
 
+    public static TaskRekkefølge taskRekkefølge(Class<? extends ProsessTaskHandler> clazz) {
+        return clazz.getAnnotation(ProsessTask.class).taskRekkefølge();
+    }
+
     @Override
     public String toString() {
         return "TaskType{" + value + '}';

@@ -29,6 +29,7 @@ public class ProsessTaskData implements ProsessTaskInfo {
 
     private final Properties props = new Properties();
     private final TaskType taskType;
+    private TaskRekkefølge taskRekkefølge = TaskRekkefølge.GRUPPE;
     private int antallFeiledeForsøk;
     private String gruppe;
     private Long id;
@@ -52,6 +53,7 @@ public class ProsessTaskData implements ProsessTaskInfo {
     public static ProsessTaskData forProsessTask(Class<? extends ProsessTaskHandler> clazz) {
         var prosessTaskData = new ProsessTaskData(TaskType.forProsessTask(clazz));
         prosessTaskData.setPrioritet(TaskType.prioritet(clazz));
+        prosessTaskData.taskRekkefølge = TaskType.taskRekkefølge(clazz);
         return prosessTaskData;
     }
 
@@ -95,6 +97,10 @@ public class ProsessTaskData implements ProsessTaskInfo {
         return gruppe;
     }
 
+    TaskRekkefølge taskRekkefølge() {
+        return taskRekkefølge;
+    }
+
     @Override
     public Long getBlokkertAvProsessTaskId() {
         return blokkertAvProsessTaskId;
@@ -104,7 +110,7 @@ public class ProsessTaskData implements ProsessTaskInfo {
      * Trengs normalt ikke settes.
      * <p>
      * Hvis settes, bør være globalt unik for tasker som henger sammen (eks. kan settes til
-     * behandlingId, saksnummer - da vil alle prosess tasks på disse kjøres sekvensielt), men ikke ellers.
+     * saksnummer, behandling, eller avledet - da vil alle prosess tasks på disse kjøres sekvensielt), men ikke ellers.
      * <p>
      * En spesiell pattern er å sette null første gang, for deretter få tildelt en gruppe og deretter bruke samme gruppe
      * om igjen på flere tasker.
@@ -181,7 +187,7 @@ public class ProsessTaskData implements ProsessTaskInfo {
      * Kun interessant å sette dersom man oppretter flere tasker samtidig som man ønsker skal kjøres
      * sekvensielt (i økende sekvens) eller parallelt(med samme sekvens nr). Dette kan mixes og matches.
      */
-    public void setSekvens(String sekvens) {
+    void setSekvens(String sekvens) {
         this.sekvens = sekvens;
     }
 
@@ -276,8 +282,12 @@ public class ProsessTaskData implements ProsessTaskInfo {
         return Optional.ofNullable(getPropertyValue(CommonTaskProperties.BEHANDLING_ID)).map(Long::valueOf).orElse(null);
     }
 
-    protected void setBehandlingId(String id) {
-        setProperty(CommonTaskProperties.BEHANDLING_ID, id);
+    protected void setBehandlingId(Long behandlingId) {
+        setProperty(CommonTaskProperties.BEHANDLING_ID, Objects.requireNonNull(behandlingId, CommonTaskProperties.BEHANDLING_ID).toString());
+    }
+
+    protected void setBehandlingId(String behandlingId) {
+        setProperty(CommonTaskProperties.BEHANDLING_ID, Objects.requireNonNull(behandlingId, CommonTaskProperties.BEHANDLING_ID));
     }
 
     @Override
@@ -286,7 +296,7 @@ public class ProsessTaskData implements ProsessTaskInfo {
     }
 
     public void setBehandlingUUid(UUID uuid) {
-        setProperty(CommonTaskProperties.BEHANDLING_UUID, uuid.toString());
+        setProperty(CommonTaskProperties.BEHANDLING_UUID, Objects.requireNonNull(uuid, CommonTaskProperties.BEHANDLING_UUID).toString());
     }
 
     @Override
@@ -307,26 +317,17 @@ public class ProsessTaskData implements ProsessTaskInfo {
      */
 
     public void setBehandling(String saksnummer, Long behandlingId) {
-        Objects.requireNonNull(saksnummer, CommonTaskProperties.SAKSNUMMER);
-        Objects.requireNonNull(behandlingId, CommonTaskProperties.BEHANDLING_ID);
-
         setSaksnummer(saksnummer);
         setBehandlingId(behandlingId.toString());
     }
 
     public void setBehandling(String saksnummer, UUID behandlingUuid, Long behandlingId) {
-        Objects.requireNonNull(saksnummer, CommonTaskProperties.SAKSNUMMER);
-        Objects.requireNonNull(behandlingId, CommonTaskProperties.BEHANDLING_ID);
-        Objects.requireNonNull(behandlingUuid, CommonTaskProperties.BEHANDLING_UUID);
-
         setSaksnummer(saksnummer);
         setBehandlingUUid(behandlingUuid);
         setBehandlingId(behandlingId.toString());
     }
 
     public void setFagsak(String saksnummer) {
-        Objects.requireNonNull(saksnummer, CommonTaskProperties.SAKSNUMMER);
-
         setSaksnummer(saksnummer);
     }
 
@@ -339,13 +340,17 @@ public class ProsessTaskData implements ProsessTaskInfo {
     }
 
     public void setProperty(String key, String value) {
+        setProperty(this.props, key, value);
+    }
+
+    public static void setProperty(Properties props, String key, String value) {
         if (!VALID_KEY_PATTERN.matcher(key).matches()) {
             throw new IllegalArgumentException("Invalid key:" + key);
         }
         if (value == null) {
-            this.props.remove(key);
+            props.remove(key);
         } else {
-            this.props.setProperty(key, value);
+            props.setProperty(key, value);
         }
     }
 
@@ -371,11 +376,6 @@ public class ProsessTaskData implements ProsessTaskInfo {
 
     public boolean harCallId() {
         return Optional.ofNullable(getPropertyValue(CallId.CALL_ID)).filter(c -> !c.isEmpty()).isPresent();
-    }
-
-    @Deprecated(forRemoval = true) // Default oppførsel
-    public void setCallIdFraEksisterende() {
-        setCallId(MDC.get(CallId.CALL_ID));
     }
 
     String getPropertiesAsString() throws IOException {
