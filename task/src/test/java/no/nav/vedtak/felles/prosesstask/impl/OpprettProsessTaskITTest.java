@@ -37,7 +37,7 @@ class OpprettProsessTaskITTest extends EntityManagerAwareTest {
     void skal_lagre_SammensattProsessTask() {
         var pt1 = ProsessTaskData.forTaskType(new TaskType("mytask1"));
         var pt2 = ProsessTaskData.forTaskType(new TaskType("mytask2"));
-        var sammensatt = new ProsessTaskGruppe();
+        var sammensatt = ProsessTaskGruppe.forGruppeRekkefølge();
         sammensatt
             .addNesteSekvensiell(pt1)
             .addNesteSekvensiell(pt2);
