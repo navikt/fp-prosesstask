@@ -78,11 +78,6 @@ public class ProsessTaskEvent implements ProsessTaskInfo {
     }
 
     @Override
-    public Long getFagsakId() {
-        return data.getFagsakId(); //NOSONAR
-    }
-
-    @Override
     public String getGruppe() {
         return data.getGruppe();
     }
