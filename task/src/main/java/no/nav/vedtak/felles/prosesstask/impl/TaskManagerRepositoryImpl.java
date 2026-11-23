@@ -441,7 +441,7 @@ public class TaskManagerRepositoryImpl {
 
     Map<ProsessTaskStatus, Integer> countTasksForStatus(Set<ProsessTaskStatus> statusSet) {
         var monitorer = statusSet.stream()
-            .filter(t -> !t.erKjørt())
+            .filter(ProsessTaskStatus::erIkkeKjørt)
             .map(ProsessTaskStatus::getDbKode)
             .toList();
         Map<ProsessTaskStatus, Integer> resultat = new EnumMap<>(ProsessTaskStatus.class);

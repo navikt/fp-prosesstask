@@ -295,7 +295,11 @@ public class ProsessTaskData implements ProsessTaskInfo {
     }
 
     public void setSaksnummer(String saksnummer) {
-        setProperty(CommonTaskProperties.SAKSNUMMER, Objects.requireNonNull(saksnummer, CommonTaskProperties.SAKSNUMMER));
+        Objects.requireNonNull(saksnummer, CommonTaskProperties.SAKSNUMMER);
+        if (!CommonTaskProperties.VALID_SAKSNUMMER.matcher(saksnummer).matches()) {
+            throw new IllegalArgumentException("Ugyldig saksnummer: " + saksnummer);
+        }
+        setProperty(CommonTaskProperties.SAKSNUMMER, saksnummer);
     }
 
     /**
