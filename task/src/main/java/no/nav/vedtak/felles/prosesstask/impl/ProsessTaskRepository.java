@@ -212,7 +212,7 @@ public class ProsessTaskRepository {
             .setParameter("likeSearch", "%" + CommonTaskProperties.SAKSNUMMER + "=" + saksnummer + "%")
             .setHint(HibernateHints.HINT_READ_ONLY, "true");
 
-        // Matcher på lengden av saksnummer for å unngå at f.eks. 123 matcher 1234
+        // Sjekker på likhet unngå ulik-lengd-match fra query - f.eks. 123 matcher 1234
         var resultList = query.getResultList().stream()
             .filter(pt -> saksnummer.equals(pt.getPropertyValue(CommonTaskProperties.SAKSNUMMER)))
             .toList();
