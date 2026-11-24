@@ -3,6 +3,7 @@ package no.nav.vedtak.felles.prosesstask.impl;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -21,9 +22,11 @@ import jakarta.enterprise.inject.Instance;
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
 import no.nav.vedtak.felles.prosesstask.api.CallId;
+import no.nav.vedtak.felles.prosesstask.api.CommonTaskProperties;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskGruppe;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskStatus;
+import no.nav.vedtak.felles.prosesstask.api.TaskType;
 
 /**
  * Implementasjon av repository som er tilgjengelig for å lagre og opprette nye tasks.
@@ -167,7 +170,7 @@ public class ProsessTaskRepository {
         return prosessTaskEntitet == null ? null : prosessTaskEntitet.tilProsessTask();
     }
 
-    public List<ProsessTaskData> finnAlle(List<ProsessTaskStatus> statuses) {
+    public List<ProsessTaskData> finnAlle(Collection<ProsessTaskStatus> statuses) {
         if (statuses == null || statuses.isEmpty() || statuses.contains(ProsessTaskStatus.FERDIG)) {
             throw new IllegalArgumentException("Ugyldig søk etter tasks");
         }
@@ -178,12 +181,50 @@ public class ProsessTaskRepository {
         return tilProsessTask(query.getResultList());
     }
 
+    public List<ProsessTaskData> finnAlle(TaskType taskType, Collection<ProsessTaskStatus> statuses) {
+        if (taskType == null) {
+            throw new IllegalArgumentException("Ugyldig taskType: null");
+        }
+        if (statuses == null || statuses.isEmpty() || statuses.contains(ProsessTaskStatus.FERDIG)) {
+            throw new IllegalArgumentException("Ugyldig søk etter tasks");
+        }
+        var statusNames = statuses.stream().map(ProsessTaskStatus::getDbKode).toList();
+        var query = entityManager
+            .createQuery("select pt from ProsessTaskEntitet pt where pt.status in (:statuses) and pt.taskType = :taskType", ProsessTaskEntitet.class)
+            .setParameter("statuses", statusNames)
+            .setParameter("taskType", taskType.value());
+        return tilProsessTask(query.getResultList());
+    }
+
+    public List<ProsessTaskData> finnAlle(String saksnummer, Collection<ProsessTaskStatus> statuses) {
+        if (saksnummer == null || saksnummer.isBlank() || !CommonTaskProperties.VALID_SAKSNUMMER.matcher(saksnummer).matches()) {
+            throw new IllegalArgumentException("Ugyldig saksnummer: " + saksnummer);
+        }
+        if (statuses == null || statuses.isEmpty() || statuses.contains(ProsessTaskStatus.FERDIG)) {
+            throw new IllegalArgumentException("Ugyldig søk etter tasks");
+        }
+        var statusNames = statuses.stream().map(ProsessTaskStatus::getDbKode).toList();
+        // native sql for å håndtere like search for task_parametere felt,
+        @SuppressWarnings("unchecked")
+        var query = (NativeQuery<ProsessTaskEntitet>) entityManager
+            .createNativeQuery("SELECT pt.* FROM PROSESS_TASK pt WHERE status in (:statuses) AND pt.task_parametere LIKE :likeSearch", ProsessTaskEntitet.class)
+            .setParameter("statuses", statusNames)
+            .setParameter("likeSearch", "%" + CommonTaskProperties.SAKSNUMMER + "=" + saksnummer + "%")
+            .setHint(HibernateHints.HINT_READ_ONLY, "true");
+
+        // Sjekker på likhet for å unngå ulik-lengde-match fra query - f.eks. 123 matcher 1234
+        var resultList = query.getResultList().stream()
+            .filter(pt -> saksnummer.equals(pt.getPropertyValue(CommonTaskProperties.SAKSNUMMER)))
+            .toList();
+        return tilProsessTask(resultList);
+    }
+
     public List<ProsessTaskData> finnGruppeIkkeFerdig(String gruppe) {
         if (gruppe == null) {
             throw new IllegalArgumentException("Ugyldig søk etter tasks");
         }
         var ikkeFerdigStatusNames = Arrays.stream(ProsessTaskStatus.values())
-            .filter(ProsessTaskStatus::erIkkeFerdig)
+            .filter(ProsessTaskStatus::erIkkeKjørt)
             .map(ProsessTaskStatus::getDbKode)
             .toList();
         var query = entityManager

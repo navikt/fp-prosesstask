@@ -2,9 +2,11 @@ package no.nav.vedtak.felles.prosesstask.impl;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.Properties;
+import java.util.Set;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.InjectionException;
@@ -14,6 +16,7 @@ import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskGruppe;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskStatus;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskTjeneste;
+import no.nav.vedtak.felles.prosesstask.api.TaskType;
 
 /**
  * Implementasjon av repository som er tilgjengelig for å lagre og opprette nye tasks.
@@ -26,6 +29,10 @@ public class ProsessTaskTjenesteImpl implements ProsessTaskTjeneste {
     public static final String STATUS_IKKE_FEILET = "PT-507456";
     public static final String UKJENT_TASK_FEIL_ID = "PT-752429";
     public static final String MANGLER_IMPL = "PT-492729";
+
+    private static final Set<ProsessTaskStatus> AKTIVE_STATUS = Arrays.stream(ProsessTaskStatus.values())
+        .filter(ProsessTaskStatus::erIkkeKjørt)
+        .collect(java.util.stream.Collectors.toSet());
 
     private ProsessTaskRepository prosessTaskRepository;
 
@@ -97,6 +104,44 @@ public class ProsessTaskTjenesteImpl implements ProsessTaskTjeneste {
     @Override
     public List<ProsessTaskData> finnAlleMedParameterTekst(String tekst, LocalDate fom, LocalDate tom) {
         return prosessTaskRepository.finnAlleForAngittSøk(tekst, fom, tom);
+    }
+
+
+    @Override
+    public List<ProsessTaskData> finnAktive() {
+        return prosessTaskRepository.finnAlle(AKTIVE_STATUS);
+    }
+
+    @Override
+    public List<ProsessTaskData> finnAktive(TaskType taskType) {
+        return prosessTaskRepository.finnAlle(taskType, AKTIVE_STATUS);
+    }
+
+
+    @Override
+    public List<ProsessTaskData> finnAktive(String saksnummer) {
+        return prosessTaskRepository.finnAlle(saksnummer, AKTIVE_STATUS);
+
+    }
+
+    @Override
+    public List<ProsessTaskData> finnAktive(ProsessTaskStatus... status) {
+        var statusListe = Arrays.stream(status).filter(AKTIVE_STATUS::contains).toList();
+        return prosessTaskRepository.finnAlle(statusListe);
+    }
+
+
+    @Override
+    public List<ProsessTaskData> finnAktive(TaskType taskType, ProsessTaskStatus... status) {
+        var statusListe = Arrays.stream(status).filter(AKTIVE_STATUS::contains).toList();
+        return prosessTaskRepository.finnAlle(taskType, statusListe);
+    }
+
+
+    @Override
+    public List<ProsessTaskData> finnAktive(String saksnummer, ProsessTaskStatus... status) {
+        var statusListe = Arrays.stream(status).filter(AKTIVE_STATUS::contains).toList();
+        return prosessTaskRepository.finnAlle(saksnummer, statusListe);
     }
 
     @Override

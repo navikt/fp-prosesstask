@@ -30,6 +30,14 @@ public interface ProsessTaskTjeneste {
 
     List<ProsessTaskData> finnAlleMedParameterTekst(String tekst, LocalDate fom, LocalDate tom);
 
+    // Søk på tasks som ikke er kjørt ferdig (FERDIG/KJOERT)
+    List<ProsessTaskData> finnAktive();
+    List<ProsessTaskData> finnAktive(TaskType taskType);
+    List<ProsessTaskData> finnAktive(String saksnummer);
+    List<ProsessTaskData> finnAktive(ProsessTaskStatus... status);
+    List<ProsessTaskData> finnAktive(TaskType taskType, ProsessTaskStatus... status);
+    List<ProsessTaskData> finnAktive(String saksnummer, ProsessTaskStatus... status);
+
     /*
      * Tar task av vent ved mottatt hendelse og setter eventuelle properties
      */
