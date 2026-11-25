@@ -10,8 +10,6 @@ import java.time.LocalDateTime;
 import java.util.Objects;
 import java.util.UUID;
 
-import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
-
 import org.hibernate.Session;
 import org.hibernate.exception.JDBCConnectionException;
 import org.hibernate.jdbc.Work;
@@ -29,6 +27,7 @@ import jakarta.persistence.OptimisticLockException;
 import jakarta.persistence.PersistenceException;
 import jakarta.transaction.Transactional;
 import no.nav.vedtak.felles.jpa.savepoint.SavepointRolledbackException;
+import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskDataBuilder;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskMidlertidigException;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskStatus;
@@ -51,18 +50,13 @@ import no.nav.vedtak.felles.prosesstask.spi.ProsessTaskRetryPolicy;
 public class RunTask {
     private static final Logger LOG = LoggerFactory.getLogger(RunTask.class);
 
-    private final ProsessTaskEventPubliserer eventPubliserer;
     private final TaskManagerRepositoryImpl taskManagerRepository;
-    private final RunTaskVetoHåndterer vetoHåndterer;
 
     @Inject
-    public RunTask(TaskManagerRepositoryImpl taskManagerRepo,
-            ProsessTaskEventPubliserer eventPubliserer) {
+    public RunTask(TaskManagerRepositoryImpl taskManagerRepo) {
         Objects.requireNonNull(taskManagerRepo, "taskManagerRepo");
 
-        this.eventPubliserer = eventPubliserer;
         this.taskManagerRepository = taskManagerRepo;
-        this.vetoHåndterer = new RunTaskVetoHåndterer(eventPubliserer, taskManagerRepo.getEntityManager());
     }
 
     public void doRun(RunTaskInfo taskInfo) {
@@ -88,10 +82,6 @@ public class RunTask {
         var savepoint = conn.setSavepoint();
 
         try {
-            if (vetoHåndterer.vetoRunTask(pte)) {
-                return;
-            }
-
             ProsessTaskData prosessTaskData = pte.tilProsessTask();
             OtelUtil.wrapper().span("TASK " + taskType.value(), OtelUtil.taskAttributter(prosessTaskData), () -> {
                 pickAndRun.dispatchWork(prosessTaskData);
@@ -193,7 +183,7 @@ public class RunTask {
 
         PickAndRunTask(RunTaskInfo taskInfo) {
             this.taskInfo = taskInfo;
-            this.feilOgStatushåndterer = new RunTaskFeilOgStatusEventHåndterer(taskInfo, eventPubliserer, taskManagerRepository);
+            this.feilOgStatushåndterer = new RunTaskFeilOgStatusEventHåndterer(taskInfo, taskManagerRepository);
             try (var handler = getTaskInfo().getTaskDispatcher().taskHandler(taskInfo.getTaskType())) {
                 this.retryPolicy = handler.retryPolicy();
                 this.cronExpression = handler.cronExpression();
@@ -216,19 +206,9 @@ public class RunTask {
             feilOgStatushåndterer.handleTransientAndRecoverableException(e);
         }
 
-        private ProsessTaskEntitet refreshProsessTask(Long id) {
-            return getEntityManager().find(ProsessTaskEntitet.class, id);
-        }
-
         ProsessTaskStatus markerTaskFerdig(ProsessTaskEntitet pte) {
-            // frigir veto etter at event handlere er fyrt
-            vetoHåndterer.frigiVeto(pte);
-
             var nyStatus = ProsessTaskStatus.KJOERT;
             taskManagerRepository.oppdaterStatus(pte.getId(), nyStatus);
-
-            pte = refreshProsessTask(pte.getId());
-            feilOgStatushåndterer.publiserNyStatusEvent(pte.tilProsessTask(), ProsessTaskStatus.KLAR, nyStatus);
             return nyStatus;
         }
 

@@ -24,7 +24,6 @@ CREATE TABLE PROSESS_TASK
     SISTE_KJOERING_SERVER     VARCHAR(50),
     OPPRETTET_AV              VARCHAR(20)   DEFAULT 'VL',
     OPPRETTET_TID             TIMESTAMP(6)  DEFAULT current_timestamp NOT NULL,
-    BLOKKERT_AV               NUMERIC                                 NULL,
     VERSJON                   NUMERIC       DEFAULT 0 NOT NULL,
     SISTE_KJOERING_SLUTT_TS   TIMESTAMP(6),
     SISTE_KJOERING_PLUKK_TS   TIMESTAMP(6)
@@ -46,7 +45,6 @@ COMMENT ON COLUMN PROSESS_TASK.SISTE_KJOERING_FEIL_KODE IS 'siste feilkode taske
 COMMENT ON COLUMN PROSESS_TASK.SISTE_KJOERING_FEIL_TEKST IS 'siste feil tasken fikk';
 COMMENT ON COLUMN PROSESS_TASK.SISTE_KJOERING_SERVER IS 'navn på node som sist kjørte en task (server@pid)';
 COMMENT ON COLUMN PROSESS_TASK.VERSJON IS 'angir versjon for optimistisk låsing';
-COMMENT ON COLUMN PROSESS_TASK.BLOKKERT_AV IS 'Id til ProsessTask som blokkerer kjøring av denne (når status=VETO)';
 COMMENT ON COLUMN PROSESS_TASK.SISTE_KJOERING_TS IS 'siste gang tasken ble forsøkt kjørt (før kjøring)';
 COMMENT ON COLUMN PROSESS_TASK.SISTE_KJOERING_SLUTT_TS IS 'tidsstempel siste gang tasken ble kjørt (etter kjøring)';
 COMMENT ON TABLE PROSESS_TASK IS 'Inneholder tasks som skal kjøres i bakgrunnen';
@@ -65,7 +63,6 @@ CREATE INDEX IDX_PROSESS_TASK_7
     ON PROSESS_TASK (PARTITION_KEY);
 CREATE UNIQUE INDEX UIDX_PROSESS_TASK
     ON PROSESS_TASK (ID, STATUS, PARTITION_KEY);
-CREATE INDEX IDX_PROSESS_TASK_6 ON PROSESS_TASK (BLOKKERT_AV);
 
 
 --------------------------------------------------------

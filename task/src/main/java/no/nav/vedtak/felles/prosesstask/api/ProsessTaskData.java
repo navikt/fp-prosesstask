@@ -41,7 +41,6 @@ public class ProsessTaskData implements ProsessTaskInfo {
     private String sisteKjøringServerProsess;
     private LocalDateTime sistKjørt;
     private ProsessTaskStatus status = ProsessTaskStatus.KLAR;
-    private Long blokkertAvProsessTaskId;
     private LocalDateTime opprettetTid;
 
     ProsessTaskData(TaskType taskType) {
@@ -93,11 +92,6 @@ public class ProsessTaskData implements ProsessTaskInfo {
     @Override
     public String getGruppe() {
         return gruppe;
-    }
-
-    @Override
-    public Long getBlokkertAvProsessTaskId() {
-        return blokkertAvProsessTaskId;
     }
 
     /**
@@ -237,10 +231,6 @@ public class ProsessTaskData implements ProsessTaskInfo {
     @Override
     public LocalDateTime getOpprettetTid() {
         return opprettetTid;
-    }
-
-    public void setBlokkertAvProsessTaskId(Long blokkertAvProsessTaskId) {
-        this.blokkertAvProsessTaskId = blokkertAvProsessTaskId;
     }
 
     @Override

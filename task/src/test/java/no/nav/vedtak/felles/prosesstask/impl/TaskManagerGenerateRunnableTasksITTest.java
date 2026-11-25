@@ -51,7 +51,7 @@ class TaskManagerGenerateRunnableTasksITTest extends EntityManagerAwareTest {
                     @Override
                     RunTask newRunTaskInstance() {
                         // TEST override for å kaste exception
-                        return new RunTask(Mockito.mock(TaskManagerRepositoryImpl.class), null) {
+                        return new RunTask(Mockito.mock(TaskManagerRepositoryImpl.class)) {
                             @Override
                             public void doRun(RunTaskInfo taskInfo) {
                                 throw new PersistenceException("howdy!");

@@ -242,24 +242,19 @@ TaskManager startes f.eks. fra en WebListener
 ## Statuser
 Tasks har en livssyklus av statuser
 ```
-		       +-------->VENTER_SVAR
-		       |                 +
-		       |                 |
-		       +                 v
-		    KLAR+------------>KJOERT+-------->FERDIG
-		     + ^
-		     | |
-		     v +
-		SUSPENDERT/
-		VETO
-
+		   VENTER_SVAR
+		       ^ |
+		       | v
+		      KLAR+------------>KJOERT+-------->FERDIG
+		       ^ |
+		       | v
+		     FEILET
 ```
 * KLAR - Alle som har denne vil bli kjørt såfremt deres tid, sekvens, gruppe og prioritet matcher
 * KJOERT - Task er ferdig. Er en pseudo-status som markerer ferdig, men i samme partisjon
 * FERDIG - Task er ferdig og arkivert til partisjon
-* SUSPENDERT - vil stoppe kjøring av alle tasks i samme gruppe. Kan kun settes utenfra
-* VETO - en task kan legge ned veto mot andre i samme gruppe, inntil denne er kjørt. Kan kun settes ved kjøring
-* VENTER_SVAR - en task kan settes på pause inntil den reaktiveres av en hendelse. Kan kun settes ved kjøring
+* FEILET - Task har feilet etter maks antall forsøk og stopper videre kjøring i samme gruppe inntil den rekjøres (tilbake til KLAR) eller settes ferdig
+* VENTER_SVAR - en task kan settes på pause inntil den reaktiveres til KLAR av en hendelse. Kan kun settes ved kjøring
 
 Det er ikke noe eget status for når tasken kjører, i dette øyeblikket vil det holdes en lås på raden til den er ferdig kjørt. Dette gjøres, som alternativ til egne statuser for kjøring, da det minimerer antall transaksjoner nødvendig, og unngår administrasjon og opprydding av tasks hvis de krasjer.
 

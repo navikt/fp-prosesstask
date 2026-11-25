@@ -9,44 +9,28 @@ import java.util.Objects;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskFeil;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskStatus;
 import no.nav.vedtak.felles.prosesstask.spi.ProsessTaskRetryPolicy;
 
 /**
- * Samler feilhåndtering og status publisering som skjer på vanlige prosess
- * tasks.
+ * Samler feilhåndtering som skjer på vanlige prosess tasks.
  */
 public class RunTaskFeilOgStatusEventHåndterer {
 
     private static final Logger LOG = LoggerFactory.getLogger(RunTaskFeilOgStatusEventHåndterer.class);
 
-    private final ProsessTaskEventPubliserer eventPubliserer;
     private final TaskManagerRepositoryImpl taskManagerRepository;
 
     private final RunTaskInfo taskInfo;
 
-    public RunTaskFeilOgStatusEventHåndterer(RunTaskInfo taskInfo, ProsessTaskEventPubliserer eventPubliserer,
-            TaskManagerRepositoryImpl taskManagerRepository) {
+    public RunTaskFeilOgStatusEventHåndterer(RunTaskInfo taskInfo, TaskManagerRepositoryImpl taskManagerRepository) {
         this.taskInfo = taskInfo;
-        this.eventPubliserer = eventPubliserer;
         this.taskManagerRepository = taskManagerRepository;
     }
 
-    protected void publiserNyStatusEvent(ProsessTaskData data, ProsessTaskStatus gammelStatus, ProsessTaskStatus nyStatus) {
-        publiserNyStatusEvent(data, gammelStatus, nyStatus, null, null);
-    }
-
-    protected void publiserNyStatusEvent(ProsessTaskData data, ProsessTaskStatus gammelStatus, ProsessTaskStatus nyStatus, Feil feil, Exception e) {
-        if (eventPubliserer != null) {
-            eventPubliserer.fireEvent(data, gammelStatus, nyStatus, feil, e);
-        }
-    }
-
     /**
-     * handle exception on task. Update failure count if less than max. NB:
-     * Exception may be null if a lifecycle observer vetoed it (veto==true)
+     * handle exception on task. Update failure count if less than max.
      */
     protected void handleTaskFeil(ProsessTaskRetryPolicy retryPolicy, ProsessTaskEntitet pte, Exception e) {
         var taskType = pte.getTaskType();
@@ -57,7 +41,6 @@ public class RunTaskFeilOgStatusEventHåndterer {
             var feil = kunneIkkeProsessereTaskVilPrøveIgjenEnkelFeilmelding(taskInfo.getId(), taskType, failureAttempt, nyTid, e);
             var feiltekst = getFeiltekstOgLoggEventueltHvisEndret(pte, feil, e, false);
             taskManagerRepository.oppdaterStatusOgNesteKjøring(pte.getId(), ProsessTaskStatus.KLAR, nyTid, feil.kode(), feiltekst, failureAttempt);
-            // endrer ikke status ved nytt forsøk eller publiserer event p.t.
         } else {
             var feil = kunneIkkeProsessereTaskVilIkkePrøveIgjenEnkelFeilmelding(taskInfo.getId(), taskType, failureAttempt, e);
             handleFatalTaskFeil(pte, feil, e);
@@ -66,13 +49,9 @@ public class RunTaskFeilOgStatusEventHåndterer {
 
     protected void handleFatalTaskFeil(ProsessTaskEntitet pte, Feil feil, Exception e) {
         var nyStatus = ProsessTaskStatus.FEILET;
-        try {
-            publiserNyStatusEvent(pte.tilProsessTask(), pte.getStatus(), nyStatus, feil, e);
-        } finally {
-            var failureAttempt = pte.getFeiledeForsøk() + 1;
-            var feiltekst = getFeiltekstOgLoggEventueltHvisEndret(pte, feil, e, true);
-            taskManagerRepository.oppdaterStatusOgNesteKjøring(pte.getId(), nyStatus, null, feil.kode(), feiltekst, failureAttempt);
-        }
+        var failureAttempt = pte.getFeiledeForsøk() + 1;
+        var feiltekst = getFeiltekstOgLoggEventueltHvisEndret(pte, feil, e, true);
+        taskManagerRepository.oppdaterStatusOgNesteKjøring(pte.getId(), nyStatus, null, feil.kode(), feiltekst, failureAttempt);
     }
 
     /**

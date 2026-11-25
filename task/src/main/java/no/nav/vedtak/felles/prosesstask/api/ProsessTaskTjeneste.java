@@ -25,9 +25,6 @@ public interface ProsessTaskTjeneste {
 
     List<ProsessTaskData> finnUferdigForGruppe(String gruppe);
 
-    List<ProsessTaskData> finnAlle(ProsessTaskStatus status);
-    List<ProsessTaskData> finnAlleStatuser(List<ProsessTaskStatus> statuses);
-
     List<ProsessTaskData> finnAlleMedParameterTekst(String tekst, LocalDate fom, LocalDate tom);
 
     // Søk på tasks som ikke er kjørt ferdig (FERDIG/KJOERT)

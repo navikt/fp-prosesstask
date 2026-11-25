@@ -37,8 +37,6 @@ public class ProsessTaskRepository {
     static final Logger LOG = LoggerFactory.getLogger(ProsessTaskRepository.class);
 
     private EntityManager entityManager;
-    private ProsessTaskEventPubliserer eventPubliserer;
-    private HandleProsessTaskLifecycleObserver handleLifecycleObserver;
     private SubjectProvider subjectProvider;
 
     ProsessTaskRepository() {
@@ -46,14 +44,11 @@ public class ProsessTaskRepository {
     }
 
     public ProsessTaskRepository(EntityManager entityManager,
-                                 SubjectProvider subjectProvider,
-                                 ProsessTaskEventPubliserer eventPubliserer) {
+                                 SubjectProvider subjectProvider) {
         // for kompatibilitet og forenkling av tester
         Objects.requireNonNull(entityManager, "entityManager");
         this.entityManager = entityManager;
-        this.eventPubliserer = eventPubliserer;
         this.subjectProvider = subjectProvider;
-        this.handleLifecycleObserver = eventPubliserer == null ? null : eventPubliserer.getHandleProsessTaskLifecycleObserver();
     }
 
     /**
@@ -61,14 +56,10 @@ public class ProsessTaskRepository {
      *
      * @param entityManager - Required - kan p.t. bare finnes en av. Dersom en ønsker flere, subklass dette repoet
      * @param subjectProvider - Optional - hvis definert og eksisterer vil sette brukernavn som endrer tasks ved lagring
-     * @param eventPubliserer
-     * @param handleLifecycleObserver
      */
     @Inject
     public ProsessTaskRepository(@Any Instance<EntityManager> entityManager,
-                                 @Any Instance<SubjectProvider> subjectProvider,
-                                 ProsessTaskEventPubliserer eventPubliserer,
-                                 HandleProsessTaskLifecycleObserver handleLifecycleObserver) {
+                                 @Any Instance<SubjectProvider> subjectProvider) {
         Objects.requireNonNull(entityManager, "entityManager");
 
         if (subjectProvider.isAmbiguous()) {
@@ -78,20 +69,14 @@ public class ProsessTaskRepository {
         }
 
         this.entityManager = entityManager.get();
-        this.eventPubliserer = eventPubliserer;
-        this.handleLifecycleObserver = handleLifecycleObserver;
         this.subjectProvider = subjectProvider.isResolvable() ? subjectProvider.get() : null;
 
     }
 
     public String lagre(ProsessTaskGruppe sammensattTask) {
         String unikGruppeId = null;
-        var lifecycleOpprettet = true;
         for (var entry : sammensattTask.getTasks()) {
             var task = entry.task();
-            if (task.getId() != null) {
-                lifecycleOpprettet = false;
-            }
 
             if (unikGruppeId == null && task.getGruppe() == null) {
                 // mangler et gruppenavn så la oss finne på et
@@ -105,12 +90,6 @@ public class ProsessTaskRepository {
             task.setSekvens(entry.sekvens());
             var id = doLagreTask(task);
             task.setId(id);
-        }
-
-        if (lifecycleOpprettet) {
-            if (handleLifecycleObserver != null) {
-                handleLifecycleObserver.opprettetProsessTaskGruppe(sammensattTask);
-            }
         }
 
         entityManager.flush();
@@ -134,18 +113,12 @@ public class ProsessTaskRepository {
         ProsessTaskEntitet pte;
         if (task.getId() != null) {
             trackTaskLineage("latest", task);
-            var nyStatus = task.getStatus();
             pte = entityManager.find(ProsessTaskEntitet.class, task.getId());
-            var status = pte.getStatus();
 
             pte.kopierFraEksisterende(task);
             pte.setSubjectProvider(subjectProvider);
             entityManager.persist(pte);
             entityManager.flush();
-
-            if (eventPubliserer != null && !Objects.equals(status, nyStatus)) {
-                eventPubliserer.fireEvent(pte.tilProsessTask(), status, nyStatus);
-            }
         } else {
             trackTaskLineage("parent", task);
 
@@ -155,9 +128,6 @@ public class ProsessTaskRepository {
             entityManager.persist(pte);
             entityManager.flush();
             task.setId(pte.getId()); // oppdaterer input med Id slik at denne kan brukes
-            if (eventPubliserer != null) {
-                eventPubliserer.fireEvent(pte.tilProsessTask(), null, task.getStatus());
-            }
         }
         return pte.getId();
     }

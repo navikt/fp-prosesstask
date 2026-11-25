@@ -43,13 +43,4 @@ class TaskManagerFeil  {
                 Level.ERROR, e);
     }
 
-
-    static Feil kanIkkeKjøreFikkVeto(Long taskId, TaskType taskName, Long blokkertAvProsessTaskId, String vetoBegrunnelse) {
-        return new Feil("PT-900909",
-                String.format("Kan ikke kjøre task [%s, %s], fikk veto. Blokkert av task [%s]: %s",
-                        taskId, taskName.value(), blokkertAvProsessTaskId, vetoBegrunnelse),
-                Level.INFO, null);
-    }
-
-
 }

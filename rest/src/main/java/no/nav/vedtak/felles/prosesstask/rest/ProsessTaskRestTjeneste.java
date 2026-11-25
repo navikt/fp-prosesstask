@@ -168,8 +168,6 @@ public class ProsessTaskRestTjeneste {
             case FEILET -> ProsessTaskStatus.FEILET;
             case VENTER_SVAR -> ProsessTaskStatus.VENTER_SVAR;
             case KLAR -> ProsessTaskStatus.KLAR;
-            case SUSPENDERT -> ProsessTaskStatus.SUSPENDERT;
-            case VETO -> ProsessTaskStatus.VETO;
             case null -> null;
         };
     }
@@ -178,7 +176,6 @@ public class ProsessTaskRestTjeneste {
         return switch (feiletStatus) {
             case FEILET -> ProsessTaskStatus.FEILET;
             case VENTER_SVAR -> ProsessTaskStatus.VENTER_SVAR;
-            case SUSPENDERT -> ProsessTaskStatus.SUSPENDERT;
             case null -> null;
         };
     }

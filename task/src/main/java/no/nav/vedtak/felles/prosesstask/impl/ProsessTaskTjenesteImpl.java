@@ -92,16 +92,6 @@ public class ProsessTaskTjenesteImpl implements ProsessTaskTjeneste {
     }
 
     @Override
-    public List<ProsessTaskData> finnAlle(ProsessTaskStatus status) {
-        return prosessTaskRepository.finnAlle(List.of(status));
-    }
-
-    @Override
-    public List<ProsessTaskData> finnAlleStatuser(List<ProsessTaskStatus> statuses) {
-        return prosessTaskRepository.finnAlle(statuses);
-    }
-
-    @Override
     public List<ProsessTaskData> finnAlleMedParameterTekst(String tekst, LocalDate fom, LocalDate tom) {
         return prosessTaskRepository.finnAlleForAngittSøk(tekst, fom, tom);
     }

@@ -32,7 +32,7 @@ WHERE pt.id
             FROM prosess_task pt
             WHERE
               -- bruker dette istdf. (status NOT IN('FERDIG', 'KJOERT')). Innført for å bruke partisjoner med minst data, unngår skanning av alle partisjoner
-              status in ('FEILET', 'KLAR', 'VENTER_SVAR', 'SUSPENDERT', 'VETO')
+              status in ('FEILET', 'KLAR', 'VENTER_SVAR')
           ) tbl
         WHERE
           -- filtrer vekk de som ikke har samme sekvensnr som første i gruppen, og som er KLAR

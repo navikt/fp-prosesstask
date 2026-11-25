@@ -32,7 +32,7 @@ class RunProsessTaskITTest extends EntityManagerAwareTest {
 
     @BeforeEach
     void setUp() {
-        repo = new ProsessTaskRepository(getEntityManager(), null, null);
+        repo = new ProsessTaskRepository(getEntityManager(), null);
         taskManagerRepo = new TaskManagerRepositoryImpl(getEntityManager());
     }
 
@@ -49,7 +49,7 @@ class RunProsessTaskITTest extends EntityManagerAwareTest {
         });
 
         // Act
-        var runTask = new RunTask(taskManagerRepo, null);
+        var runTask = new RunTask(taskManagerRepo);
 
         runTask.doRun(new RunTaskInfo(dispatcher, pt1));
 
@@ -77,7 +77,7 @@ class RunProsessTaskITTest extends EntityManagerAwareTest {
         });
 
         // Act
-        var runTask = new RunTask(taskManagerRepo, null);
+        var runTask = new RunTask(taskManagerRepo);
 
         runTask.doRun(new RunTaskInfo(dispatcher, pt1));
 
@@ -121,7 +121,7 @@ class RunProsessTaskITTest extends EntityManagerAwareTest {
         });
 
         // Act
-        var runTask = new RunTask(taskManagerRepo, null);
+        var runTask = new RunTask(taskManagerRepo);
 
         runTask.doRun(new RunTaskInfo(dispatcher, pt1));
 
@@ -151,7 +151,7 @@ class RunProsessTaskITTest extends EntityManagerAwareTest {
         });
 
         // Act
-        var runTask = new RunTask(taskManagerRepo, null);
+        var runTask = new RunTask(taskManagerRepo);
 
         runTask.doRun(new RunTaskInfo(dispatcher, pt1));
 
@@ -185,7 +185,7 @@ class RunProsessTaskITTest extends EntityManagerAwareTest {
         });
 
         // Acts
-        var runTask = new RunTask(taskManagerRepo, null);
+        var runTask = new RunTask(taskManagerRepo);
 
         runTask.doRun(new RunTaskInfo(dispatcher, pt1));
 

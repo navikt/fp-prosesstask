@@ -53,8 +53,6 @@ public interface ProsessTaskInfo {
 
     Long getId();
 
-    Long getBlokkertAvProsessTaskId();
-
     LocalDateTime getOpprettetTid();
 
     /*

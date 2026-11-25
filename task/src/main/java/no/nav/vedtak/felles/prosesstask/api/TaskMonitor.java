@@ -15,7 +15,6 @@ public class TaskMonitor {
     public static final Map<ProsessTaskStatus, AtomicInteger> TASK_GAUGES = Map.of(
         ProsessTaskStatus.KLAR, statusGauge(ProsessTaskStatus.KLAR),
         ProsessTaskStatus.VENTER_SVAR, statusGauge(ProsessTaskStatus.VENTER_SVAR),
-        ProsessTaskStatus.VETO, statusGauge(ProsessTaskStatus.VETO),
         ProsessTaskStatus.FEILET, statusGauge(ProsessTaskStatus.FEILET)
     );
 

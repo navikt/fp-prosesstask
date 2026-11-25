@@ -7,15 +7,12 @@ import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.EnumMap;
-import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Scanner;
 import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import org.hibernate.ScrollMode;
 import org.hibernate.Session;
@@ -31,7 +28,6 @@ import jakarta.enterprise.inject.Instance;
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.FlushModeType;
-import jakarta.persistence.LockTimeoutException;
 import jakarta.persistence.Query;
 import jakarta.transaction.Transactional;
 import no.nav.vedtak.exception.TekniskException;
@@ -43,9 +39,6 @@ import no.nav.vedtak.felles.prosesstask.impl.util.DatabaseUtil;
 @Dependent
 public class TaskManagerRepositoryImpl {
 
-    private static final EnumSet<ProsessTaskStatus> KJØRT_STATUSER = EnumSet.of(ProsessTaskStatus.FERDIG, ProsessTaskStatus.KJOERT);
-    private static final Set<ProsessTaskStatus> IKKE_KJØRT_STATUSER = EnumSet.complementOf(KJØRT_STATUSER)
-            .stream().collect(Collectors.toUnmodifiableSet());
     private static final String STATUS = "status";
     private static final String NESTE_KJØRING = "neste_kjoering";
 
@@ -153,14 +146,13 @@ public class TaskManagerRepositoryImpl {
         String updateSql = """
             update PROSESS_TASK set
              status =:status
-            ,blokkert_av = NULL
             ,neste_kjoering_etter=:neste
             ,feilede_forsoek = :forsoek
             ,siste_kjoering_feil_kode = :feilkode
             ,siste_kjoering_feil_tekst = :feiltekst
             , siste_kjoering_slutt_ts = :status_ts
             ,versjon=versjon+1
-            WHERE id = :id AND status NOT IN ('VETO', 'SUSPENDERT', 'KJOERT', 'FERDIG')
+            WHERE id = :id AND status NOT IN ('KJOERT', 'FERDIG')
             """;
 
         var now = LocalDateTime.now();
@@ -344,27 +336,6 @@ public class TaskManagerRepositoryImpl {
         return query.getResultList().stream().findFirst();
     }
 
-    /**
-     * @param blokkerendeTaskId
-     * @return blokkerende task hvis ikke låst eller er allerede ferdig
-     */
-    @SuppressWarnings("unchecked")
-    Optional<ProsessTaskEntitet> finnOgLåsBlokker(Long blokkerendeTaskId) throws LockTimeoutException {
-        var ikkeKjørtStatuser = IKKE_KJØRT_STATUSER.stream().map(ProsessTaskStatus::getDbKode).collect(Collectors.toList());
-
-        var sql = " select pte.* from PROSESS_TASK pte WHERE pte.id=:id AND pte.status IN (:statuser) FOR UPDATE SKIP LOCKED";
-
-        @SuppressWarnings("resource")
-        Query query = getEntityManagerAsSession().createNativeQuery(sql, ProsessTaskEntitet.class)
-                .setHint(HibernateHints.HINT_FETCH_SIZE, 1)
-                .setHint(JAVAX_PERSISTENCE_CACHE_STORE_MODE, REFRESH)
-                .setParameter("id", blokkerendeTaskId)
-                .setParameter("statuser", ikkeKjørtStatuser);
-
-        Stream<ProsessTaskEntitet> stream = query.getResultStream();
-        return stream.findFirst();
-    }
-
     @ActivateRequestContext
     @Transactional
     void verifyStartup() {
@@ -408,35 +379,6 @@ public class TaskManagerRepositoryImpl {
         var userTz = System.getProperty("user.timezone");
         LOG.info("Startup: DB(tz={}, current_timestamp={}), App(user.timezone={}, hibernate.jdbc.time_zone={}, inputtid={}, inputtid2={}). Drift={}",
                 result.dbtz, result.dbtid, userTz, hibernateTz, result.inputtid, result.inputtid2, result.drift);
-    }
-
-    /**
-     * Når vi setter veto/blokkert på en task er vi ikke garantert at ikke den som
-     * blokkerer ikke er i ferd med å kjøres/snart er ferdig (fordi vi opererer med
-     * read committed / ikke serialzable rea) istdf å ta lås på blokkerende tasks
-     * før hvert veto, ettergår vi bare de som har blitt blokkert og opphever veto
-     * dersom det ikke er nødvendig lenger.
-     */
-    void unblockTasks() {
-        var sqlUnveto = """
-            update prosess_task a set
-               status='KLAR'
-             , blokkert_av=NULL
-             , feilede_forsoek=0
-             , siste_kjoering_feil_kode=NULL
-             , siste_kjoering_feil_tekst=NULL
-             , neste_kjoering_etter=NULL
-             , versjon = versjon +1
-             WHERE status = 'VETO'
-              AND blokkert_av IS NOT NULL
-              AND EXISTS (select 1 from prosess_task b where b.id=a.blokkert_av AND b.status IN ('KJOERT', 'FERDIG'))
-            """;
-
-        var unvetoed = entityManager.createNativeQuery(sqlUnveto)
-                .executeUpdate();
-        if (unvetoed > 0) {
-            LOG.info("Fjernet veto fra {} tasks som var blokkert av andre tasks som allerede er ferdig", unvetoed);
-        }
     }
 
     Map<ProsessTaskStatus, Integer> countTasksForStatus(Set<ProsessTaskStatus> statusSet) {

@@ -16,7 +16,7 @@ WITH foerste_prosesstasker AS (
     SELECT DISTINCT ON (task_gruppe) task_gruppe, task_sekvens
     FROM prosess_task
     -- bruker dette istdf. (status NOT IN('FERDIG', 'KJOERT')). Innført for å bruke partisjoner med minst data, unngår skanning av alle partisjoner
-    WHERE status IN ('FEILET', 'KLAR', 'VENTER_SVAR', 'SUSPENDERT', 'VETO')
+    WHERE status IN ('FEILET', 'KLAR', 'VENTER_SVAR')
     ORDER BY task_gruppe, length(task_sekvens), task_sekvens)
 SELECT pt.*
 FROM prosess_task pt
