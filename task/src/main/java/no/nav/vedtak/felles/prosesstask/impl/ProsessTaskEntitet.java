@@ -7,8 +7,6 @@ import java.time.LocalDateTime;
 import java.util.Objects;
 import java.util.Properties;
 
-import jakarta.persistence.SequenceGenerator;
-
 import org.hibernate.annotations.Parameter;
 import org.hibernate.annotations.Type;
 import org.hibernate.usertype.UserTypeLegacyBridge;
@@ -22,6 +20,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Lob;
+import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 import jakarta.persistence.Version;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
@@ -47,9 +46,6 @@ public class ProsessTaskEntitet {
     @SequenceGenerator(name = "seq_prosess_task", sequenceName = "SEQ_PROSESS_TASK")
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "seq_prosess_task")
     private Long id;
-
-    @Column(name = "blokkert_av")
-    private Long blokkertAvProsessTaskId;
 
     @Column(name = "neste_kjoering_etter")
     private LocalDateTime nesteKjøringEtter;
@@ -144,14 +140,6 @@ public class ProsessTaskEntitet {
         this.nesteKjøringEtter = nesteKjøringEtter;
     }
 
-    public void setBlokkertAvProsessTaskId(Long blokkertAvProsessTaskId) {
-        this.blokkertAvProsessTaskId = blokkertAvProsessTaskId;
-    }
-
-    public Long getBlokkertAvProsessTaskId() {
-        return blokkertAvProsessTaskId;
-    }
-
     public void setSisteKjøringServer(String sisteKjøringServerProsess) {
         this.sisteKjøringServerProsess = sisteKjøringServerProsess;
     }
@@ -242,7 +230,6 @@ public class ProsessTaskEntitet {
         task.setAntallFeiledeForsøk(getFeiledeForsøk());
         task.setStatus(getStatus());
         task.setSisteKjøringServerProsess(getSisteKjøringServerProsess());
-        task.setBlokkertAvProsessTaskId(getBlokkertAvProsessTaskId());
         task.setOpprettetTid(getOpprettetTid());
         task.setId(getId());
 
@@ -292,7 +279,6 @@ public class ProsessTaskEntitet {
         this.gruppe = prosessTask.getGruppe();
         this.sekvens = prosessTask.getSekvens();
         this.payload = prosessTask.getPayloadAsString();
-        this.blokkertAvProsessTaskId = prosessTask.getBlokkertAvProsessTaskId();
         this.opprettetTid = prosessTask.getOpprettetTid();
         return this;
     }

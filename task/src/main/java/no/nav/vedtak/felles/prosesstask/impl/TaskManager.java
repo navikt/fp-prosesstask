@@ -110,7 +110,7 @@ public class TaskManager implements Controllable {
      * - get() lager en ny instans. Den blir en avhengig (dependent) av TaskManager og lever like lenge som den
      *   (dvs til applikasjonen stopper) - med mindre den eksplisitt destrueres.
      * - destroy() MÅ derfor kalles etter hver kjøring (i finally). Da kalles @PreDestroy og avhengige bønner
-     *   (bl.a. interceptorer for @Transactional/@ActivateRequestContext og ProsessTaskEventPubliserer) frigjøres.
+     *   (bl.a. interceptorer for @Transactional/@ActivateRequestContext) frigjøres.
      * - CDI-kontekster er trådbundne: RequestScoped (EntityManager) aktiveres av @ActivateRequestContext på
      *   RunTask/FatalErrorTask på worker-tråden, ikke av tråden som pollet tasken.
      */
@@ -250,8 +250,7 @@ public class TaskManager implements Controllable {
         }
         this.pollingServiceScheduledFutures = List.of(
             pollingService.scheduleWithFixedDelay(new PollAvailableTasks(), delayBetweenPollingMillis / 2, delayBetweenPollingMillis,
-                TimeUnit.MILLISECONDS),
-            pollingService.scheduleWithFixedDelay(new FreeBlockedTasks(), 750L, 7500L, TimeUnit.MILLISECONDS));
+                TimeUnit.MILLISECONDS));
 
         // schedulerer første runde, reschedulerer seg selv senere.
         pollingService.schedule(new MoveToDonePartition(), 30, TimeUnit.SECONDS);
@@ -527,54 +526,6 @@ public class TaskManager implements Controllable {
                 pollingService.schedule(this, min + delay, TimeUnit.MILLISECONDS);
             });
         }
-    }
-
-    /**
-     * Unblokkerer tasks som har blitt konservativt blokkert (der den som kjører
-     * ikke ser nye veto påga Read Committed tx isolation level.
-     */
-    class FreeBlockedTasks implements Runnable {
-
-        /**
-         * splittet fra for å kjøre i {@link TransactionHandler}.
-         */
-        private final class DoInNewTransaction extends TransactionHandler<Integer> {
-
-            Integer doWork() throws Exception {
-                var entityManager = getTransactionManagerRepository().getEntityManager();
-                try {
-                    return super.apply(entityManager);
-                } finally {
-                    getTransactionManagerRepository().destroyEntityManager();
-                }
-            }
-
-            @Override
-            protected Integer doWork(EntityManager entityManager) throws Exception {
-                getTransactionManagerRepository().unblockTasks();
-                return 0;
-            }
-        }
-
-        /**
-         * splittet fra {@link #run()} for å kjøre med ActivateRequestContext.
-         */
-        public Integer doWithContext() {
-            try {
-                return new DoInNewTransaction().doWork();
-            } catch (Throwable t) {
-                // logg, ikke rethrow feil her da det dreper trådene
-                LOG.error("Kunne ikke unblokkerer tasks som kan frigis", t);
-            }
-            return 1;
-        }
-
-        @Override
-        public void run() {
-            OtelUtil.wrapper().span("FreeBlockedTasks", spanBuilder -> spanBuilder.setSpanKind(SpanKind.INTERNAL).setNoParent(),
-                () -> RequestContextHandler.doWithRequestContext(this::doWithContext));
-        }
-
     }
 
     /**

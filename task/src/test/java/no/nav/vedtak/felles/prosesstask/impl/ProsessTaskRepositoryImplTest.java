@@ -10,7 +10,6 @@ import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mockito;
 
 import no.nav.vedtak.felles.prosesstask.JpaPostgresTestcontainerExtension;
 import no.nav.vedtak.felles.prosesstask.api.CommonTaskProperties;
@@ -32,9 +31,7 @@ class ProsessTaskRepositoryImplTest extends EntityManagerAwareTest {
 
     @BeforeEach
     void setUp() {
-        ProsessTaskEventPubliserer prosessTaskEventPubliserer = Mockito.mock(ProsessTaskEventPubliserer.class);
-        Mockito.doNothing().when(prosessTaskEventPubliserer).fireEvent(Mockito.any(ProsessTaskData.class), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any());
-        prosessTaskRepository = new ProsessTaskRepository(getEntityManager(), null, prosessTaskEventPubliserer);
+        prosessTaskRepository = new ProsessTaskRepository(getEntityManager(), null);
 
         lagTestData();
     }
@@ -44,21 +41,13 @@ class ProsessTaskRepositoryImplTest extends EntityManagerAwareTest {
         List<ProsessTaskStatus> statuser = Arrays.stream(ProsessTaskStatus.values()).filter(ProsessTaskStatus::erIkkeFerdig).toList();
         List<ProsessTaskData> prosessTaskData = prosessTaskRepository.finnAlle(statuser);
 
-        Assertions.assertThat(prosessTaskData).hasSize(6);
-    }
-
-    @Test
-    void test_ingen_match_for_angitt_prosesstatus() {
-        List<ProsessTaskStatus> statuser = List.of(ProsessTaskStatus.VETO);
-        List<ProsessTaskData> prosessTaskData = prosessTaskRepository.finnAlle(statuser);
-
-        Assertions.assertThat(prosessTaskData).isEmpty();
+        Assertions.assertThat(prosessTaskData).hasSize(5);
     }
 
     @Test
     void test_skal_finne_tasks_som_matcher_angitt_søk() {
 
-        List<ProsessTaskStatus> statuser = List.of(ProsessTaskStatus.SUSPENDERT);
+        List<ProsessTaskStatus> statuser = List.of(ProsessTaskStatus.VENTER_SVAR);
         List<ProsessTaskData> prosessTaskData = prosessTaskRepository.finnAlle(statuser);
 
         Assertions.assertThat(prosessTaskData).hasSize(1);
@@ -82,7 +71,7 @@ class ProsessTaskRepositoryImplTest extends EntityManagerAwareTest {
     void test_søk() {
         var tasks = prosessTaskRepository.finnAlleForAngittSøk(CommonTaskProperties.BEHANDLING_ID + "=2", LocalDate.now().minusMonths(1), LocalDate.now());
 
-        Assertions.assertThat(tasks).hasSize(7);
+        Assertions.assertThat(tasks).hasSize(6);
     }
 
     private void lagTestData() {
@@ -91,7 +80,6 @@ class ProsessTaskRepositoryImplTest extends EntityManagerAwareTest {
         lagre(lagTestEntitet(ProsessTaskStatus.VENTER_SVAR, NÅ.minusHours(3), TASK_TYPE));
         lagre(lagTestEntitet(ProsessTaskStatus.FEILET, NÅ.minusHours(4), TASK_TYPE));
         lagre(lagTestEntitet(ProsessTaskStatus.KLAR, NÅ.minusHours(5), TASK_TYPE));
-        lagre(lagTestEntitet(ProsessTaskStatus.SUSPENDERT, NÅ.minusHours(6), TASK_TYPE));
         lagre(lagTestEntitet(ProsessTaskStatus.KLAR, NÅ.minusHours(6), TASK_TYPE_2));
         flushAndClear();
     }

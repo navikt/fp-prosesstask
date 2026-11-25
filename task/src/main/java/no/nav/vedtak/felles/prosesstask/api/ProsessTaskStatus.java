@@ -6,8 +6,6 @@ public enum ProsessTaskStatus {
     KJOERT,
     FERDIG,
     VENTER_SVAR,
-    VETO,
-    SUSPENDERT,
     FEILET
     ;
 

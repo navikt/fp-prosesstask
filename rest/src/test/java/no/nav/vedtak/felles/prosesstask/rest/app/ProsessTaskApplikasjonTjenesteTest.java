@@ -2,7 +2,6 @@ package no.nav.vedtak.felles.prosesstask.rest.app;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
@@ -17,8 +16,6 @@ import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -36,9 +33,6 @@ class ProsessTaskApplikasjonTjenesteTest {
     private static final String TASK_TYPE_NAME = "random-string-uten-mening";
     private static final TaskType TASK_TYPE = new TaskType(TASK_TYPE_NAME);
 
-    @Captor
-    private ArgumentCaptor<List<ProsessTaskStatus>> statusCaptor;
-
     @Mock
     private ProsessTaskTjeneste tjenesteMock;
 
@@ -52,7 +46,7 @@ class ProsessTaskApplikasjonTjenesteTest {
     @Test
     void skal_tvinge_restart_når_prosesstask_har_feilet_maks() {
         var taskId = 10L;
-        var taskStatus = ProsessTaskStatus.SUSPENDERT;
+        var taskStatus = ProsessTaskStatus.FEILET;
 
         var restartResultatDto = prosessTaskApplikasjonTjeneste.flaggProsessTaskForRestart(taskId, taskStatus);
 
@@ -103,12 +97,11 @@ class ProsessTaskApplikasjonTjenesteTest {
 
     @Test
     void finn_alle_uten_status_oppgitt() {
-        when(tjenesteMock.finnAlleStatuser(anyList())).thenReturn(List.of(ProsessTaskData.forTaskType(TASK_TYPE)));
+        when(tjenesteMock.finnAktive(any(ProsessTaskStatus[].class))).thenReturn(List.of(ProsessTaskData.forTaskType(TASK_TYPE)));
 
         var resultat = prosessTaskApplikasjonTjeneste.finnAlle(List.of());
 
-        verify(tjenesteMock).finnAlleStatuser(statusCaptor.capture());
-        assertThat(statusCaptor.getValue()).hasSize(2);
+        verify(tjenesteMock).finnAktive(ProsessTaskStatus.KLAR, ProsessTaskStatus.VENTER_SVAR);
         assertThat(resultat).isNotEmpty().hasSize(1);
         assertThat(resultat.get(0).getTaskType()).isEqualTo(TASK_TYPE_NAME);
     }

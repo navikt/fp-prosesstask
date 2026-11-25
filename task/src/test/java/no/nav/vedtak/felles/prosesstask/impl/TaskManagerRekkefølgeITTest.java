@@ -30,7 +30,7 @@ class TaskManagerRekkefølgeITTest extends EntityManagerAwareTest {
 
     @BeforeEach
     void setUp() {
-        repo = new ProsessTaskRepository(getEntityManager(), null, null);
+        repo = new ProsessTaskRepository(getEntityManager(), null);
         taskManagerRepo = new TaskManagerRepositoryImpl(getEntityManager());
     }
 

@@ -58,9 +58,6 @@ public class ProsessTaskFeil {
     @JsonProperty("stacktrace")
     private String stackTrace;
 
-    @JsonProperty("blokkertAv")
-    private Long blokkerendeProsessTaskId;
-
     public ProsessTaskFeil() {
         // default ctor for proxy
     }
@@ -162,10 +159,6 @@ public class ProsessTaskFeil {
 
     public void setFeilkode(String feilkode) {
         this.feilkode = feilkode;
-    }
-
-    public void setBlokkerendeProsessTaskId(Long blokkerendeProsessTaskId) {
-        this.blokkerendeProsessTaskId = blokkerendeProsessTaskId;
     }
 
     @Override

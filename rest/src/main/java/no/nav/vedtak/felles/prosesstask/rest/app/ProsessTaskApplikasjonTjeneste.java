@@ -42,7 +42,7 @@ public class ProsessTaskApplikasjonTjeneste {
             brukStatuser.add(ProsessTaskStatus.KLAR);
             brukStatuser.add(ProsessTaskStatus.VENTER_SVAR);
         }
-        var prosessTaskData = prosessTaskTjeneste.finnAlleStatuser(brukStatuser);
+        var prosessTaskData = prosessTaskTjeneste.finnAktive(brukStatuser.toArray(ProsessTaskStatus[]::new));
         return prosessTaskData.stream().map(ProsessTaskDataKonverter::tilProsessTaskDataDto).toList();
     }
 
