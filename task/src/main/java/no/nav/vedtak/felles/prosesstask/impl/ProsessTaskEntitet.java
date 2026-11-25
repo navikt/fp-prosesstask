@@ -7,9 +7,8 @@ import java.time.LocalDateTime;
 import java.util.Objects;
 import java.util.Properties;
 
-import org.hibernate.annotations.Parameter;
-import org.hibernate.annotations.Type;
-import org.hibernate.usertype.UserTypeLegacyBridge;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Column;
@@ -19,7 +18,6 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.Lob;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 import jakarta.persistence.Version;
@@ -50,11 +48,7 @@ public class ProsessTaskEntitet {
     @Column(name = "neste_kjoering_etter")
     private LocalDateTime nesteKjøringEtter;
 
-    @Lob
-    @Type(
-        value = UserTypeLegacyBridge.class,
-        parameters = @Parameter(name = UserTypeLegacyBridge.TYPE_NAME_PARAM_KEY, value = "org.hibernate.type.TextType")
-    )
+    @JdbcTypeCode(SqlTypes.LONGVARCHAR)
     @Column(name = "task_payload")
     private String payload;
 
@@ -71,11 +65,7 @@ public class ProsessTaskEntitet {
     @Column(name = "siste_kjoering_feil_kode")
     private String sisteFeilKode;
 
-    @Lob
-    @Type(
-        value = UserTypeLegacyBridge.class,
-        parameters = @Parameter(name = UserTypeLegacyBridge.TYPE_NAME_PARAM_KEY, value = "org.hibernate.type.TextType")
-    )
+    @JdbcTypeCode(SqlTypes.LONGVARCHAR)
     @Column(name = "siste_kjoering_feil_tekst")
     private String sisteFeilTekst;
 

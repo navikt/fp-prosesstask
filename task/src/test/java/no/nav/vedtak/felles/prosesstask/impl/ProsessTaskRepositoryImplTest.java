@@ -61,11 +61,10 @@ class ProsessTaskRepositoryImplTest extends EntityManagerAwareTest {
     }
 
     @Test
-    void test_hent_feilet_id() {
-        var feilet = prosessTaskRepository.hentIdForAlleFeilet();
-
-        Assertions.assertThat(feilet).hasSize(1);
+    void test_finn_ukjent_id_returnerer_null() {
+        Assertions.assertThat(prosessTaskRepository.finn(-999L)).isNull();
     }
+
 
     @Test
     void test_søk() {

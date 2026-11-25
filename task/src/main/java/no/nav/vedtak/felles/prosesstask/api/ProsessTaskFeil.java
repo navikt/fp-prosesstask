@@ -9,7 +9,6 @@ import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import jakarta.persistence.Embeddable;
 import no.nav.vedtak.exception.VLException;
 import no.nav.vedtak.felles.jpa.savepoint.SavepointRolledbackException;
 import no.nav.vedtak.felles.prosesstask.impl.Feil;
@@ -22,7 +21,6 @@ import tools.jackson.databind.json.JsonMapper;
  */
 @JsonAutoDetect(getterVisibility = Visibility.NONE, setterVisibility = Visibility.NONE, fieldVisibility = Visibility.ANY)
 @JsonIgnoreProperties(ignoreUnknown = true)
-@Embeddable
 public class ProsessTaskFeil {
 
     private static final ObjectWriter OBJECT_WRITER;
