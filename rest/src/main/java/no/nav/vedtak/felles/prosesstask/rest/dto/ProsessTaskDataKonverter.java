@@ -13,31 +13,25 @@ public class ProsessTaskDataKonverter {
     }
 
     public static ProsessTaskDataDto tilProsessTaskDataDto(ProsessTaskData data) {
-        var dto = new ProsessTaskDataDto();
-
-        dto.setId(data.getId());
-        dto.setTaskType(data.taskType().value());
-        dto.setNesteKjøringEtter(data.getNesteKjøringEtter());
-        dto.setGruppe(data.getGruppe());
-        dto.setSekvens(data.getSekvens());
-        dto.setStatus(data.getStatus().getDbKode());
-        dto.setSistKjørt(data.getSistKjørt());
-        dto.setSisteFeilKode(data.getSisteFeilKode());
-        dto.setTaskParametre(filtrerProperties(data.getProperties()));
-
-        return dto;
+        return new ProsessTaskDataDto(
+            data.getId(),
+            data.taskType().value(),
+            data.getNesteKjøringEtter(),
+            data.getGruppe(),
+            data.getSekvens(),
+            data.getStatus().getDbKode(),
+            data.getOpprettetTid(),
+            data.getSistKjørt(),
+            data.getSisteFeilKode(),
+            filtrerProperties(data.getProperties()));
     }
 
     public static FeiletProsessTaskDataDto tilFeiletProsessTaskDataDto(ProsessTaskData data) {
-        var dto = new FeiletProsessTaskDataDto();
-
-        dto.setProsessTaskDataDto(tilProsessTaskDataDto(data));
-
-        dto.setFeiledeForsøk(data.getAntallFeiledeForsøk());
-        dto.setSisteFeilTekst(data.getSisteFeil());
-        dto.setSisteKjøringServerProsess(data.getSisteKjøringServerProsess());
-
-        return dto;
+        return new FeiletProsessTaskDataDto(
+            data.getSisteKjøringServerProsess(),
+            data.getSisteFeil(),
+            data.getAntallFeiledeForsøk(),
+            tilProsessTaskDataDto(data));
     }
 
     private static Properties filtrerProperties(Properties input) {

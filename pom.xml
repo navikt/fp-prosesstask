@@ -94,6 +94,11 @@
             </dependency>
             <dependency>
                 <groupId>no.nav.foreldrepenger.felles</groupId>
+                <artifactId>felles-mapper</artifactId>
+                <version>${felles.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>no.nav.foreldrepenger.felles</groupId>
                 <artifactId>felles-server</artifactId>
                 <version>${felles.version}</version>
             </dependency>

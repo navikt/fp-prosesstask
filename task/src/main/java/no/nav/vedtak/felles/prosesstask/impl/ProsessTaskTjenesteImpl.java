@@ -162,13 +162,6 @@ public class ProsessTaskTjenesteImpl implements ProsessTaskTjeneste {
     }
 
     @Override
-    public List<Long> flaggAlleFeileteProsessTasksForRestart() {
-        var restartet = prosessTaskRepository.hentIdForAlleFeilet();
-        prosessTaskRepository.settAlleFeiledeTasksKlar();
-        return restartet;
-    }
-
-    @Override
     public int restartAlleFeiledeTasks() {
         return prosessTaskRepository.settAlleFeiledeTasksKlar();
     }

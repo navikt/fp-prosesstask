@@ -35,6 +35,11 @@
 		</dependency>
         <dependency>
             <groupId>no.nav.foreldrepenger.felles</groupId>
+            <artifactId>felles-mapper</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>no.nav.foreldrepenger.felles</groupId>
             <artifactId>felles-server</artifactId>
             <scope>provided</scope>
         </dependency>
@@ -55,15 +60,6 @@
             <artifactId>hibernate-micrometer</artifactId>
             <scope>provided</scope>
         </dependency>
-
-        <dependency>
-			<groupId>com.fasterxml.jackson.core</groupId>
-			<artifactId>jackson-annotations</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>tools.jackson.core</groupId>
-			<artifactId>jackson-databind</artifactId>
-		</dependency>
 
 		<!-- Integrasjonstester mot Postgresql database -->
         <dependency>

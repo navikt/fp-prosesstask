@@ -2,175 +2,72 @@ package no.nav.vedtak.felles.prosesstask.api;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.util.Objects;
-
-import com.fasterxml.jackson.annotation.JsonAutoDetect;
-import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.Optional;
 
 import no.nav.vedtak.exception.VLException;
 import no.nav.vedtak.felles.jpa.savepoint.SavepointRolledbackException;
 import no.nav.vedtak.felles.prosesstask.impl.Feil;
-import tools.jackson.databind.ObjectReader;
-import tools.jackson.databind.ObjectWriter;
-import tools.jackson.databind.json.JsonMapper;
+import no.nav.vedtak.mapper.json.DefaultJsonMapper;
 
 /**
  * Json struktur for feil som kan oppstå. Dupliserer noen properties for enkelthets skyld til senere prosessering.
  */
-@JsonAutoDetect(getterVisibility = Visibility.NONE, setterVisibility = Visibility.NONE, fieldVisibility = Visibility.ANY)
-@JsonIgnoreProperties(ignoreUnknown = true)
-public class ProsessTaskFeil {
-
-    private static final ObjectWriter OBJECT_WRITER;
-    private static final ObjectReader OBJECT_READER;
-
-    static {
-        JsonMapper om = JsonMapper.builder().build();
-        OBJECT_WRITER = om.writerWithDefaultPrettyPrinter();
-        OBJECT_READER = om.readerFor(ProsessTaskFeil.class);
-    }
-
-    @JsonProperty("exceptionCauseClass")
-    private String exceptionCauseClass;
-
-    @JsonProperty("exceptionCauseMessage")
-    private String exceptionCauseMessage;
-
-    @JsonProperty("taskName")
-    private String taskName;
-
-    @JsonProperty("taskId")
-    private String taskId;
-
-    @JsonProperty("callId")
-    private String callId;
-
-    @JsonProperty("feilkode")
-    private String feilkode;
-
-    @JsonProperty("feilmelding")
-    private String feilmelding;
-
-    @JsonProperty("stacktrace")
-    private String stackTrace;
-
-    public ProsessTaskFeil() {
-        // default ctor for proxy
-    }
+public record ProsessTaskFeil(String exceptionCauseClass,
+                              String exceptionCauseMessage,
+                              String taskName,
+                              String taskId,
+                              String callId,
+                              String feilkode,
+                              String feilmelding,
+                              String stacktrace) {
 
     public static ProsessTaskFeil lagProsessTaskFeil(ProsessTaskInfo taskInfo, Feil feil) {
-        var taskFeil = new ProsessTaskFeil();
-        if (feil != null) {
-            var cause = getCause(feil);
+        var feilOpt = Optional.ofNullable(feil);
+        var cause = getCause(feil);
 
-            if (cause != null) {
-                // bruker her unwrapped cause hvis finnes
-                taskFeil.exceptionCauseClass = cause.getClass().getName();
-                taskFeil.exceptionCauseMessage = cause.getMessage();
-                taskFeil.feilkode = finnFeilkode(cause);
-            }
-            if (taskFeil.feilkode == null) {
-                taskFeil.feilkode = feil.kode();
-            }
-
-            if (feil.cause() != null) {
-                // her brukes original exception (ikke unwrapped) slik at vi får med hele historikken hvor eksakt dette inntraff
-                taskFeil.stackTrace = getStacktraceAsString(feil.cause());// bruker original exception uansett (inkludert wrapping exceptions)
-            }
-
-            taskFeil.feilmelding = feil.feilmelding();
-        }
-
-        taskFeil.taskName = taskInfo.taskType().value();
-        taskFeil.taskId = taskInfo.getId() == null ? null : taskInfo.getId().toString();
-        taskFeil.callId = taskInfo.getPropertyValue(CallId.CALL_ID);
-        return taskFeil;
+        return new ProsessTaskFeil(
+            cause.map(c -> c.getClass().getName()).orElse(null),
+            cause.map(Throwable::getMessage).orElse(null),
+            taskInfo.taskType().value(),
+            Optional.ofNullable(taskInfo.getId()).map(Object::toString).orElse(null),
+            taskInfo.getPropertyValue(CallId.CALL_ID),
+            cause.map(ProsessTaskFeil::finnFeilkode).or(() -> feilOpt.map(Feil::kode)).orElse(null),
+            feilOpt.map(Feil::feilmelding).orElse(null),
+            // her brukes original exception (ikke unwrapped) slik at vi får med hele historikken hvor eksakt dette inntraff
+            feilOpt.map(f -> getStacktraceAsString(f.cause())).orElse(null));
     }
 
-    public String getExceptionCauseClass() {
-        return exceptionCauseClass;
+    public String writeValueAsString() {
+        return DefaultJsonMapper.toPrettyJson(this);
     }
 
-    public String getExceptionCauseMessage() {
-        return exceptionCauseMessage;
-    }
-
-    public String getTaskName() {
-        return taskName;
-    }
-
-    public String getTaskId() {
-        return taskId;
-    }
-
-    public String getCallId() {
-        return callId;
-    }
-
-    public String getFeilkode() {
-        return feilkode;
-    }
-
-    public String getFeilmelding() {
-        return feilmelding;
-    }
-
-    public String getStackTrace() {
-        return stackTrace;
+    public static ProsessTaskFeil readFrom(String str) {
+        return DefaultJsonMapper.fromJson(str, ProsessTaskFeil.class);
     }
 
     private static String getStacktraceAsString(Throwable cause) {
         if (cause == null) {
             return null;
         }
-        StringWriter sw = new StringWriter(4096);
-        PrintWriter pw = new PrintWriter(sw);
+        var sw = new StringWriter(4096);
+        var pw = new PrintWriter(sw);
         cause.printStackTrace(pw);
         pw.flush();
         return sw.toString();
     }
 
-    private static Throwable getCause(Feil feil) {
+    private static Optional<Throwable> getCause(Feil feil) {
         if (feil == null) {
-            return null;
+            return Optional.empty();
         }
-        Throwable cause = feil.cause();
+        var cause = feil.cause();
         if (cause instanceof SavepointRolledbackException && cause.getCause() != null) {
-            cause = cause.getCause();
+            return Optional.of(cause.getCause());
         }
-        return cause;
+        return Optional.ofNullable(cause);
     }
 
     private static String finnFeilkode(Throwable e) {
         return e instanceof VLException vle ? vle.getKode() : null;
     }
-
-    public String writeValueAsString() {
-        return OBJECT_WRITER.writeValueAsString(this);
-    }
-
-    public static ProsessTaskFeil readFrom(String str) {
-        return OBJECT_READER.readValue(str);
-    }
-
-    public void setFeilkode(String feilkode) {
-        this.feilkode = feilkode;
-    }
-
-    @Override
-    public final boolean equals(Object o) {
-        if (!(o instanceof ProsessTaskFeil that))
-            return false;
-
-        return Objects.equals(getTaskName(), that.getTaskName()) && Objects.equals(getTaskId(), that.getTaskId())
-            && Objects.equals(getCallId(), that.getCallId()) && Objects.equals(getFeilmelding(), that.getFeilmelding());
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(taskName, taskId, callId, feilmelding);
-    }
-
 }
