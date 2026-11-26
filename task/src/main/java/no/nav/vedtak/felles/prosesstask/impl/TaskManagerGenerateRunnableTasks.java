@@ -3,7 +3,6 @@ package no.nav.vedtak.felles.prosesstask.impl;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.function.BiFunction;
-import java.util.function.Consumer;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,7 +19,6 @@ public class TaskManagerGenerateRunnableTasks {
 
     private final BiFunction<Integer, ReadTaskFunksjon, List<IdentRunnable>> availableTasksFunc;
     private final ProsessTaskDispatcher taskDispatcher;
-    private final Consumer<IdentRunnable> fatalErrorSubmitFunc;
     private final Instance<RunTask> runTasks;
     private final Instance<FatalErrorTask> fatalErrorTasks;
 
@@ -34,12 +32,10 @@ public class TaskManagerGenerateRunnableTasks {
      */
     TaskManagerGenerateRunnableTasks(ProsessTaskDispatcher taskDispatcher,
                                      BiFunction<Integer, ReadTaskFunksjon, List<IdentRunnable>> availableTasksFunc,
-                                     Consumer<IdentRunnable> errorSubmitFunc,
                                      Instance<RunTask> runTasks,
                                      Instance<FatalErrorTask> fatalErrorTasks) {
         this.taskDispatcher = taskDispatcher;
         this.availableTasksFunc = availableTasksFunc;
-        this.fatalErrorSubmitFunc = errorSubmitFunc;
         this.runTasks = runTasks;
         this.fatalErrorTasks = fatalErrorTasks;
     }
@@ -62,7 +58,7 @@ public class TaskManagerGenerateRunnableTasks {
     }
 
     TaskManagerRunnableTask createTaskManagerRunnableTask(final RunTaskInfo taskInfo, final String callId, TaskType taskType) {
-        return new TaskManagerRunnableTask(taskType, taskInfo, callId, fatalErrorSubmitFunc, runTasks, fatalErrorTasks);
+        return new TaskManagerRunnableTask(taskType, taskInfo, callId, runTasks, fatalErrorTasks);
     }
 
 }

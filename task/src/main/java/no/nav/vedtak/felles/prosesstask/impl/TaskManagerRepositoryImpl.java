@@ -11,7 +11,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.Scanner;
 import java.util.Set;
 
 import org.hibernate.ScrollMode;
@@ -52,7 +51,6 @@ public class TaskManagerRepositoryImpl {
     private static String POSTGRESQL_FRA_FIL;
 
     private final String jvmUniqueProcessName = getJvmUniqueProcessName();
-    private String sqlFraFil;
 
     private final EntityManager entityManager;
     private final Instance<EntityManager> entityManagers;
@@ -80,14 +78,7 @@ public class TaskManagerRepositoryImpl {
     }
 
     String getSqlForPolling() {
-        return getSqlForPollingTemplate();
-    }
-
-    String getSqlForPollingTemplate() {
-        if (sqlFraFil == null) {
-            sqlFraFil = getSqlForPollingTemplate(entityManager);
-        }
-        return sqlFraFil;
+        return getSqlForPollingTemplate(entityManager);
     }
 
     private static synchronized String getSqlForPollingTemplate(EntityManager entityManager) {
@@ -105,17 +96,15 @@ public class TaskManagerRepositoryImpl {
     }
 
     static String getSqlFraFil(String filNavn) {
-        try (var is = TaskManager.class.getResourceAsStream(filNavn);
-             var s = is == null ? null : new Scanner(is, StandardCharsets.UTF_8)) {
-
-            if (s == null) {
+        try (var is = TaskManager.class.getResourceAsStream(filNavn)) {
+            if (is == null) {
                 throw new IllegalStateException("Finner ikke sql fil: " + filNavn);
             }
-            s.useDelimiter("\\Z");
-            if (!s.hasNext()) {
+            var sql = new String(is.readAllBytes(), StandardCharsets.UTF_8);
+            if (sql.isEmpty()) {
                 throw new IllegalStateException("Finner ikke sql fil: " + filNavn);
             }
-            return s.next();
+            return sql;
         } catch (IOException e) {
             throw new TekniskException("PT-314160",
                     String.format("Finner ikke sql i fil=%s. Konfigurasjon er ugyldig.", filNavn), e);
@@ -123,10 +112,10 @@ public class TaskManagerRepositoryImpl {
     }
 
     /**
-     * Henter alle tasks som er klare til å kjøre ved angitt tidspunkt.
+     * Henter alle tasks som er klare til å kjøre ved angitt tidspunkt. Kun for test av rekkefølge.
      */
     @SuppressWarnings("unchecked")
-    List<ProsessTaskData> pollNeste(LocalDateTime etterTid) {
+    List<ProsessTaskData> pollNesteTestRekkefølge(LocalDateTime etterTid) {
         final var sqlForPolling = getSqlForPolling();
 
         List<ProsessTaskEntitet> resultList = entityManager
@@ -209,23 +198,23 @@ public class TaskManagerRepositoryImpl {
 
     }
 
-    /** Markere task plukket til arbeid (ligger på in-memory kø). */
-    void oppdaterTaskPlukket(Long prosessTaskId, LocalDateTime nesteKjøring, LocalDateTime now) {
-        var updateSql = "update PROSESS_TASK set" +
-                "  neste_kjoering_etter= :neste_kjoering" +
-                " ,siste_kjoering_plukk_ts = :naa" +
-                " ,siste_kjoering_server = :server" +
-                " ,versjon=versjon+1 " +
-                " WHERE id = :id";
+    /** Markere tasks plukket til arbeid (ligger på in-memory kø). */
+    void oppdaterTasksPlukket(List<Long> prosessTaskIds, LocalDateTime nesteKjøring, LocalDateTime now) {
+        var updateSql = """
+            update PROSESS_TASK set
+              neste_kjoering_etter = :neste_kjoering
+             ,siste_kjoering_plukk_ts = :naa
+             ,siste_kjoering_server = :server
+             ,versjon = versjon + 1
+             WHERE id IN (:ids)
+            """;
 
-        @SuppressWarnings("unused")
-        var tasks = entityManager.createNativeQuery(updateSql)
-                .setParameter("id", prosessTaskId)
+        entityManager.createNativeQuery(updateSql)
+                .setParameter("ids", prosessTaskIds)
                 .setParameter(NESTE_KJØRING, nesteKjøring)
                 .setParameter("naa", now)
                 .setParameter("server", jvmUniqueProcessName)
                 .executeUpdate();
-
     }
 
     /**
@@ -242,7 +231,7 @@ public class TaskManagerRepositoryImpl {
         // kun en og en rad om
         // gangen) og definere eksakt spørring.
 
-        // Scroller for å kunne oppdatere en og en rad uten å ta lås på neste.
+        // Scroller for å kunne hente opp til numberOfTasks rader uten å ta lås på resten.
         var timestamp = LocalDateTime.now();
         try (var results = getEntityManagerAsSession()
                 .createNativeQuery(getSqlForPolling(), ProsessTaskEntitet.class)
@@ -251,19 +240,22 @@ public class TaskManagerRepositoryImpl {
                 .setHint(HibernateHints.HINT_FETCH_SIZE, 1)
                 .setParameter(NESTE_KJØRING, timestamp)
                 .setParameter("skip_ids", skipIds.isEmpty() ? Set.of(-1) : skipIds)
-                .scroll(ScrollMode.FORWARD_ONLY);) {
+                .scroll(ScrollMode.FORWARD_ONLY)) {
 
-            var now = getNåTidSekundOppløsning();
-            var nyNesteTid = now.plusSeconds(waitTimeBeforeNextPollingAttemptSecs);
-
-            while (results.next() && --numberOfTasksStillToGo >= 0) {
+            while (--numberOfTasksStillToGo >= 0 && results.next()) {
                 var pte = results.get();
                 if (pte != null) {
                     tasksToRun.add(pte);
-                    oppdaterTaskPlukket(pte.getId(), nyNesteTid, now);
                     logTaskPollet(pte);
                 }
             }
+        }
+
+        if (!tasksToRun.isEmpty()) {
+            var now = getNåTidSekundOppløsning();
+            var nyNesteTid = now.plusSeconds(waitTimeBeforeNextPollingAttemptSecs);
+            var ids = tasksToRun.stream().map(ProsessTaskEntitet::getId).toList();
+            oppdaterTasksPlukket(ids, nyNesteTid, now);
         }
 
         return tasksToRun;

@@ -35,11 +35,11 @@ class TaskManagerGenerateRunnableTasksITTest extends EntityManagerAwareTest {
 
         AtomicReference<Throwable> errorFuncException = new AtomicReference<>();
 
-        TaskManagerGenerateRunnableTasks generateRunnableTasks = new TaskManagerGenerateRunnableTasks(null, null, null, null, null) {
+        TaskManagerGenerateRunnableTasks generateRunnableTasks = new TaskManagerGenerateRunnableTasks(null, null, null, null) {
 
             @Override
             TaskManagerRunnableTask createTaskManagerRunnableTask(final RunTaskInfo taskInfo, final String callId, TaskType taskType) {
-                return new TaskManagerRunnableTask(taskType, taskInfo, callId, null, null, null) {
+                return new TaskManagerRunnableTask(taskType, taskInfo, callId, null, null) {
 
                     @Override
                     IdentRunnable lagErrorCallback(RunTaskInfo taskInfo, String callId, Throwable t) {

@@ -14,9 +14,11 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.FutureTask;
+import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.RunnableFuture;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -37,10 +39,8 @@ import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
 import no.nav.vedtak.exception.TekniskException;
 import no.nav.vedtak.felles.jpa.TransactionHandler;
-import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskDispatcher;
 import no.nav.vedtak.felles.prosesstask.api.TaskMonitor;
-import no.nav.vedtak.felles.prosesstask.api.TaskType;
 import no.nav.vedtak.felles.prosesstask.impl.util.OtelUtil;
 import no.nav.vedtak.server.Controllable;
 
@@ -139,31 +139,7 @@ public class TaskManager implements Controllable {
         this.fatalErrorTasks = fatalErrorTasks;
 
         if (dispatcher != null) {
-
-            /**
-             * Holder styr på kjørende task per tråd slik at vi kan i enkelttilfeller hente
-             * ut info om det på en tråd.
-             */
-            class TrackCurrentDispatchedTask implements ProsessTaskDispatcher {
-                final ProsessTaskDispatcher delegate = selectProsessTaskDispatcher(dispatcher);
-
-                @Override
-                public boolean feilhåndterException(Throwable e) {
-                    return delegate.feilhåndterException(e);
-                }
-
-                @Override
-                public void dispatch(ProsessTaskData task) throws Exception {
-                    delegate.dispatch(task);
-                }
-
-                @Override
-                public ProsessTaskHandlerRef taskHandler(TaskType taskType) {
-                    return delegate.taskHandler(taskType);
-                }
-            }
-
-            this.taskDispatcher = new TrackCurrentDispatchedTask();
+            this.taskDispatcher = selectProsessTaskDispatcher(dispatcher);
         }
     }
 
@@ -178,7 +154,7 @@ public class TaskManager implements Controllable {
                 }
             }
             if (dispatcherList.size() == 1) {
-                return dispatcherList.get(0);
+                return dispatcherList.getFirst();
             } else {
                 // kast exception har fler enn 2 instanser tilgjengelig, vet ikke hvilken vi
                 // skal velge
@@ -229,14 +205,24 @@ public class TaskManager implements Controllable {
     }
 
     @Override
-    public synchronized void stop() {
-        if (pollingServiceScheduledFutures != null) {
-            pollingServiceScheduledFutures.forEach(s -> s.cancel(true));
-            pollingServiceScheduledFutures = null;
-        }
-        if (runTaskService != null) {
-            runTaskService.stop();
+    public void stop() {
+        ScheduledExecutorService ps;
+        IdentExecutorService rts;
+        synchronized (this) {
+            if (pollingServiceScheduledFutures != null) {
+                pollingServiceScheduledFutures.forEach(s -> s.cancel(true));
+                pollingServiceScheduledFutures = null;
+            }
+            ps = pollingService;
+            pollingService = null;
+            rts = runTaskService;
             runTaskService = null;
+        }
+        if (ps != null) {
+            ps.shutdownNow();
+        }
+        if (rts != null) {
+            rts.stop();
         }
     }
 
@@ -248,13 +234,14 @@ public class TaskManager implements Controllable {
             this.pollingService = Executors
                 .newSingleThreadScheduledExecutor(new NamedThreadFactory(threadPoolNamePrefix + "-poller", false));
         }
+        // Randomiser initialDelay siden alle pods (minst 2) starter med 15-45s mellomrom.
+        var moveToDoneInitialDelaySecs = ThreadLocalRandom.current().nextLong(60, 600);
+        var taskMonitorInitialDelaySecs = ThreadLocalRandom.current().nextLong(180, 540);
         this.pollingServiceScheduledFutures = List.of(
             pollingService.scheduleWithFixedDelay(new PollAvailableTasks(), delayBetweenPollingMillis / 2, delayBetweenPollingMillis,
-                TimeUnit.MILLISECONDS));
-
-        // schedulerer første runde, reschedulerer seg selv senere.
-        pollingService.schedule(new MoveToDonePartition(), 30, TimeUnit.SECONDS);
-        pollingService.schedule(new UpdateTaskMonitor(), 10, TimeUnit.SECONDS);
+                TimeUnit.MILLISECONDS),
+            pollingService.scheduleWithFixedDelay(new MoveToDonePartition(), moveToDoneInitialDelaySecs, 300, TimeUnit.SECONDS),
+            pollingService.scheduleWithFixedDelay(new UpdateTaskMonitor(), taskMonitorInitialDelaySecs, 300, TimeUnit.SECONDS));
     }
 
     synchronized void startTaskThreads() {
@@ -273,16 +260,21 @@ public class TaskManager implements Controllable {
      */
     protected synchronized List<IdentRunnable> pollForAvailableTasks() {
 
+        var rts = getRunTaskService();
+        if (rts == null) {
+            return Collections.emptyList();
+        }
+
         var now = LocalDateTime.now();
 
-        var capacity = getRunTaskService().remainingCapacity();
+        var capacity = rts.remainingCapacity();
         if (reportRegularlyAndSkipIfNoAvailableCapacity(now, capacity)) {
             return Collections.emptyList();
         }
 
         var numberOfTasksToPoll = Math.min(capacity, maxNumberOfTasksToPoll);
         var pollDatabaseToRunnable = new TaskManagerGenerateRunnableTasks(getTaskDispatcher(), this::pollTasksFunksjon,
-            this::submitTask, runTasks, fatalErrorTasks);
+            runTasks, fatalErrorTasks);
         var tasksFound = pollDatabaseToRunnable.execute(numberOfTasksToPoll);
 
         reportRegularlyIfNoTasksFound(now, tasksFound);
@@ -321,7 +313,11 @@ public class TaskManager implements Controllable {
 
     List<IdentRunnable> pollTasksFunksjon(int numberOfTasksToPoll, ReadTaskFunksjon readTaskFunksjon) {
 
-        var inmemoryTaskIds = getRunTaskService().getTaskIds();
+        var rts = getRunTaskService();
+        if (rts == null) {
+            return Collections.emptyList();
+        }
+        var inmemoryTaskIds = rts.getTaskIds();
 
         var tasksEntiteter = taskManagerRepository
             .pollNesteScrollingUpdate(numberOfTasksToPoll, waitTimeBeforeNextPollingAttemptSecs, inmemoryTaskIds);
@@ -375,7 +371,7 @@ public class TaskManager implements Controllable {
         public Integer doPollingWithEntityManager() {
             try {
                 if (backoffRound.get() > 0) {
-                    Thread.sleep(getBackoffIntervalSeconds());
+                    TimeUnit.SECONDS.sleep(getBackoffIntervalSeconds());
                 }
                 var availableTasks = new PollInNewTransaction().doWork();
 
@@ -403,8 +399,8 @@ public class TaskManager implements Controllable {
             return -1;
         }
 
-        private long getBackoffIntervalSeconds() {
-            return backoffInterval[Math.min(backoffRound.get(), backoffInterval.length) - 1] * 1000L;
+        private int getBackoffIntervalSeconds() {
+            return backoffInterval[Math.min(backoffRound.get(), backoffInterval.length) - 1];
         }
 
         @Override
@@ -423,10 +419,18 @@ public class TaskManager implements Controllable {
         }
 
         private void dispatchTasks(List<IdentRunnable> availableTasks) {
+            var rts = getRunTaskService();
+            if (rts == null) {
+                return;
+            }
             for (var task : availableTasks) {
-                @SuppressWarnings("unused")
-                Future<?> future = submitTask(task);
-                // lar futures ligge, feil fanges i task
+                try {
+                    rts.submit(task);
+                    // lar futures ligge, feil fanges i task
+                } catch (RejectedExecutionException _) {
+                    // ignoreres under shutdown
+                    return;
+                }
             }
         }
 
@@ -447,9 +451,18 @@ public class TaskManager implements Controllable {
      * Kjører en polling runde (async)
      */
     void doSinglePollingAsync() {
-        if (pollingService != null) {
-            pollingService.submit(new PollAvailableTasks(), Boolean.TRUE);
-        } // else - ignoreres hvis ikke startet
+        var ps = getPollingService();
+        if (ps != null && !ps.isShutdown()) {
+            try {
+                ps.submit(new PollAvailableTasks(), Boolean.TRUE);
+            } catch (RejectedExecutionException _) {
+                // ignoreres under shutdown
+            }
+        } // else - ignoreres hvis ikke startet eller stoppet
+    }
+
+    private synchronized ScheduledExecutorService getPollingService() {
+        return pollingService;
     }
 
     /**
@@ -457,10 +470,6 @@ public class TaskManager implements Controllable {
      */
     synchronized IdentExecutorService getRunTaskService() {
         return runTaskService;
-    }
-
-    interface Work<R> {
-        R doWork(EntityManager em) throws Exception;
     }
 
     private static int getSystemPropertyWithLowerBoundry(String key, int defaultValue, int lowerBoundry) {
@@ -518,13 +527,8 @@ public class TaskManager implements Controllable {
 
         @Override
         public void run() {
-            OtelUtil.wrapper().span("MoveToDonePartition", spanBuilder -> spanBuilder.setSpanKind(SpanKind.INTERNAL).setNoParent(), () -> {
-                RequestContextHandler.doWithRequestContext(this::doWithContext);
-                // neste kjører mellom 1-10 min fra nå.
-                var min = 60L * 1000;
-                var delay = System.currentTimeMillis() % (9 * min);
-                pollingService.schedule(this, min + delay, TimeUnit.MILLISECONDS);
-            });
+            OtelUtil.wrapper().span("MoveToDonePartition", spanBuilder -> spanBuilder.setSpanKind(SpanKind.INTERNAL).setNoParent(),
+                () -> RequestContextHandler.doWithRequestContext(this::doWithContext));
         }
     }
 
@@ -571,13 +575,8 @@ public class TaskManager implements Controllable {
 
         @Override
         public void run() {
-            OtelUtil.wrapper().span("UpdateTaskMonitor", spanBuilder -> spanBuilder.setSpanKind(SpanKind.INTERNAL), () -> {
-                RequestContextHandler.doWithRequestContext(this::doWithContext);
-                // neste kjører mellom 3-9 min fra nå.
-                var min = 3L * 60 * 1000;
-                var delay = System.currentTimeMillis() % (2 * min);
-                pollingService.schedule(this, min + delay, TimeUnit.MILLISECONDS);
-            });
+            OtelUtil.wrapper().span("UpdateTaskMonitor", spanBuilder -> spanBuilder.setSpanKind(SpanKind.INTERNAL),
+                () -> RequestContextHandler.doWithRequestContext(this::doWithContext));
         }
     }
 
@@ -630,10 +629,14 @@ public class TaskManager implements Controllable {
         }
 
         void stop() {
-            executor.shutdownNow();
+            executor.getQueue().clear();
+            executor.shutdown();
             try {
-                executor.awaitTermination(30, TimeUnit.SECONDS);
-            } catch (InterruptedException e) {
+                if (!executor.awaitTermination(15, TimeUnit.SECONDS)) {
+                    executor.shutdownNow();
+                }
+            } catch (InterruptedException _) {
+                executor.shutdownNow();
                 Thread.currentThread().interrupt();
             }
         }

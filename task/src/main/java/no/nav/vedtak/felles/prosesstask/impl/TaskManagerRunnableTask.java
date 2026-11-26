@@ -1,7 +1,6 @@
 package no.nav.vedtak.felles.prosesstask.impl;
 
 import java.time.LocalDateTime;
-import java.util.function.Consumer;
 import java.util.function.UnaryOperator;
 
 import org.slf4j.MDC;
@@ -18,16 +17,14 @@ class TaskManagerRunnableTask implements Runnable {
     private final TaskType taskType;
     private final RunTaskInfo taskInfo;
     private final String callId;
-    private final Consumer<IdentRunnable> fatalErrorSubmitFunc;
     private final Instance<RunTask> runTasks;
     private final Instance<FatalErrorTask> fatalErrorTasks;
 
-    TaskManagerRunnableTask(TaskType taskType, RunTaskInfo taskInfo, String callId, Consumer<IdentRunnable> fatalErrorSubmitFunc,
+    TaskManagerRunnableTask(TaskType taskType, RunTaskInfo taskInfo, String callId,
                             Instance<RunTask> runTasks, Instance<FatalErrorTask> fatalErrorTasks) {
         this.taskType = taskType;
         this.taskInfo = taskInfo;
         this.callId = callId;
-        this.fatalErrorSubmitFunc = fatalErrorSubmitFunc;
         this.runTasks = runTasks;
         this.fatalErrorTasks = fatalErrorTasks;
     }
@@ -108,8 +105,8 @@ class TaskManagerRunnableTask implements Runnable {
 
     void handleErrorCallback(IdentRunnable errorCallback) {
         if (errorCallback != null) {
-            // NB - kjøres i annen transaksjon enn opprinnelig
-            fatalErrorSubmitFunc.accept(errorCallback);
+            // NB - kjøres i ny transaksjon og ny RequestContext (forrige RunTask er allerede destruert)
+            errorCallback.run();
         }
     }
 
