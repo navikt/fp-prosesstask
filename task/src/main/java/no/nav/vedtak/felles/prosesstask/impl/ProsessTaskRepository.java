@@ -76,7 +76,6 @@ public class ProsessTaskRepository {
 
     public String lagre(ProsessTaskGruppe sammensattTask) {
         String unikGruppeId = null;
-        for (var entry : sammensattTask.getTasks()) {
         var lifecycleOpprettet = true;
         for (var entry : sammensattTask.getTasksForLagring()) {
             var task = entry.task();

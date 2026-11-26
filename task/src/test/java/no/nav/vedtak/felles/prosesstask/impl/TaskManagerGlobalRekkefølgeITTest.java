@@ -30,7 +30,7 @@ class TaskManagerGlobalRekkefølgeITTest extends EntityManagerAwareTest {
 
     @BeforeEach
     void setUp() {
-        repo = new ProsessTaskRepository(getEntityManager(), null, null);
+        repo = new ProsessTaskRepository(getEntityManager(), null);
         taskManagerRepo = new TaskManagerRepositoryImpl(getEntityManager());
     }
 
@@ -64,7 +64,7 @@ class TaskManagerGlobalRekkefølgeITTest extends EntityManagerAwareTest {
 
         pollEnRundeVerifiserOgFerdigstill(pt3);
 
-        List<ProsessTaskData> sekvensiellRunde04 = taskManagerRepo.pollNeste(now);
+        List<ProsessTaskData> sekvensiellRunde04 = taskManagerRepo.pollNesteTestRekkefølge(now);
         assertThat(sekvensiellRunde04).isEmpty();
 
     }
@@ -85,7 +85,7 @@ class TaskManagerGlobalRekkefølgeITTest extends EntityManagerAwareTest {
             pollEnRundeVerifiserOgFerdigstill(tasks.get(i));
         }
 
-        List<ProsessTaskData> sekvensiellRunde22 = taskManagerRepo.pollNeste(now);
+        List<ProsessTaskData> sekvensiellRunde22 = taskManagerRepo.pollNesteTestRekkefølge(now);
         assertThat(sekvensiellRunde22).isEmpty();
 
     }
@@ -104,7 +104,7 @@ class TaskManagerGlobalRekkefølgeITTest extends EntityManagerAwareTest {
 
         pollEnRundeVerifiserOgMarkerFeil(pt1);
 
-        List<ProsessTaskData> sekvensiellRunde02 = taskManagerRepo.pollNeste(now);
+        List<ProsessTaskData> sekvensiellRunde02 = taskManagerRepo.pollNesteTestRekkefølge(now);
         assertThat(sekvensiellRunde02).isEmpty();
     }
 
@@ -126,13 +126,13 @@ class TaskManagerGlobalRekkefølgeITTest extends EntityManagerAwareTest {
 
         pollEnRundeVerifiserOgMarkerFeil(pt2);
 
-        List<ProsessTaskData> sekvensiellRunde03 = taskManagerRepo.pollNeste(now);
+        List<ProsessTaskData> sekvensiellRunde03 = taskManagerRepo.pollNesteTestRekkefølge(now);
         assertThat(sekvensiellRunde03).isEmpty();
 
     }
 
     private void pollEnRundeVerifiserOgMarkerFeil(ProsessTaskData pt) {
-        List<ProsessTaskData> neste = taskManagerRepo.pollNeste(now);
+        List<ProsessTaskData> neste = taskManagerRepo.pollNesteTestRekkefølge(now);
         assertThat(neste).containsExactly(pt);
         pt.setStatus(ProsessTaskStatus.FEILET);
         pt.setAntallFeiledeForsøk(1);
@@ -144,7 +144,7 @@ class TaskManagerGlobalRekkefølgeITTest extends EntityManagerAwareTest {
     }
 
     private void pollEnRundeVerifiserOgFerdigstill(ProsessTaskData... tasks) {
-        List<ProsessTaskData> neste = taskManagerRepo.pollNeste(now);
+        List<ProsessTaskData> neste = taskManagerRepo.pollNesteTestRekkefølge(now);
         assertThat(neste).hasSize(tasks.length);
         assertThat(neste.stream().map(ProsessTaskData::taskType).toArray()).containsExactly(Arrays.stream(tasks).map(ProsessTaskData::taskType).toArray());
 
