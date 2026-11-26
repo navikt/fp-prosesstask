@@ -9,6 +9,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -52,18 +53,18 @@ class ProsessTaskApplikasjonTjenesteTest {
 
         verify(tjenesteMock).flaggProsessTaskForRestart(taskId, taskStatus);
 
-        assertThat(restartResultatDto.getProsessTaskId()).isEqualTo(taskId);
-        assertThat(restartResultatDto.getProsessTaskStatus()).isEqualTo(ProsessTaskStatus.KLAR.getDbKode());
+        assertThat(restartResultatDto.prosessTaskId()).isEqualTo(taskId);
+        assertThat(restartResultatDto.prosessTaskStatus()).isEqualTo(ProsessTaskStatus.KLAR.getDbKode());
     }
 
     @Test
     void skal_returnere_tre_restartet_prosesstask() {
-        when(tjenesteMock.flaggAlleFeileteProsessTasksForRestart()).thenReturn(List.of(10L, 11L, 12L));
+        when(tjenesteMock.restartAlleFeiledeTasks()).thenReturn(3);
 
         var result = prosessTaskApplikasjonTjeneste.flaggAlleFeileteProsessTasksForRestart();
 
-        assertThat(result.getProsessTaskIds()).hasSize(3);
-        verify(tjenesteMock).flaggAlleFeileteProsessTasksForRestart();
+        assertThat(result.antall()).isEqualTo(3);
+        verify(tjenesteMock).restartAlleFeiledeTasks();
     }
 
     @Test
@@ -79,10 +80,11 @@ class ProsessTaskApplikasjonTjenesteTest {
         verify(tjenesteMock).finn(taskId);
         assertThat(result).isPresent();
 
-        var prosessTaskDataDto = result.get().getProsessTaskDataDto();
-        assertThat(prosessTaskDataDto.getStatus()).isEqualTo(ProsessTaskStatus.FEILET.getDbKode());
-        assertThat(prosessTaskDataDto.getTaskParametre().stringPropertyNames()).hasSize(1);
-        assertThat(prosessTaskDataDto.getTaskParametre().getProperty("behandlingUUId")).isEqualTo(uuid.toString());
+        var prosessTaskDataDto = result.get().prosessTaskDataDto();
+        assertThat(prosessTaskDataDto.status()).isEqualTo(ProsessTaskStatus.FEILET.getDbKode());
+        assertThat(prosessTaskDataDto.opprettetTid()).isNotNull();
+        assertThat(prosessTaskDataDto.taskParametre().stringPropertyNames()).hasSize(1);
+        assertThat(prosessTaskDataDto.taskParametre().getProperty("behandlingUUId")).isEqualTo(uuid.toString());
     }
 
     @Test
@@ -103,7 +105,7 @@ class ProsessTaskApplikasjonTjenesteTest {
 
         verify(tjenesteMock).finnAktive(ProsessTaskStatus.KLAR, ProsessTaskStatus.VENTER_SVAR);
         assertThat(resultat).isNotEmpty().hasSize(1);
-        assertThat(resultat.get(0).getTaskType()).isEqualTo(TASK_TYPE_NAME);
+        assertThat(resultat.getFirst().taskType()).isEqualTo(TASK_TYPE_NAME);
     }
 
     @Test
@@ -111,13 +113,12 @@ class ProsessTaskApplikasjonTjenesteTest {
         var søkeTekst = "haha";
         when(tjenesteMock.finnAlleMedParameterTekst(eq(søkeTekst), any(LocalDate.class), any(LocalDate.class))).thenReturn(List.of(ProsessTaskData.forTaskType(TASK_TYPE)));
 
-        var søkeFilterDto = new SokeFilterDto();
-        søkeFilterDto.setTekst(søkeTekst);
+        var søkeFilterDto = new SokeFilterDto(søkeTekst, null, null);
         var resultat = prosessTaskApplikasjonTjeneste.søk(søkeFilterDto);
 
         verify(tjenesteMock).finnAlleMedParameterTekst(eq(søkeTekst), any(LocalDate.class), any(LocalDate.class));
         assertThat(resultat).isNotEmpty().hasSize(1);
-        assertThat(resultat.get(0).getTaskType()).isEqualTo(TASK_TYPE_NAME);
+        assertThat(resultat.getFirst().taskType()).isEqualTo(TASK_TYPE_NAME);
     }
 
     @Test
@@ -130,14 +131,12 @@ class ProsessTaskApplikasjonTjenesteTest {
 
     @Test
     void opprett_prosess_task() {
-        var input = new ProsessTaskOpprettInputDto();
-        input.setTaskType(TASK_TYPE_NAME);
-        input.setTaskParametre(Map.of());
+        var input = new ProsessTaskOpprettInputDto(TASK_TYPE_NAME, Map.of());
 
         var prosessTaskDataDto = prosessTaskApplikasjonTjeneste.opprettTask(input);
 
         verify(tjenesteMock).lagreValidert(any(ProsessTaskData.class));
-        assertThat(prosessTaskDataDto.getTaskType()).isEqualTo(TASK_TYPE_NAME);
+        assertThat(prosessTaskDataDto.taskType()).isEqualTo(TASK_TYPE_NAME);
     }
 
     private ProsessTaskData lagMedStatus() {
@@ -151,6 +150,7 @@ class ProsessTaskApplikasjonTjenesteTest {
         var prosessTaskData = ProsessTaskData.forTaskType(TASK_TYPE);
         prosessTaskData.setStatus(ProsessTaskStatus.FEILET);
         prosessTaskData.setAntallFeiledeForsøk(0);
+        prosessTaskData.setOpprettetTid(LocalDateTime.now());
         parameters.forEach(prosessTaskData::setProperty);
         return prosessTaskData;
     }

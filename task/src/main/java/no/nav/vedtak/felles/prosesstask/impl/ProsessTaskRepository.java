@@ -223,13 +223,6 @@ public class ProsessTaskRepository {
         return tilProsessTask(resultList);
     }
 
-    public List<Long> hentIdForAlleFeilet() {
-        var query = entityManager
-            .createQuery("select pt.id from ProsessTaskEntitet pt where pt.status = :feilet", Long.class)
-            .setParameter("feilet", ProsessTaskStatus.FEILET.getDbKode());
-        return query.getResultList();
-    }
-
     public int settAlleFeiledeTasksKlar() {
         var query = entityManager.createNativeQuery("""
                 UPDATE PROSESS_TASK

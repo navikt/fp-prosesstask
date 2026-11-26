@@ -2,60 +2,12 @@ package no.nav.vedtak.felles.prosesstask.rest.dto;
 
 import java.time.LocalDateTime;
 
-import com.fasterxml.jackson.annotation.JsonAutoDetect;
-import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 
-@JsonIgnoreProperties(ignoreUnknown = true)
-@JsonAutoDetect(getterVisibility = Visibility.NONE, setterVisibility = Visibility.NONE, fieldVisibility = Visibility.ANY)
 @Schema(description = "Resultatet av asynkron-restart av en eksisterende prosesstask")
-public class ProsessTaskRestartResultatDto {
-
-    @JsonProperty(value = "prosessTaskId", required = true)
-    @NotNull
-    private Long prosessTaskId;
-
-    @JsonProperty(value = "prosessTaskStatus", required = true)
-    @NotNull
-    @Schema(description = "Nåværende status (KLAR)")
-    @Pattern(regexp = "^[\\p{Alnum}_.\\-]*$")
-    private String prosessTaskStatus;
-
-    @JsonProperty(value = "nesteKjoeretidspunkt", required = true)
-    @NotNull
-    @Schema(description = "Kjøretidspunkt for restart av prosessen")
-    private LocalDateTime nesteKjoeretidspunkt;
-
-    public ProsessTaskRestartResultatDto() {
-        // Jackson
-    }
-
-    public Long getProsessTaskId() {
-        return prosessTaskId;
-    }
-
-    public void setProsessTaskId(Long prosessTaskId) {
-        this.prosessTaskId = prosessTaskId;
-    }
-
-    public String getProsessTaskStatus() {
-        return prosessTaskStatus;
-    }
-
-    public void setProsessTaskStatus(String prosessTaskStatus) {
-        this.prosessTaskStatus = prosessTaskStatus;
-    }
-
-    public LocalDateTime getNesteKjoeretidspunkt() {
-        return nesteKjoeretidspunkt;
-    }
-
-    public void setNesteKjoeretidspunkt(LocalDateTime nesteKjoeretidspunkt) {
-        this.nesteKjoeretidspunkt = nesteKjoeretidspunkt;
-    }
+public record ProsessTaskRestartResultatDto(@NotNull Long prosessTaskId,
+                                            @NotNull @Schema(description = "Nåværende status (KLAR)") @Pattern(regexp = "^[\\p{Alnum}_.\\-]*$") String prosessTaskStatus,
+                                            @NotNull @Schema(description = "Kjøretidspunkt for restart av prosessen") LocalDateTime nesteKjoeretidspunkt) {
 }

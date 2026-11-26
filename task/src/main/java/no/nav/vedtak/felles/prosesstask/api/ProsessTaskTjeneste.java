@@ -44,7 +44,6 @@ public interface ProsessTaskTjeneste {
      * Setter hhv angitt og alle feilede task til klar slik at de kjøres på nytt
      */
     void flaggProsessTaskForRestart(Long prosessTaskId, ProsessTaskStatus oppgittStatus);
-    List<Long> flaggAlleFeileteProsessTasksForRestart();
     int restartAlleFeiledeTasks();
 
     /*

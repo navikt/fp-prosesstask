@@ -48,8 +48,8 @@ public class ProsessTaskApplikasjonTjeneste {
 
     public List<ProsessTaskDataDto> søk(SokeFilterDto sokeFilterDto) {
 
-        var prosessTaskData = prosessTaskTjeneste.finnAlleMedParameterTekst(sokeFilterDto.getTekst(),
-                sokeFilterDto.getOpprettetFraOgMed(), sokeFilterDto.getOpprettetTilOgMed());
+        var prosessTaskData = prosessTaskTjeneste.finnAlleMedParameterTekst(sokeFilterDto.tekst(),
+                sokeFilterDto.opprettetFraOgMed(), sokeFilterDto.opprettetTilOgMed());
         return prosessTaskData.stream().map(ProsessTaskDataKonverter::tilProsessTaskDataDto).toList();
     }
 
@@ -68,26 +68,18 @@ public class ProsessTaskApplikasjonTjeneste {
     public ProsessTaskRestartResultatDto flaggProsessTaskForRestart(Long prosessTaskId, ProsessTaskStatus status) {
         prosessTaskTjeneste.flaggProsessTaskForRestart(prosessTaskId, status);
 
-        var restartResultatDto = new ProsessTaskRestartResultatDto();
-        restartResultatDto.setNesteKjoeretidspunkt(LocalDateTime.now());
-        restartResultatDto.setProsessTaskId(prosessTaskId);
-        restartResultatDto.setProsessTaskStatus(ProsessTaskStatus.KLAR.name());
-        return restartResultatDto;
+        return new ProsessTaskRestartResultatDto(prosessTaskId, ProsessTaskStatus.KLAR.name(), LocalDateTime.now());
     }
 
     public ProsessTaskRetryAllResultatDto flaggAlleFeileteProsessTasksForRestart() {
-        var retryAllResultatDto = new ProsessTaskRetryAllResultatDto();
-
-        prosessTaskTjeneste.flaggAlleFeileteProsessTasksForRestart().forEach(retryAllResultatDto::addProsessTaskId);
-
-        return retryAllResultatDto;
+        return new ProsessTaskRetryAllResultatDto(prosessTaskTjeneste.restartAlleFeiledeTasks());
     }
 
     public ProsessTaskDataDto opprettTask(ProsessTaskOpprettInputDto inputDto) {
-        var sanitizedTaskType = inputDto.getTaskType().replace("\n", "").replace("\r", "").trim();
+        var sanitizedTaskType = inputDto.taskType().replace("\n", "").replace("\r", "").trim();
         var taskData = ProsessTaskData.forTaskType(new TaskType(sanitizedTaskType));
         var properties = new Properties();
-        properties.putAll(inputDto.getTaskParametre());
+        properties.putAll(inputDto.taskParametre());
         taskData.setProperties(properties);
         prosessTaskTjeneste.lagreValidert(taskData);
 

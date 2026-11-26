@@ -87,7 +87,7 @@ public class RunTaskFeilOgStatusEventHåndterer {
 
         var taskFeil = ProsessTaskFeil.lagProsessTaskFeil(pte.tilProsessTask(), feil);
 
-        var feilkode = taskFeil.getFeilkode();
+        var feilkode = taskFeil.feilkode();
         String feiltekst;
         try {
             feiltekst = taskFeil.writeValueAsString();

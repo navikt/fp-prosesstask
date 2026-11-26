@@ -23,9 +23,9 @@ class ProsessTaskFeilTest {
         // Act
         var prosessTaskFeil = ProsessTaskFeil.lagProsessTaskFeil(prosessTaskData, feil);
 
-        assertThat(prosessTaskFeil.getStackTrace()).isNotNull().contains("IllegalArgumentException").contains("lagEnFeilFraEnMetode");
-        assertThat(prosessTaskFeil.getFeilkode()).isEqualTo("PT-415564");
-        assertThat(prosessTaskFeil.getFeilmelding()).contains("Kunne ikke prosessere task, id=1");
+        assertThat(prosessTaskFeil.stacktrace()).isNotNull().contains("IllegalArgumentException").contains("lagEnFeilFraEnMetode");
+        assertThat(prosessTaskFeil.feilkode()).isEqualTo("PT-415564");
+        assertThat(prosessTaskFeil.feilmelding()).contains("Kunne ikke prosessere task, id=1");
 
         var json = prosessTaskFeil.writeValueAsString();
 
