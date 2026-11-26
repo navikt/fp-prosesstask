@@ -10,7 +10,6 @@ import jakarta.enterprise.context.Dependent;
 import jakarta.enterprise.context.control.ActivateRequestContext;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
-import no.nav.vedtak.felles.prosesstask.api.ProsessTaskStatus;
 
 /**
  * Kjører en task. Flere JVM'er kan kjøre tasks i parallell
@@ -50,25 +49,15 @@ public class FatalErrorTask {
             this.taskInfo = taskInfo;
         }
 
-        RunTaskInfo getTaskInfo() {
-            return taskInfo;
-        }
-
         void runTask(Throwable t) {
             Optional<ProsessTaskEntitet> opt = taskManagerRepository.finnOgLås(taskInfo);
             if (opt.isPresent()) {
                 ProsessTaskEntitet pte = opt.get();
 
                 // Antar alle feil fanget her er fatale.
-                int feiledeForsøk = pte.getFeiledeForsøk() + 1;
-                var taskName = pte.getTaskType();
-                Long taskId = pte.getId();
-                Feil feil = TaskManagerFeil.kunneIkkeProsessereTaskPgaFatalFeilVilIkkePrøveIgjen(taskId, taskName, feiledeForsøk, t);
-                String feilMelding = RunTaskFeilOgStatusEventHåndterer.getFeiltekstOgLoggEventueltHvisEndret(pte, feil, t, true);
-
-                // TODO: denne bør harmoniseres med RunTaskFeilOgStatusEventHåndterer#handleTaskFeil?
-                taskManagerRepository.oppdaterStatusOgNesteKjøring(pte.getId(), ProsessTaskStatus.FEILET, null, feil.kode(), feilMelding,
-                        feiledeForsøk);
+                var feil = TaskManagerFeil.kunneIkkeProsessereTaskPgaFatalFeilVilIkkePrøveIgjen(
+                        pte.getId(), pte.getTaskType(), pte.getFeiledeForsøk() + 1, t);
+                new RunTaskFeilOgStatusEventHåndterer(taskInfo, taskManagerRepository).handleFatalTaskFeil(pte, feil, t);
             } else {
                 LOG.warn(
                         "PT-876631 Fikk ikke lås på prosess task id [{}], type [{}]. Allerede låst eller ryddet. Kan ikke oppdatere status i databasen nå.",

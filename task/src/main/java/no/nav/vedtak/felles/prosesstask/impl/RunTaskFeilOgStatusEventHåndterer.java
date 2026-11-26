@@ -32,37 +32,36 @@ public class RunTaskFeilOgStatusEventHåndterer {
     /**
      * handle exception on task. Update failure count if less than max.
      */
-    protected void handleTaskFeil(ProsessTaskRetryPolicy retryPolicy, ProsessTaskEntitet pte, Exception e) {
+    protected void handleTaskFeil(ProsessTaskRetryPolicy retryPolicy, ProsessTaskEntitet pte, Throwable t) {
         var taskType = pte.getTaskType();
 
         var failureAttempt = pte.getFeiledeForsøk() + 1;
-        if (sjekkOmSkalKjøresPåNytt(e, retryPolicy, failureAttempt)) {
+        if (sjekkOmSkalKjøresPåNytt(t, retryPolicy, failureAttempt)) {
             var nyTid = getNesteKjøringForNyKjøring(retryPolicy, failureAttempt);
-            var feil = kunneIkkeProsessereTaskVilPrøveIgjenEnkelFeilmelding(taskInfo.getId(), taskType, failureAttempt, nyTid, e);
-            var feiltekst = getFeiltekstOgLoggEventueltHvisEndret(pte, feil, e, false);
+            var feil = kunneIkkeProsessereTaskVilPrøveIgjenEnkelFeilmelding(taskInfo.getId(), taskType, failureAttempt, nyTid, t);
+            var feiltekst = getFeiltekstOgLoggEventueltHvisEndret(pte, feil, t, false);
             taskManagerRepository.oppdaterStatusOgNesteKjøring(pte.getId(), ProsessTaskStatus.KLAR, nyTid, feil.kode(), feiltekst, failureAttempt);
         } else {
-            var feil = kunneIkkeProsessereTaskVilIkkePrøveIgjenEnkelFeilmelding(taskInfo.getId(), taskType, failureAttempt, e);
-            handleFatalTaskFeil(pte, feil, e);
+            var feil = kunneIkkeProsessereTaskVilIkkePrøveIgjenEnkelFeilmelding(taskInfo.getId(), taskType, failureAttempt, t);
+            handleFatalTaskFeil(pte, feil, t);
         }
     }
 
-    protected void handleFatalTaskFeil(ProsessTaskEntitet pte, Feil feil, Exception e) {
-        var nyStatus = ProsessTaskStatus.FEILET;
-        var failureAttempt = pte.getFeiledeForsøk() + 1;
-        var feiltekst = getFeiltekstOgLoggEventueltHvisEndret(pte, feil, e, true);
-        taskManagerRepository.oppdaterStatusOgNesteKjøring(pte.getId(), nyStatus, null, feil.kode(), feiltekst, failureAttempt);
+    protected void handleFatalTaskFeil(ProsessTaskEntitet pte, Feil feil, Throwable t) {
+        var feiledeForsøk = pte.getFeiledeForsøk() + 1;
+        var feiltekst = getFeiltekstOgLoggEventueltHvisEndret(pte, feil, t, true);
+        taskManagerRepository.oppdaterStatusOgNesteKjøring(pte.getId(), ProsessTaskStatus.FEILET, null, feil.kode(), feiltekst, feiledeForsøk);
     }
 
     /**
      * handle recoverable / transient exception.
      */
-    protected void handleTransientAndRecoverableException(Exception e) {
+    protected void handleTransientAndRecoverableException(Throwable t) {
         /*
          * assume won't help to try and write to database just now, log only instead
          */
         LOG.info("PT-530440 Kunne ikke prosessere task pga transient database feil: id={}, taskName={}. Vil automatisk prøve igjen",
-                taskInfo.getId(), taskInfo.getTaskType(), e);
+                taskInfo.getId(), taskInfo.getTaskType(), t);
     }
 
     private LocalDateTime getNesteKjøringForNyKjøring(ProsessTaskRetryPolicy retryPolicy, int failureAttempt) {
@@ -71,17 +70,17 @@ public class RunTaskFeilOgStatusEventHåndterer {
         return LocalDateTime.now().plusSeconds(secsBetweenAttempts);
     }
 
-    private boolean sjekkOmSkalKjøresPåNytt(Exception e, ProsessTaskRetryPolicy retryPolicy, int failureAttempt) {
+    private boolean sjekkOmSkalKjøresPåNytt(Throwable t, ProsessTaskRetryPolicy retryPolicy, int failureAttempt) {
 
         // Prøv på nytt hvis kjent exception og feilhåndteringsalgoritmen tilsier nytt forsøk. Ellers fail-fast
-        if (feilhåndteringExceptions(e) || (e.getCause() != null && feilhåndteringExceptions(e.getCause()))) {
-            return retryPolicy.retryTask(failureAttempt, e);
+        if (feilhåndteringExceptions(t) || (t.getCause() != null && feilhåndteringExceptions(t.getCause()))) {
+            return retryPolicy.retryTask(failureAttempt, t);
         }
         return false;
     }
 
-    private boolean feilhåndteringExceptions(Throwable e) {
-        return taskInfo.feilhåndterException(e);
+    private boolean feilhåndteringExceptions(Throwable t) {
+        return taskInfo.feilhåndterException(t);
     }
 
     protected static String getFeiltekstOgLoggEventueltHvisEndret(ProsessTaskEntitet pte, Feil feil, Throwable t, boolean erEndeligFeil) {

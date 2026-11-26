@@ -216,7 +216,6 @@ public class RunTask {
             var now = LocalDateTime.now();
             pte.setSisteKjøring(now);
             pte.setSisteKjøringServer(getJvmUniqueProcessName());
-            getEntityManager().persist(pte);
             getEntityManager().flush();
         }
 
@@ -241,8 +240,8 @@ public class RunTask {
                             nyPte.getTaskType().value(),
                             nyPte.getId(),
                             nyPte.getStatus(),
-                            now,
                             cronExpression,
+                            now,
                             nyPte.getNesteKjøringEtter());
                 }
             }

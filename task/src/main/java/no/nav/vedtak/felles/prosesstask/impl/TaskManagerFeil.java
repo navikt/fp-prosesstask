@@ -14,19 +14,19 @@ class TaskManagerFeil  {
     private TaskManagerFeil() {
     }
 
-    static Feil kunneIkkeProsessereTaskVilPrøveIgjenEnkelFeilmelding(Long taskId, TaskType taskName, int failureAttempt, LocalDateTime localDateTime, Exception e) {
+    static Feil kunneIkkeProsessereTaskVilPrøveIgjenEnkelFeilmelding(Long taskId, TaskType taskName, int failureAttempt, LocalDateTime localDateTime, Throwable t) {
         return new Feil("PT-415564",
                 String.format("Kunne ikke prosessere task, id=%s, taskName=%s. Vil automatisk prøve igjen. Forsøk=%s, Neste kjøring=%s",
                         taskId, taskName.value(), failureAttempt, localDateTime),
-                Level.INFO, e);
+                Level.INFO, t);
     }
 
 
-    static Feil kunneIkkeProsessereTaskVilIkkePrøveIgjenEnkelFeilmelding(Long taskId, TaskType taskName, Integer feiletAntall, Exception e) {
+    static Feil kunneIkkeProsessereTaskVilIkkePrøveIgjenEnkelFeilmelding(Long taskId, TaskType taskName, Integer feiletAntall, Throwable t) {
         return new Feil("PT-876625",
                 String.format("Kunne ikke prosessere task, id=%s, taskName=%s. Har feilet %s ganger. Vil ikke prøve igjen",
                         taskId, taskName.value(), feiletAntall),
-                Level.WARN, e);
+                Level.WARN, t);
     }
 
     static Feil kunneIkkeProsessereTaskPgaFatalFeilVilIkkePrøveIgjen(Long taskId, TaskType taskName, Integer feiletAntall, Throwable t) {
