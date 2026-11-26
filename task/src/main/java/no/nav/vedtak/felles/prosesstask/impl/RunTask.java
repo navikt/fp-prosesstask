@@ -10,9 +10,7 @@ import java.time.LocalDateTime;
 import java.util.Objects;
 import java.util.UUID;
 
-import org.hibernate.Session;
 import org.hibernate.exception.JDBCConnectionException;
-import org.hibernate.jdbc.Work;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -259,43 +257,29 @@ public class RunTask {
         }
 
         void runTask() {
-
             final var pickAndRun = this;
             /*
              * Bruker SQL+JDBC for å kunne benytte savepoints og inkrementell oppdatering i
              * transaksjonen.
              */
-            class PullSingleTask implements Work {
-                @Override
-                public void execute(Connection conn) throws SQLException {
-                    try {
-                        var pte = taskManagerRepository.finnOgLås(taskInfo);
-                        if (pte.isPresent()) {
-                            runTaskAndUpdateStatus(conn, pte.get(), pickAndRun);
-                        }
-                    } catch (JDBCConnectionException
-                            | SQLTransientException
-                            | SQLNonTransientConnectionException
-                            | LockTimeoutException
-                            | OptimisticLockException
-                            | ProsessTaskMidlertidigException
-                            | SQLRecoverableException e) {
-
-                        // vil kun logges
-                        pickAndRun.handleTransientAndRecoverableException(e);
+            getEntityManager().runWithConnection((Connection conn) -> {
+                try {
+                    var pte = taskManagerRepository.finnOgLås(taskInfo);
+                    if (pte.isPresent()) {
+                        runTaskAndUpdateStatus(conn, pte.get(), pickAndRun);
                     }
+                } catch (JDBCConnectionException
+                        | SQLTransientException
+                        | SQLNonTransientConnectionException
+                        | LockTimeoutException
+                        | OptimisticLockException
+                        | ProsessTaskMidlertidigException
+                        | SQLRecoverableException e) {
+
+                    // vil kun logges
+                    pickAndRun.handleTransientAndRecoverableException(e);
                 }
-
-            }
-
-            var pullSingleTask = new PullSingleTask();
-            var em = getEntityManager();
-
-            @SuppressWarnings("resource") // skal ikke lukke session her
-            var session = em.unwrap(Session.class);
-
-            session.doWork(pullSingleTask);
-
+            });
         }
 
     }

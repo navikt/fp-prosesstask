@@ -1,19 +1,14 @@
 package no.nav.vedtak.felles.prosesstask.impl;
 
-import java.sql.Connection;
-import java.sql.SQLException;
 import java.util.Objects;
 import java.util.Optional;
 
-import org.hibernate.Session;
-import org.hibernate.jdbc.Work;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jakarta.enterprise.context.Dependent;
 import jakarta.enterprise.context.control.ActivateRequestContext;
 import jakarta.inject.Inject;
-import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskStatus;
 
@@ -43,10 +38,6 @@ public class FatalErrorTask {
         new PickAndRunErrorTask(taskInfo).runTask(t);
     }
 
-    private EntityManager getEntityManager() {
-        return taskManagerRepository.getEntityManager();
-    }
-
     /**
      * Denne klassen enkapsulerer plukk og kjør en task, og tilhørende bokføring av
      * status og tidsstempler på kjøringen.
@@ -64,44 +55,25 @@ public class FatalErrorTask {
         }
 
         void runTask(Throwable t) {
+            Optional<ProsessTaskEntitet> opt = taskManagerRepository.finnOgLås(taskInfo);
+            if (opt.isPresent()) {
+                ProsessTaskEntitet pte = opt.get();
 
-            /* Bruker SQL+JDBC, unngår hibernate cache. */
-            class PullSingleTask implements Work {
-                @Override
-                public void execute(Connection conn) throws SQLException {
-                    Optional<ProsessTaskEntitet> opt = taskManagerRepository.finnOgLås(taskInfo);
-                    if (opt.isPresent()) {
-                        ProsessTaskEntitet pte = opt.get();
+                // Antar alle feil fanget her er fatale.
+                int feiledeForsøk = pte.getFeiledeForsøk() + 1;
+                var taskName = pte.getTaskType();
+                Long taskId = pte.getId();
+                Feil feil = TaskManagerFeil.kunneIkkeProsessereTaskPgaFatalFeilVilIkkePrøveIgjen(taskId, taskName, feiledeForsøk, t);
+                String feilMelding = RunTaskFeilOgStatusEventHåndterer.getFeiltekstOgLoggEventueltHvisEndret(pte, feil, t, true);
 
-                        // NB: her fyrer p.t. ikke events hvis feilet. Logger derfor bare her til logg
-                        // og database. Antar alle feil fanget her er fatale.
-                        int feiledeForsøk = pte.getFeiledeForsøk() + 1;
-                        var taskName = pte.getTaskType();
-                        Long taskId = pte.getId();
-                        Feil feil = TaskManagerFeil.kunneIkkeProsessereTaskPgaFatalFeilVilIkkePrøveIgjen(taskId, taskName, feiledeForsøk, t);
-                        String feilMelding = RunTaskFeilOgStatusEventHåndterer.getFeiltekstOgLoggEventueltHvisEndret(pte, feil, t, true);
-
-                        // TODO: denne bør harmoniseres med
-                        // RunTaskFeilOgStatusEventHåndterer#handleTaskFeil?
-                        taskManagerRepository.oppdaterStatusOgNesteKjøring(pte.getId(), ProsessTaskStatus.FEILET, null, feil.kode(), feilMelding,
-                                feiledeForsøk);
-                    } else {
-                        LOG.warn(
-                                "PT-876631 Fikk ikke lås på prosess task id [{}], type [{}]. Allerede låst eller ryddet. Kan ikke oppdatere status i databasen nå.",
-                                taskInfo.getId(), taskInfo.getTaskType());
-                    }
-                }
-
+                // TODO: denne bør harmoniseres med RunTaskFeilOgStatusEventHåndterer#handleTaskFeil?
+                taskManagerRepository.oppdaterStatusOgNesteKjøring(pte.getId(), ProsessTaskStatus.FEILET, null, feil.kode(), feilMelding,
+                        feiledeForsøk);
+            } else {
+                LOG.warn(
+                        "PT-876631 Fikk ikke lås på prosess task id [{}], type [{}]. Allerede låst eller ryddet. Kan ikke oppdatere status i databasen nå.",
+                        taskInfo.getId(), taskInfo.getTaskType());
             }
-
-            PullSingleTask pullSingleTask = new PullSingleTask();
-            EntityManager em = getEntityManager();
-
-            @SuppressWarnings("resource") // skal ikke lukke session her
-            Session session = em.unwrap(Session.class);
-
-            session.doWork(pullSingleTask);
-
         }
 
     }

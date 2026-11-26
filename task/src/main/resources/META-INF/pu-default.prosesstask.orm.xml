@@ -6,6 +6,5 @@
                  version="3.0">
 
     <entity class="no.nav.vedtak.felles.prosesstask.impl.ProsessTaskEntitet"/>
-    <entity class="no.nav.vedtak.felles.prosesstask.impl.StartupData"/>
 
 </entity-mappings>
