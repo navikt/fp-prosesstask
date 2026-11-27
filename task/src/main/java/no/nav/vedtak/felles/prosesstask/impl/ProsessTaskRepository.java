@@ -244,23 +244,18 @@ public class ProsessTaskRepository {
     }
 
 
-    public int slettGamleFerdige(LocalDateTime opprettetFør) {
+    public void slettGamleFerdige(LocalDateTime opprettetFør) {
         var query = entityManager.createNativeQuery("DELETE FROM PROSESS_TASK WHERE STATUS = :ferdig AND OPPRETTET_TID < :tid")
                 .setParameter("ferdig", ProsessTaskStatus.FERDIG.getDbKode())
                 .setParameter("tid", opprettetFør);
-        var deletedRows = query.executeUpdate();
+        query.executeUpdate();
         entityManager.flush();
-
-        return deletedRows;
     }
 
-    public int tømNestePartisjon() {
-        var partisjonsNr = utledPartisjonsNr(LocalDate.now());
-        var query = entityManager.createNativeQuery("TRUNCATE prosess_task_partition_ferdig_" + partisjonsNr); // NOSONAR  - denne er OK
-        var updatedRows = query.executeUpdate();
+    public void tømNestePartisjon() {
+        var partisjon = "prosess_task_partition_ferdig_" + utledPartisjonsNr(LocalDate.now());
+        entityManager.createNativeQuery("TRUNCATE " + partisjon).executeUpdate(); // NOSONAR - denne er OK
         entityManager.flush();
-
-        return updatedRows;
     }
 
     static String utledPartisjonsNr(LocalDate date) {

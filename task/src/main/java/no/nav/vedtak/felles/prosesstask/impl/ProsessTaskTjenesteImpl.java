@@ -167,19 +167,19 @@ public class ProsessTaskTjenesteImpl implements ProsessTaskTjeneste {
     }
 
     @Override
-    public int slettÅrsgamleFerdige() {
-        return prosessTaskRepository.slettGamleFerdige(LocalDateTime.now().minusYears(1));
+    public void slettÅrsgamleFerdige() {
+        prosessTaskRepository.slettGamleFerdige(LocalDateTime.now().minusYears(1));
     }
 
     @Override
-    public int slettFerdigeEldreEnn(LocalDateTime opprettetFør) {
-        return prosessTaskRepository.slettGamleFerdige(opprettetFør);
+    public void slettFerdigeEldreEnn(LocalDateTime opprettetFør) {
+        prosessTaskRepository.slettGamleFerdige(opprettetFør);
     }
 
 
     @Override
-    public int tømNestePartisjon() {
-        return prosessTaskRepository.tømNestePartisjon();
+    public void tømNestePartisjon() {
+        prosessTaskRepository.tømNestePartisjon();
     }
 
     @Override

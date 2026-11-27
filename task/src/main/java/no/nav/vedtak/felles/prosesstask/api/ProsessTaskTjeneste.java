@@ -54,8 +54,8 @@ public interface ProsessTaskTjeneste {
     /*
      * Slett ett år gamle tasks for hhv Oracle (slettÅrsgamleFerdige) og Postgres (tømNestePartisjon - antatt partisjoner)
      */
-    int slettÅrsgamleFerdige();
-    int slettFerdigeEldreEnn(LocalDateTime opprettetFør);
-    int tømNestePartisjon();
+    void slettÅrsgamleFerdige();
+    void slettFerdigeEldreEnn(LocalDateTime opprettetFør);
+    void tømNestePartisjon();
 
 }
