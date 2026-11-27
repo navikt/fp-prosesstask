@@ -73,6 +73,32 @@ class ProsessTaskRepositoryImplTest extends EntityManagerAwareTest {
         Assertions.assertThat(tasks).hasSize(6);
     }
 
+    @Test
+    void test_tøm_neste_partisjon_returnerer_antall_tømte_rader() {
+        var nestePartisjon = ProsessTaskRepository.utledPartisjonsNr(LocalDate.now());
+        lagFerdigTaskIPartisjon(nestePartisjon);
+        lagFerdigTaskIPartisjon(nestePartisjon);
+
+        var antall = prosessTaskRepository.tømNestePartisjon();
+
+        Assertions.assertThat(antall).isEqualTo(2);
+        Assertions.assertThat(antallRader("SELECT count(*) FROM prosess_task_partition_ferdig_" + nestePartisjon)).isZero();
+        // FERDIG-tasken fra lagTestData ligger i inneværende måneds partisjon og skal ikke røres
+        Assertions.assertThat(antallRader("SELECT count(*) FROM prosess_task WHERE status = 'FERDIG'")).isEqualTo(1);
+    }
+
+    private void lagFerdigTaskIPartisjon(String partisjonsNr) {
+        getEntityManager().createNativeQuery(
+                "INSERT INTO prosess_task (id, task_type, status, partition_key) VALUES (nextval('seq_prosess_task'), :taskType, 'FERDIG', :partisjon)")
+            .setParameter("taskType", TASK_TYPE.value())
+            .setParameter("partisjon", partisjonsNr)
+            .executeUpdate();
+    }
+
+    private long antallRader(String sql) {
+        return ((Number) getEntityManager().createNativeQuery(sql).getSingleResult()).longValue();
+    }
+
     private void lagTestData() {
         lagre(lagTestEntitet(ProsessTaskStatus.FERDIG, NÅ.minusHours(2), TASK_TYPE));
         lagre(lagTestEntitet(ProsessTaskStatus.KJOERT, NÅ.minusMinutes(59), TASK_TYPE));

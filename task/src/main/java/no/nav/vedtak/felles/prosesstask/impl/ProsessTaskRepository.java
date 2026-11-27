@@ -254,13 +254,18 @@ public class ProsessTaskRepository {
         return deletedRows;
     }
 
+    /**
+     * Tømmer partisjonen med ferdige tasks for neste måned. TRUNCATE gir ikke antall rader,
+     * så vi teller først i samme transaksjon.
+     */
     public int tømNestePartisjon() {
-        var partisjonsNr = utledPartisjonsNr(LocalDate.now());
-        var query = entityManager.createNativeQuery("TRUNCATE prosess_task_partition_ferdig_" + partisjonsNr); // NOSONAR  - denne er OK
-        var updatedRows = query.executeUpdate();
+        var partisjon = "prosess_task_partition_ferdig_" + utledPartisjonsNr(LocalDate.now());
+        var antall = ((Number) entityManager.createNativeQuery("SELECT count(*) FROM " + partisjon) // NOSONAR - denne er OK
+                .getSingleResult()).intValue();
+        entityManager.createNativeQuery("TRUNCATE " + partisjon).executeUpdate(); // NOSONAR - denne er OK
         entityManager.flush();
 
-        return updatedRows;
+        return antall;
     }
 
     static String utledPartisjonsNr(LocalDate date) {
