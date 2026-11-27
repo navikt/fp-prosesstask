@@ -56,6 +56,9 @@ public @interface ProsessTask {
     @Nonbinding
     int prioritet() default 1;
 
+    @Nonbinding
+    TaskRekkefølge taskRekkefølge() default TaskRekkefølge.GRUPPE;
+
     /**
      * Cron-expression to schedule next instance of a repeating task.
      */

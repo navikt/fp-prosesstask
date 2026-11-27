@@ -1,33 +1,92 @@
 package no.nav.vedtak.felles.prosesstask.api;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Properties;
 import java.util.UUID;
-
-import org.slf4j.MDC;
 
 public class ProsessTaskGruppe {
 
     private int sekvensNr;
+    private final String gruppenavn;
+    private final TaskRekkefølge taskRekkefølge;
+    private final Long offset;
+    private boolean beholdeKildeSekvens = false;
     private final List<Entry> tasks = new ArrayList<>();
 
-    private final Map<String, String> props = new HashMap<>();
+    private final Properties props = new Properties();
 
-    public ProsessTaskGruppe() {
-        // empty gruppe
+    private ProsessTaskGruppe(TaskRekkefølge taskRekkefølge, String gruppenavn, ProsessTaskData prosessTaskData) {
+        var gruppeFraParam = Optional.ofNullable(gruppenavn).filter(g -> !g.isBlank());
+        this.gruppenavn = switch (taskRekkefølge) {
+            case GRUPPE -> gruppeFraParam.orElseGet(() -> UUID.randomUUID().toString());
+            case GLOBAL, SAKSNUMMER, TASK_TYPE -> gruppeFraParam
+                .orElseThrow(() -> new IllegalArgumentException("Må angi gruppenavn for global gruppe / taskType"));
+        };
+        this.taskRekkefølge = taskRekkefølge;
+        this.offset = taskRekkefølge.global() ? Instant.now().toEpochMilli() * 1000 : 0L;
+        if (TaskRekkefølge.SAKSNUMMER.equals(taskRekkefølge)) {
+            setSaksnummer(gruppenavn);
+        }
+        if (prosessTaskData != null) {
+            tasks.add(new Entry(++sekvensNr, prosessTaskData));
+        }
     }
 
-    public ProsessTaskGruppe(ProsessTaskData data) {
-        // behold sekvens hvis satt fra før, ellers sett til 1
-        String sekvens = data.getSekvens() != null ? data.getSekvens() : Integer.toString(++sekvensNr);
-        tasks.add(new Entry(sekvens, data));
+    public static ProsessTaskGruppe forUtenRekkefølge(Class<? extends ProsessTaskHandler> clazz) {
+        return new ProsessTaskGruppe(TaskRekkefølge.TASK_TYPE, TaskType.forProsessTask(clazz).value(), null);
+    }
+
+    public static ProsessTaskGruppe forUtenRekkefølge(TaskType taskType) {
+        return new ProsessTaskGruppe(TaskRekkefølge.TASK_TYPE, taskType.value(), null);
+    }
+
+    public static ProsessTaskGruppe forGruppeRekkefølge() {
+        return new ProsessTaskGruppe(TaskRekkefølge.GRUPPE,null, null);
+    }
+
+    public static ProsessTaskGruppe forGlobalRekkefølge(String gruppenavn) {
+        return new ProsessTaskGruppe(TaskRekkefølge.GLOBAL, Objects.requireNonNull(gruppenavn, "gruppenavn"), null);
+    }
+
+    public static ProsessTaskGruppe forSaksnummer(String saksnummer) {
+        return new ProsessTaskGruppe(TaskRekkefølge.SAKSNUMMER, Objects.requireNonNull(saksnummer, "saksnummer"), null);
+    }
+
+    public static ProsessTaskGruppe fraProsessTask(ProsessTaskData prosessTaskData) {
+        return fraProsessTask(prosessTaskData.taskRekkefølge(), prosessTaskData);
+    }
+
+    public static ProsessTaskGruppe fraProsessTask(TaskRekkefølge taskRekkefølge, ProsessTaskData prosessTaskData) {
+        return switch (taskRekkefølge) {
+            case GRUPPE -> new ProsessTaskGruppe(taskRekkefølge, prosessTaskData.getGruppe(), prosessTaskData);
+            case GLOBAL -> new ProsessTaskGruppe(TaskRekkefølge.GLOBAL, prosessTaskData.getGruppe(), prosessTaskData);
+            case SAKSNUMMER -> new ProsessTaskGruppe(TaskRekkefølge.SAKSNUMMER, prosessTaskData.getSaksnummer(), prosessTaskData);
+            case TASK_TYPE -> new ProsessTaskGruppe(TaskRekkefølge.TASK_TYPE, prosessTaskData.taskType().value(), prosessTaskData);
+        };
     }
 
     public List<Entry> getTasks() {
+        return Collections.unmodifiableList(tasks);
+    }
+
+    public List<Entry> getTasksForLagring() {
+        var maxSekvens = this.taskRekkefølge.global() ? Long.MAX_VALUE : (tasks.stream().mapToLong(Entry::sekvens).max().orElse(1L) + offset);
+        var formatString = "%0" + Long.toString(maxSekvens).length() + "d";
+        tasks.forEach(t -> {
+            t.task().setProperties(props);
+            t.task().setGruppe(gruppenavn);
+            if (!beholdeKildeSekvens) {
+                t.task().setSekvens(formatString.formatted(t.sekvens() + offset));
+            } else if (t.task().getSekvens() == null) {
+                throw new IllegalStateException("BeholdeKildeSekvens er satt, men task har ikke sekvens. Task: " + t.task());
+            }
+        });
         return Collections.unmodifiableList(tasks);
     }
 
@@ -54,10 +113,7 @@ public class ProsessTaskGruppe {
     }
 
     private void leggTil(ProsessTaskData pt) {
-        // kopier ned props til tasks siden de lagrer dette.
-        props.entrySet().stream().forEach(e -> pt.setProperty(e.getKey(), e.getValue()));
-
-        tasks.add(new Entry(Integer.toString(sekvensNr), pt));
+        tasks.add(new Entry(TaskRekkefølge.TASK_TYPE.equals(taskRekkefølge) ? 1L : sekvensNr, pt));
     }
 
     public ProsessTaskGruppe addNesteParallell(Collection<ProsessTaskData> prosessTasks) {
@@ -68,28 +124,37 @@ public class ProsessTaskGruppe {
         return this;
     }
 
-    public static record Entry(String sekvens, ProsessTaskData task) {}
+    public record Entry(long sekvens, ProsessTaskData task) {}
 
     // FagsakId med inntil videre pga FagsakProsessTask i enkelte apps
     public void setBehandling(String saksnummer, Long behandlingId) {
-        this.getTasks().forEach(e -> e.task().setBehandling(saksnummer, behandlingId));
+        setSaksnummer(saksnummer);
+        setBehandlingId(behandlingId);
     }
 
     public void setBehandling(String saksnummer, UUID behandlingUuid, Long behandlingId) {
-        this.getTasks().forEach(e -> e.task().setBehandling(saksnummer, behandlingUuid, behandlingId));
+        setSaksnummer(saksnummer);
+        setBehandlingId(behandlingId);
+        setBehandlingUuid(behandlingUuid);
     }
 
     public void setFagsak(String saksnummer) {
-        this.getTasks().forEach(e -> e.task().setFagsak(saksnummer));
+        setSaksnummer(saksnummer);
     }
 
-    // For bruk der FagsakProsessTask ikke er aktuell
     public void setBehandlingUuid(UUID behandlingUuid) {
-        this.getTasks().forEach(e -> e.task().setBehandlingUUid(behandlingUuid));
+        Objects.requireNonNull(behandlingUuid, "behandlingUuid");
+        setProperty(CommonTaskProperties.BEHANDLING_UUID, behandlingUuid.toString());
+    }
+
+    public void setBehandlingId(Long behandlingId) {
+        Objects.requireNonNull(behandlingId, "behandlingId");
+        setProperty(CommonTaskProperties.BEHANDLING_ID, Long.toString(behandlingId));
     }
 
     public void setSaksnummer(String saksnummer) {
-        this.getTasks().forEach(e -> e.task().setSaksnummer(saksnummer));
+        Objects.requireNonNull(saksnummer, "saksnummer");
+        setProperty(CommonTaskProperties.SAKSNUMMER, saksnummer);
     }
 
     public void setCallId(String callId) {
@@ -101,16 +166,22 @@ public class ProsessTaskGruppe {
     }
 
     public void setProperty(String key, String value) {
-        props.put(key, value);
-        for (Entry pt : tasks) {
-            // skriv til tidligere lagt til (overskriver evt. tidligere verdier.)
-            pt.task.setProperty(key, value);
-        }
+        ProsessTaskData.setProperty(this.props, key, value);
     }
 
-    @Deprecated(forRemoval = true) // Default oppførsel
-    public void setCallIdFraEksisterende() {
-        setCallId(MDC.get(CallId.CALL_ID));
+    // Spesielt tilfelle der det opprettes en ny callback-receiver task med samme gruppe og sekvens som en eksisterende task.
+    public static ProsessTaskGruppe forSammeGruppeSekvens(Class<? extends ProsessTaskHandler> clazz, ProsessTaskData opphavsTask) {
+        if (!opphavsTask.taskRekkefølge().global()) {
+            throw new IllegalArgumentException("Kan kun velge denne for global rekkefølge");
+        }
+        var prosessTaskData = ProsessTaskData.forProsessTask(clazz);
+        prosessTaskData.setProperties(opphavsTask.getProperties());
+        prosessTaskData.setPayload(opphavsTask.getPayloadAsString());
+        prosessTaskData.setGruppe(opphavsTask.getGruppe());
+        prosessTaskData.setSekvens(opphavsTask.getSekvens());
+        var gruppe = ProsessTaskGruppe.fraProsessTask(prosessTaskData);
+        gruppe.beholdeKildeSekvens = true;
+        return gruppe;
     }
 
 }

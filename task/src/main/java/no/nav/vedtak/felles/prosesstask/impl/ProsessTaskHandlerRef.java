@@ -14,6 +14,7 @@ import jakarta.enterprise.util.AnnotationLiteral;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTask;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskHandler;
+import no.nav.vedtak.felles.prosesstask.api.TaskRekkefølge;
 import no.nav.vedtak.felles.prosesstask.api.TaskType;
 import no.nav.vedtak.felles.prosesstask.impl.cron.CronExpression;
 import no.nav.vedtak.felles.prosesstask.spi.ProsessTaskRetryPolicy;
@@ -99,6 +100,11 @@ public class ProsessTaskHandlerRef implements AutoCloseable {
         @Override
         public String value() {
             return taskType;
+        }
+
+        @Override
+        public TaskRekkefølge taskRekkefølge() {
+            return TaskRekkefølge.GRUPPE;
         }
 
         @Override
