@@ -74,14 +74,13 @@ class ProsessTaskRepositoryImplTest extends EntityManagerAwareTest {
     }
 
     @Test
-    void test_tøm_neste_partisjon_returnerer_antall_tømte_rader() {
+    void test_tøm_neste_partisjon() {
         var nestePartisjon = ProsessTaskRepository.utledPartisjonsNr(LocalDate.now());
         lagFerdigTaskIPartisjon(nestePartisjon);
         lagFerdigTaskIPartisjon(nestePartisjon);
 
-        var antall = prosessTaskRepository.tømNestePartisjon();
+        prosessTaskRepository.tømNestePartisjon();
 
-        Assertions.assertThat(antall).isEqualTo(2);
         Assertions.assertThat(antallRader("SELECT count(*) FROM prosess_task_partition_ferdig_" + nestePartisjon)).isZero();
         // FERDIG-tasken fra lagTestData ligger i inneværende måneds partisjon og skal ikke røres
         Assertions.assertThat(antallRader("SELECT count(*) FROM prosess_task WHERE status = 'FERDIG'")).isEqualTo(1);

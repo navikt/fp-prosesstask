@@ -244,28 +244,18 @@ public class ProsessTaskRepository {
     }
 
 
-    public int slettGamleFerdige(LocalDateTime opprettetFør) {
+    public void slettGamleFerdige(LocalDateTime opprettetFør) {
         var query = entityManager.createNativeQuery("DELETE FROM PROSESS_TASK WHERE STATUS = :ferdig AND OPPRETTET_TID < :tid")
                 .setParameter("ferdig", ProsessTaskStatus.FERDIG.getDbKode())
                 .setParameter("tid", opprettetFør);
-        var deletedRows = query.executeUpdate();
+        query.executeUpdate();
         entityManager.flush();
-
-        return deletedRows;
     }
 
-    /**
-     * Tømmer partisjonen med ferdige tasks for neste måned. TRUNCATE gir ikke antall rader,
-     * så vi teller først i samme transaksjon.
-     */
-    public int tømNestePartisjon() {
+    public void tømNestePartisjon() {
         var partisjon = "prosess_task_partition_ferdig_" + utledPartisjonsNr(LocalDate.now());
-        var antall = ((Number) entityManager.createNativeQuery("SELECT count(*) FROM " + partisjon) // NOSONAR - denne er OK
-                .getSingleResult()).intValue();
         entityManager.createNativeQuery("TRUNCATE " + partisjon).executeUpdate(); // NOSONAR - denne er OK
         entityManager.flush();
-
-        return antall;
     }
 
     static String utledPartisjonsNr(LocalDate date) {
